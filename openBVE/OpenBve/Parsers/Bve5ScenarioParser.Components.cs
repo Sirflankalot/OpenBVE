@@ -33,7 +33,7 @@ namespace OpenBve
 			{
 				double version = 0;
 				Interface.TryParseDoubleVb6(b, out version);
-				if (version != 1.0)
+				if (version > 1.0)
 				{
 					throw new Exception(version + " is not a supported BVE5 structure list version");
 				}
@@ -48,6 +48,14 @@ namespace OpenBve
 				//Cycle through the list of objects
 				//An object index is formatted as follows:
 				// --KEY USED BY ROUTEFILE-- , --PATH TO OBJECT RELATIVE TO STRUCTURE FILE--
+
+				//Remove comments
+				Lines[i].TrimBVE5Comments();
+				if (Lines[i].Length == 0)
+				{
+					continue;
+				}
+
 				int a = Lines[i].IndexOf(',');
 				string FilePath = Lines[i].Substring(a + 1, Lines[i].Length - a - 1);
 				string Name = Lines[i].Substring(0, a);
@@ -113,7 +121,7 @@ namespace OpenBve
 			{
 				double version = 0;
 				Interface.TryParseDoubleVb6(b, out version);
-				if (version != 2.0)
+				if (version > 2.0)
 				{
 					throw new Exception(version + " is not a supported BVE5 station list version");
 				}
@@ -125,8 +133,8 @@ namespace OpenBve
 			int CurrentStation = 0;
 			for (int i = 1; i < Lines.Length; i++)
 			{
-
-				if (Lines[i].StartsWith("#"))
+				//Remove comments				Lines[i].TrimBVE5Comments();
+				if (Lines[i].Length == 0)
 				{
 					continue;
 				}
@@ -270,7 +278,7 @@ namespace OpenBve
 			{
 				double version = 0;
 				Interface.TryParseDoubleVb6(b, out version);
-				if (version != 2.0)
+				if (version > 2.0)
 				{
 					throw new Exception(version + " is not a supported BVE5 signal aspect list version");
 				}
@@ -283,11 +291,13 @@ namespace OpenBve
 			int index = 0;
 			for (int i = 1; i < Lines.Length; i++)
 			{
-
-				if (Lines[i].StartsWith("#"))
+				//Remove comments
+				Lines[i].TrimBVE5Comments();
+				if (Lines[i].Length == 0)
 				{
 					continue;
 				}
+
 				string[] Arguments = Lines[i].Split(',');
 				//If the key is blank, this line defines the glows for the previous line....
 				if (Arguments.Length < 0)

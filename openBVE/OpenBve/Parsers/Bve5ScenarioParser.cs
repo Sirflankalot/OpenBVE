@@ -323,6 +323,9 @@ namespace OpenBve
 					case "route":
 						RouteFile = Path.GetDirectoryName(FileName) + "\\" + key[1].Trim();
 						break;
+					case "image":
+						Game.RouteImage = Path.GetDirectoryName(FileName) + "\\" + key[1].Trim();
+						break;
 				}
 			}
 			ParseRouteForData(RouteFile, Encoding, TrainPath, ObjectPath, SoundPath, ref Data, PreviewOnly);
@@ -348,9 +351,9 @@ namespace OpenBve
 			int BlockIndex = 0;
 			for (int e = 0; e < Expressions.Length; e++)
 			{
-				if (Expressions[e].Text.StartsWith("#"))
+				if (Expressions[e].Text.StartsWith("#") || Expressions[e].Text.StartsWith("//"))
 				{
-					//Skip comments
+					//Skip comments and blank lines
 					continue;
 				}
 				double Number;
@@ -490,7 +493,7 @@ namespace OpenBve
 							}
 							continue;
 						}
-						if (command.StartsWith("signal") && !PreviewOnly && !command.StartsWith("signal.load"))
+						if (command.StartsWith("signal") && !PreviewOnly && !command.StartsWith("signal.load") && !command.StartsWith("signal.speedlimit"))
 						{
 							//Add signal
 							int ida = Expressions[e].Text.IndexOf('[');
@@ -570,6 +573,26 @@ namespace OpenBve
 								default:
 									//Not currently supported....
 									break;
+							}
+							continue;
+						}
+						if (command.StartsWith("light.") && !PreviewOnly)
+						{
+							//Configures the route light							int ida = Expressions[e].Text.IndexOf('.');
+							int idb = Expressions[e].Text.IndexOf('(');
+							string key = Expressions[e].Text.Substring(ida + 1, idb - ida - 1).ToLowerInvariant();
+							switch (key)
+							{
+								case "ambient":
+									SetAmbientLight(Arguments);
+									break;
+								case "diffuse":
+									SetDiffuseLight(Arguments);
+									break;
+								case "direction":
+									SetLightDirection(Arguments);
+									break;
+
 							}
 							continue;
 						}
@@ -806,7 +829,7 @@ namespace OpenBve
 												}
 												//Call the loader method
 												var StructureFile = OpenBveApi.Path.CombineFile(Path.GetDirectoryName(FileName), Arguments[i]);
-												Encoding enc = Bve5ScenarioParser.DetermineFileEncoding(StructureFile, Encoding);
+												Encoding enc = Bve5ScenarioParser.DetermineFileEncoding(StructureFile);
 												LoadObjects(StructureFile, ref Data, enc, PreviewOnly);
 											}
 										}
@@ -828,7 +851,7 @@ namespace OpenBve
 													Arguments[i] = Arguments[i].Substring(1, Arguments[i].Length - 2);
 												}
 												var StationFile = OpenBveApi.Path.CombineFile(Path.GetDirectoryName(FileName), Arguments[i]);
-												Encoding enc = Bve5ScenarioParser.DetermineFileEncoding(StationFile, Encoding);
+												Encoding enc = Bve5ScenarioParser.DetermineFileEncoding(StationFile);
 												//Call the loader method
 												LoadStations(StationFile, ref Data, enc, PreviewOnly);
 											}
@@ -855,7 +878,7 @@ namespace OpenBve
 													Arguments[i] = Arguments[i].Substring(1, Arguments[i].Length - 2);
 												}
 												var SignalFile = OpenBveApi.Path.CombineFile(Path.GetDirectoryName(FileName), Arguments[i]);
-												Encoding enc = Bve5ScenarioParser.DetermineFileEncoding(SignalFile, Encoding);
+												Encoding enc = Bve5ScenarioParser.DetermineFileEncoding(SignalFile);
 												//Call the loader method
 												LoadSections(SignalFile, ref Data, enc);
 											}
