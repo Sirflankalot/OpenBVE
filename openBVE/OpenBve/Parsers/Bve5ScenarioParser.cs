@@ -394,10 +394,7 @@ namespace OpenBve
 							int idb = Expressions[e].Text.IndexOf(']');
 							string key = Expressions[e].Text.Substring(ida + 1, idb - ida -1);
 							//Remove the single quotes BVE5 uses to surround names
-							if (key.StartsWith("'") && key.EndsWith("'"))
-							{
-								key = key.Substring(1, key.Length - 2);
-							}
+							key = key.RemoveEnclosingQuotes();
 							if (!PreviewOnly)
 							{
 								PutStructure(key, Arguments, ref Data, BlockIndex, UnitOfLength);
@@ -411,10 +408,7 @@ namespace OpenBve
 							int idb = Expressions[e].Text.IndexOf(']');
 							string key = Expressions[e].Text.Substring(ida + 1, idb - ida - 1);
 							//Remove the single quotes BVE5 uses to surround names
-							if (key.StartsWith("'") && key.EndsWith("'"))
-							{
-								key = key.Substring(1, key.Length - 2);
-							}
+							key = key.RemoveEnclosingQuotes();
 							PutStation(key, Arguments, ref Data, BlockIndex, UnitOfLength);
 							continue;
 						}
@@ -440,10 +434,7 @@ namespace OpenBve
 									continue;
 							}
 							//Remove the single quotes BVE5 uses to surround names
-							if (key.StartsWith("'") && key.EndsWith("'"))
-							{
-								key = key.Substring(1, key.Length - 2);
-							}
+							key = key.RemoveEnclosingQuotes();
 							if (Start)
 							{
 								StartRepeater(key, Arguments, ref Data, BlockIndex, UnitOfLength);
@@ -500,10 +491,7 @@ namespace OpenBve
 							int idb = Expressions[e].Text.IndexOf(']');
 							string key = Expressions[e].Text.Substring(ida + 1, idb - ida - 1);
 							//Remove the single quotes BVE5 uses to surround names
-							if (key.StartsWith("'") && key.EndsWith("'"))
-							{
-								key = key.Substring(1, key.Length - 2);
-							}
+							key = key.RemoveEnclosingQuotes();
 							if (!PreviewOnly)
 							{
 								PlaceSignal(key, Arguments, ref Data, BlockIndex, CurrentSection, UnitOfLength);
@@ -561,10 +549,7 @@ namespace OpenBve
 							string key = Expressions[e].Text.Substring(ida + 1, idb - ida - 1);
 							string type = Expressions[e].Text.Substring(idb + 2, idc - idb - 2).ToLowerInvariant();
 							//Remove the single quotes BVE5 uses to surround names
-							if (key.StartsWith("'") && key.EndsWith("'"))
-							{
-								key = key.Substring(1, key.Length - 2);
-							}
+							key = key.RemoveEnclosingQuotes();
 							switch (type)
 							{
 								case "position":
@@ -578,7 +563,8 @@ namespace OpenBve
 						}
 						if (command.StartsWith("light.") && !PreviewOnly)
 						{
-							//Configures the route light							int ida = Expressions[e].Text.IndexOf('.');
+							//Configures the route light
+							int ida = Expressions[e].Text.IndexOf('.');
 							int idb = Expressions[e].Text.IndexOf('(');
 							string key = Expressions[e].Text.Substring(ida + 1, idb - ida - 1).ToLowerInvariant();
 							switch (key)
@@ -701,8 +687,6 @@ namespace OpenBve
 		private static void PreprocessOptions(string FileName, Expression[] Expressions, ref RouteData Data, ref double[] UnitOfLength, bool PreviewOnly, System.Text.Encoding Encoding)
 		{
 			System.Globalization.CultureInfo Culture = System.Globalization.CultureInfo.InvariantCulture;
-			string Section = "";
-			bool SectionAlwaysPrefix = false;
 			// process expressions
 			for (int j = 0; j < Expressions.Length; j++)
 			{
@@ -711,8 +695,7 @@ namespace OpenBve
 					SeparateCommandsAndArguments(Expressions[j], out Command, out ArgumentSequence, Culture, true);
 					// process command
 					double Number;
-					bool NumberCheck = false;
-					if (!NumberCheck || !Interface.TryParseDoubleVb6(Command, UnitOfLength, out Number))
+					if (!Interface.TryParseDoubleVb6(Command, UnitOfLength, out Number))
 					{
 						// split arguments
 						string[] Arguments;
@@ -742,33 +725,7 @@ namespace OpenBve
 							}
 							Array.Resize<string>(ref Arguments, h);
 						}
-						// preprocess command
-						if (Command.ToLowerInvariant() == "with")
-						{
-							if (Arguments.Length >= 1)
-							{
-								Section = Arguments[0];
-								SectionAlwaysPrefix = false;
-							}
-							else
-							{
-								Section = "";
-								SectionAlwaysPrefix = false;
-							}
-							Command = null;
-						}
-						else
-						{
-							if (Command.StartsWith("."))
-							{
-								Command = Section + Command;
-							}
-							else if (SectionAlwaysPrefix)
-							{
-								Command = Section + "." + Command;
-							}
-							Command = Command.Replace(".Void", "");
-						}
+
 
 						// handle indices
 						if (Command != null && Command.EndsWith(")"))

@@ -50,7 +50,7 @@ namespace OpenBve
 				// --KEY USED BY ROUTEFILE-- , --PATH TO OBJECT RELATIVE TO STRUCTURE FILE--
 
 				//Remove comments
-				Lines[i].TrimBVE5Comments();
+				Lines[i] = Lines[i].TrimBVE5Comments();
 				if (Lines[i].Length == 0)
 				{
 					continue;
@@ -133,7 +133,8 @@ namespace OpenBve
 			int CurrentStation = 0;
 			for (int i = 1; i < Lines.Length; i++)
 			{
-				//Remove comments				Lines[i].TrimBVE5Comments();
+				//Remove comments
+				Lines[i] = Lines[i].TrimBVE5Comments();
 				if (Lines[i].Length == 0)
 				{
 					continue;
@@ -292,7 +293,7 @@ namespace OpenBve
 			for (int i = 1; i < Lines.Length; i++)
 			{
 				//Remove comments
-				Lines[i].TrimBVE5Comments();
+				Lines[i] = Lines[i].TrimBVE5Comments();
 				if (Lines[i].Length == 0)
 				{
 					continue;

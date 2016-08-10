@@ -87,7 +87,28 @@ namespace OpenBve
 			{
 				String = String.Substring(0, k);
 			}
+
+			String = String.Trim();
+			return String;
+		}
+
+		/// <summary>Removes single or double quotes enclosing a string.</summary>
+		/// <param name="String">The string to trim.</param>
+		public static string RemoveEnclosingQuotes(this string String)
+		{
+			if (String.StartsWith("'") && String.EndsWith("'"))
+			{
+				String = String.Substring(1, String.Length - 2);
+			}
+
+			if (String.StartsWith("\"") && String.EndsWith("\""))
+			{
+				String = String.Substring(1, String.Length - 2);
+			}
 			return String;
 		}
 	}
+
+
+
 }

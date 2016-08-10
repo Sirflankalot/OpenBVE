@@ -133,11 +133,7 @@ namespace OpenBve
 		{
 			//Find the key in our object list
 			int sttype = FindStructureIndex(key, Data);
-			string railkey = Arguments[0];
-			if (railkey.StartsWith("'") && railkey.EndsWith("'"))
-			{
-				railkey = railkey.Substring(1, railkey.Length - 2);
-			}
+			string railkey = Arguments[0].RemoveEnclosingQuotes();
 			int idx = FindRailIndex(railkey.Trim(), Data.Blocks[BlockIndex].Rail);
 			if (idx == -1)
 			{
@@ -342,11 +338,7 @@ namespace OpenBve
 			//Parse the repeater data
 			if (Arguments.Length > 4)
 			{
-				string railkey = Arguments[0].Trim();
-				if (railkey.StartsWith("'") && railkey.EndsWith("'"))
-				{
-					railkey = railkey.Substring(1, railkey.Length - 2);
-				}
+				string railkey = Arguments[0].RemoveEnclosingQuotes();
 				idx = FindRailIndex(railkey.Trim(), Data.Blocks[BlockIndex].Rail);
 				if (idx == -1)
 				{
@@ -649,9 +641,7 @@ namespace OpenBve
 			else
 			{
 				Data.Blocks[BlockIndex].RunSounds[idx].RunSoundIndex = RunSoundIndex;
-			}
-			idx++;
-			
+			}		
 		}
 
 		/// <summary>Changes the current flange sound</summary>
@@ -679,7 +669,6 @@ namespace OpenBve
 			{
 				Data.Blocks[BlockIndex].RunSounds[idx].FlangeSoundIndex = FlangeSoundIndex;
 			}
-			idx++;
 		}
 
 		/// <summary>Sets the route ambient light</summary>
@@ -728,7 +717,8 @@ namespace OpenBve
 			}
 			else if (r < 0 | r > 1)
 			{
-				//Interface.AddMessage(Interface.MessageType.Error, false, "RedValue is required to be within the range from 0 to 1 in Light.Diffuse at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);				r = r < 0 ? 0 : 1;
+				//Interface.AddMessage(Interface.MessageType.Error, false, "RedValue is required to be within the range from 0 to 1 in Light.Diffuse at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+				r = r < 0 ? 0 : 1;
 			}
 			if (Arguments.Length >= 2 && Arguments[1].Length > 0 && !Interface.TryParseFloatVb6(Arguments[1], out g))
 			{
@@ -736,14 +726,17 @@ namespace OpenBve
 			}
 			else if (g < 0 | g > 1)
 			{
-				//Interface.AddMessage(Interface.MessageType.Error, false, "GreenValue is required to be within the range from 0 to 1 in Light.Diffuse at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);				g = g < 0 ? 0 : 1;
+				//Interface.AddMessage(Interface.MessageType.Error, false, "GreenValue is required to be within the range from 0 to 1 in Light.Diffuse at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+				g = g < 0 ? 0 : 1;
 			}
 			if (Arguments.Length >= 3 && Arguments[2].Length > 0 && !Interface.TryParseFloatVb6(Arguments[2], out b))
 			{
-				//Interface.AddMessage(Interface.MessageType.Error, false, "BlueValue is invalid in Light.Diffuse at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);			}
+				//Interface.AddMessage(Interface.MessageType.Error, false, "BlueValue is invalid in Light.Diffuse at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+			}
 			else if (b < 0 | b > 1)
 			{
-				//Interface.AddMessage(Interface.MessageType.Error, false, "BlueValue is required to be within the range from 0 to 1 in Light.Diffuse at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);				b = b < 0 ? 0 : 1;
+				//Interface.AddMessage(Interface.MessageType.Error, false, "BlueValue is required to be within the range from 0 to 1 in Light.Diffuse at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+				b = b < 0 ? 0 : 1;
 			}
 			Renderer.OptionDiffuseColor = new Color24((byte)(r * 255), (byte)(g * 255), (byte)(b * 255));
 		}
