@@ -19,6 +19,7 @@ namespace OpenBve
 			internal bool RailEnd;
 			internal double RailEndX;
 			internal double RailEndY;
+			internal string Key;
 		}
 
 		private struct Limit
@@ -81,6 +82,8 @@ namespace OpenBve
 			internal double RepetitionInterval;
 			/// <summary>The distance at which the object was last placed</summary>
 			internal double TrackPosition;
+
+			internal int RailIndex;
 		}
 
 		private struct Signal
@@ -544,6 +547,29 @@ namespace OpenBve
 									//Not a number
 									break;
 
+							}
+							continue;
+						}
+						if (command.StartsWith("track["))
+						{
+							int ida = Expressions[e].Text.IndexOf('[');
+							int idb = Expressions[e].Text.IndexOf(']');
+							int idc = Expressions[e].Text.IndexOf('(');
+							string key = Expressions[e].Text.Substring(ida + 1, idb - ida - 1);
+							string type = Expressions[e].Text.Substring(idb + 2, idc - idb - 2).ToLowerInvariant();
+							//Remove the single quotes BVE5 uses to surround names
+							if (key.StartsWith("'") && key.EndsWith("'"))
+							{
+								key = key.Substring(1, key.Length - 2);
+							}
+							switch (type)
+							{
+								case "position":
+									SecondaryTrack(key, Arguments, ref Data, BlockIndex, UnitOfLength);
+									break;
+								default:
+									//Not currently supported....
+									break;
 							}
 							continue;
 						}
@@ -1572,7 +1598,7 @@ namespace OpenBve
 								break;
 							case 1:
 								//The repeater follows it's attached rail, or Rail0 if not specified, so we must add it to the rail's object array
-								int idx = 0;
+								int idx = Data.Blocks[i].Repeaters[j].RailIndex;
 								if (idx >= Data.Blocks[i].RailFreeObj.Length)
 								{
 									Array.Resize<Object[]>(ref Data.Blocks[i].RailFreeObj, idx + 1);

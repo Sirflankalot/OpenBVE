@@ -35,6 +35,23 @@ namespace OpenBve
 			return String.Empty;
 		}
 
+		/// <summary>Finds the rail index for the given key</summary>
+		static int FindRailIndex(string key, Rail[] Rails)
+		{
+			if (key.Length == 0)
+			{
+				return 0;
+			}
+			for (int i = 0; i < Rails.Length; i++)
+			{
+				if (Rails[i].Key == key)
+				{
+					return i;
+				}
+			}
+			return -1;
+		}
+
 		/// <summary>Creates any missing blocks between the last used block and the current block</summary>
 		/// <param name="Data">The route data, updated via 'ref'</param>
 		/// <param name="BlocksUsed">The last used block</param>
@@ -77,6 +94,7 @@ namespace OpenBve
 						Data.Blocks[i].Rail[j].RailEnd = false;
 						Data.Blocks[i].Rail[j].RailEndX = Data.Blocks[i - 1].Rail[j].RailStartX;
 						Data.Blocks[i].Rail[j].RailEndY = Data.Blocks[i - 1].Rail[j].RailStartY;
+						Data.Blocks[i].Rail[j].Key = Data.Blocks[i - 1].Rail[j].Key;
 					}
 					if (!PreviewOnly)
 					{

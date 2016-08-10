@@ -132,6 +132,16 @@ namespace OpenBve
 		{
 			//Find the key in our object list
 			int sttype = FindStructureIndex(key, Data);
+			string railkey = Arguments[0];
+			if (railkey.StartsWith("'") && railkey.EndsWith("'"))
+			{
+				railkey = railkey.Substring(1, railkey.Length - 2);
+			}
+			int idx = FindRailIndex(railkey.Trim(), Data.Blocks[BlockIndex].Rail);
+			if (idx == -1)
+			{
+				idx = 0;
+			}
 			if (sttype == -1)
 			{
 				//TODO: Add error message
@@ -199,7 +209,7 @@ namespace OpenBve
 					break;
 				case 1:
 					//Object follows the gradient of it's attached rail (or rail 0 if not specificied)
-					int idx = 0;
+					//int idx = 0;
 					if (idx >= Data.Blocks[BlockIndex].RailFreeObj.Length)
 					{
 						Array.Resize<Object[]>(ref Data.Blocks[BlockIndex].RailFreeObj, idx + 1);
@@ -299,7 +309,7 @@ namespace OpenBve
 			 * TYPE 1 ARE LIKELY TO BE BROKEN!!!!
 			 * 
 			 */
-			int n = 0, sttype = -1, type = 0;
+			int n = 0, sttype = -1, type = 0, idx;
 			double span = 0, interval = 0;
 			if (Data.Blocks[BlockIndex].Repeaters == null)
 			{
@@ -331,7 +341,16 @@ namespace OpenBve
 			//Parse the repeater data
 			if (Arguments.Length > 4)
 			{
-				//Arguments 0 is the rail key, not supported ATM
+				string railkey = Arguments[0].Trim();
+				if (railkey.StartsWith("'") && railkey.EndsWith("'"))
+				{
+					railkey = railkey.Substring(1, railkey.Length - 2);
+				}
+				idx = FindRailIndex(railkey.Trim(), Data.Blocks[BlockIndex].Rail);
+				if (idx == -1)
+				{
+					idx = 0;
+				}
 
 				//Arguments 1 is whether this is a ground based object or a rail based object
 				Interface.TryParseIntVb6(Arguments[1], out type);
@@ -361,7 +380,7 @@ namespace OpenBve
 				//TODO: Add error message that we have an incomplete repeater definition (Missing structure key.....)
 				return;
 			}
-
+			Data.Blocks[BlockIndex].Repeaters[n].RailIndex = idx;
 			Data.Blocks[BlockIndex].Repeaters[n].Name = key;
 			Data.Blocks[BlockIndex].Repeaters[n].Type = type;
 			Data.Blocks[BlockIndex].Repeaters[n].StructureTypes = new int[1];
@@ -369,8 +388,6 @@ namespace OpenBve
 			Data.Blocks[BlockIndex].Repeaters[n].Span = span;
 			Data.Blocks[BlockIndex].Repeaters[n].RepetitionInterval = interval;
 			Data.Blocks[BlockIndex].Repeaters[n].TrackPosition = Data.TrackPosition;
-			//Finally, place the first object- All objects after this are placed via the block generation command
-
 		}
 
 		/// <summary>Ends a repeating object</summary>
@@ -663,5 +680,67 @@ namespace OpenBve
 			}
 			idx++;
 		}
+
+		static void SecondaryTrack(string key, string[] Arguments, ref RouteData Data, int BlockIndex, double[] UnitOfLength)
+		{
+			//First, convert the key to the track's index
+			int idx = FindRailIndex(key, Data.Blocks[BlockIndex].Rail);
+			if (idx == -1)
+			{
+				//We haven't found the rail in our list, so we need to set the variable to the last member of the array & resize
+				idx = Data.Blocks[BlockIndex].Rail.Length;
+				Array.Resize(ref Data.Blocks[BlockIndex].Rail, idx + 1);
+			}
+			Data.Blocks[BlockIndex].Rail[idx].Key = key;
+			if (Data.Blocks[BlockIndex].Rail[idx].RailStartRefreshed)
+			{
+				Data.Blocks[BlockIndex].Rail[idx].RailEnd = true;
+			}
+			{
+				Data.Blocks[BlockIndex].Rail[idx].RailStart = true;
+				Data.Blocks[BlockIndex].Rail[idx].RailStartRefreshed = true;
+				if (Arguments.Length >= 1)
+				{
+					if (Arguments[0].Length > 0)
+					{
+						double x;
+						if (!Interface.TryParseDoubleVb6(Arguments[0], UnitOfLength, out x))
+						{
+							//Interface.AddMessage(Interface.MessageType.Error, false, "X is invalid in " + Command + " at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+							x = 0.0;
+						}
+						Data.Blocks[BlockIndex].Rail[idx].RailStartX = x;
+					}
+					if (!Data.Blocks[BlockIndex].Rail[idx].RailEnd)
+					{
+						Data.Blocks[BlockIndex].Rail[idx].RailEndX = Data.Blocks[BlockIndex].Rail[idx].RailStartX;
+					}
+				}
+				if (Arguments.Length >= 2)
+				{
+					if (Arguments[1].Length > 0)
+					{
+						double y;
+						if (!Interface.TryParseDoubleVb6(Arguments[1], UnitOfLength, out y))
+						{
+							//Interface.AddMessage(Interface.MessageType.Error, false, "Y is invalid in " + Command + " at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+							y = 0.0;
+						}
+						Data.Blocks[BlockIndex].Rail[idx].RailStartY = y;
+					}
+					if (!Data.Blocks[BlockIndex].Rail[idx].RailEnd)
+					{
+						Data.Blocks[BlockIndex].Rail[idx].RailEndY = Data.Blocks[BlockIndex].Rail[idx].RailStartY;
+					}
+				}
+				if (Data.Blocks[BlockIndex].RailType.Length <= idx)
+				{
+					Array.Resize<int>(ref Data.Blocks[BlockIndex].RailType, idx + 1);
+				}
+				
+			}
+
+		}
+
 	}
 }
