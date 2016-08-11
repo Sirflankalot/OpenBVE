@@ -91,6 +91,13 @@ namespace OpenBve
 			internal double TrackPosition;
 
 			internal int RailIndex;
+
+			internal double X;
+			internal double Y;
+			internal double Z;
+			internal double Yaw;
+			internal double Pitch;
+			internal double Roll;
 		}
 
 		private struct Signal
@@ -447,10 +454,16 @@ namespace OpenBve
 							string key = Expressions[e].Text.Substring(ida + 1, idb - ida - 1);
 							string type = Expressions[e].Text.Substring(idb + 2, idc - idb - 2).ToLowerInvariant();
 							bool Start;
+							bool Type2 = false;
 							switch (type)
 							{
+								case "begin":
+									Start = true;
+									Type2 = false;
+									break;
 								case "begin0":
 									Start = true;
+									Type2 = true;
 									break;
 								case "end":
 									Start = false;
@@ -463,7 +476,7 @@ namespace OpenBve
 							key = key.RemoveEnclosingQuotes();
 							if (Start)
 							{
-								StartRepeater(key, Arguments, ref Data, BlockIndex, UnitOfLength);
+								StartRepeater(key, Arguments, ref Data, BlockIndex, UnitOfLength, Type2);
 							}
 							else
 							{
@@ -1622,11 +1635,12 @@ namespace OpenBve
 								}
 								Data.Blocks[i].RailFreeObj[idx][ol].TrackPosition = Data.Blocks[i].Repeaters[j].TrackPosition;
 								Data.Blocks[i].RailFreeObj[idx][ol].Type = Data.Blocks[i].Repeaters[j].StructureTypes[0];
-								Data.Blocks[i].RailFreeObj[idx][ol].X = 0;
-								Data.Blocks[i].RailFreeObj[idx][ol].Y = 0;
-								Data.Blocks[i].RailFreeObj[idx][ol].Yaw = 0;
-								Data.Blocks[i].RailFreeObj[idx][ol].Pitch = 0;
-								Data.Blocks[i].RailFreeObj[idx][ol].Roll = 0;
+								Data.Blocks[i].RailFreeObj[idx][ol].X = Data.Blocks[i].Repeaters[j].X;
+								Data.Blocks[i].RailFreeObj[idx][ol].Y = Data.Blocks[i].Repeaters[j].Y;
+								Data.Blocks[i].RailFreeObj[idx][ol].Z = Data.Blocks[i].Repeaters[j].Z;
+								Data.Blocks[i].RailFreeObj[idx][ol].Yaw = Data.Blocks[i].Repeaters[j].Yaw;
+								Data.Blocks[i].RailFreeObj[idx][ol].Pitch = Data.Blocks[i].Repeaters[j].Pitch;
+								Data.Blocks[i].RailFreeObj[idx][ol].Roll = Data.Blocks[i].Repeaters[j].Roll;
 								break;
 						}
 					}

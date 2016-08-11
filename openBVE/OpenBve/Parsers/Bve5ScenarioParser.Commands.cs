@@ -396,16 +396,12 @@ namespace OpenBve
 		/// <param name="Data">The RouteData (updated via 'ref')</param>
 		/// <param name="BlockIndex">The index of the current block</param>
 		/// <param name="UnitOfLength">The current unit of length</param>
-		static void StartRepeater(string key, string[] Arguments, ref RouteData Data, int BlockIndex, double[] UnitOfLength)
+		static void StartRepeater(string key, string[] Arguments, ref RouteData Data, int BlockIndex, double[] UnitOfLength, bool Type2)
 		{
-			/*
-			 * 
-			 * WARNING: THIS ONLY SUPPORTS THE SECOND TYPE OF REPEATERS DEFINED AT THE MINUTE.
-			 * TYPE 1 ARE LIKELY TO BE BROKEN!!!!
-			 * 
-			 */
 			int n = 0, sttype = -1, type = 0, idx;
 			double span = 0, interval = 0;
+			double x = 0.0, y = 0.0, z = 0.0;
+			double yaw = 0.0, pitch = 0.0, roll = 0.0;
 			if (Data.Blocks[BlockIndex].Repeaters == null)
 			{
 				Data.Blocks[BlockIndex].Repeaters = new Repeater[1];
@@ -433,46 +429,115 @@ namespace OpenBve
 				}
 			}
 
-			//Parse the repeater data
-			if (Arguments.Length > 4)
+
+			if (Type2 == false)
 			{
-				string railkey = Arguments[0].RemoveEnclosingQuotes();
-				idx = FindRailIndex(railkey.Trim(), Data.Blocks[BlockIndex].Rail);
-				if (idx == -1)
+				if (Arguments.Length > 10)
 				{
-					//Our rail index was not found in the array, so we must create it with a starting position of 0,0
-					//As commands may come in any order, the position may be modified later on....
-					SecondaryTrack(railkey, new string[] { "0", "0" }, ref Data, BlockIndex, UnitOfLength);
+					//Find the rail key
+					string railkey = Arguments[0].Trim().RemoveEnclosingQuotes();
 					idx = FindRailIndex(railkey.Trim(), Data.Blocks[BlockIndex].Rail);
-				}
+					if (idx == -1)
+					{
+						//Our rail index was not found in the array, so we must create it with a starting position of 0,0
+						//As commands may come in any order, the position may be modified later on....
+						SecondaryTrack(railkey, new string[] { "0", "0" }, ref Data, BlockIndex, UnitOfLength);
+						idx = FindRailIndex(railkey.Trim(), Data.Blocks[BlockIndex].Rail);
+					}
+					//Structure key
+					string structurekey = Arguments[10].Trim().RemoveEnclosingQuotes();
+					//Find the structure type
+					sttype = FindStructureIndex(structurekey, Data);
+					if (sttype == -1)
+					{
+						//TODO: Add error message
+						return;
+					}
 
-				//Arguments 1 is whether this is a ground based object or a rail based object
-				Interface.TryParseIntVb6(Arguments[1], out type);
-				//Arguments 2 is the span (Length of object for rotations- Only supports 25m legacy block lengths at present)
-				Interface.TryParseDoubleVb6(Arguments[2], out span);
-				//Arguments 3 is the repetiton distance, again only supports legacy 25m block lengths
-				Interface.TryParseDoubleVb6(Arguments[3], out interval);
-
-				//Structure key
-				Arguments[4] = Arguments[4].Trim();
-				//Trim single quotes
-				if (Arguments[4].StartsWith("'") && Arguments[4].EndsWith("'"))
-				{
-					Arguments[4] = Arguments[4].Substring(1, Arguments[4].Length - 2);
+					if (!Interface.TryParseDoubleVb6(Arguments[1], UnitOfLength, out x))
+					{
+						//Interface.AddMessage(Interface.MessageType.Error, false,"X is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+						x = 0.0;
+					}
+					if (!Interface.TryParseDoubleVb6(Arguments[2], UnitOfLength, out y))
+					{
+						//Interface.AddMessage(Interface.MessageType.Error, false,"Y is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+						y = 0.0;
+					}
+					if (!Interface.TryParseDoubleVb6(Arguments[3], UnitOfLength, out z))
+					{
+						//Interface.AddMessage(Interface.MessageType.Error, false,"Y is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+						z = 0.0;
+					}
+					//BVETS documentation states that yaw and pitch are the opposite way around......
+					//Not sure whether this is our bug or that of BVETS at the minute
+					if (!Interface.TryParseDoubleVb6(Arguments[4], out pitch))
+					{
+						//Interface.AddMessage(Interface.MessageType.Error, false,"Yaw is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+						pitch = 0.0;
+					}
+					if (!Interface.TryParseDoubleVb6(Arguments[5], out yaw))
+					{
+						//Interface.AddMessage(Interface.MessageType.Error, false,"Pitch is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+						yaw = 0.0;
+					}
+					if (!Interface.TryParseDoubleVb6(Arguments[6], out roll))
+					{
+						//Interface.AddMessage(Interface.MessageType.Error, false,"Roll is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+						roll = 0.0;
+					}
+					if (!Interface.TryParseIntVb6(Arguments[7], out type))
+					{
+						//Interface.AddMessage(Interface.MessageType.Error, false,"Roll is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+						type = 0;
+					}
+					
 				}
-				//Find the structure type
-				sttype = FindStructureIndex(Arguments[4], Data);
-				if (sttype == -1)
+				else
 				{
-					//TODO: Add error message
+					//TODO: Add error message that we have an incomplete repeater definition (Missing structure key.....)
 					return;
 				}
-				//TODO: Multiple repeating objects (cycle) are not handled
 			}
 			else
 			{
-				//TODO: Add error message that we have an incomplete repeater definition (Missing structure key.....)
-				return;
+				//Parse the repeater data
+				if (Arguments.Length > 4)
+				{
+					//Find the rail key
+					string railkey = Arguments[0].Trim().RemoveEnclosingQuotes();
+					idx = FindRailIndex(railkey.Trim(), Data.Blocks[BlockIndex].Rail);
+					if (idx == -1)
+					{
+						//Our rail index was not found in the array, so we must create it with a starting position of 0,0
+						//As commands may come in any order, the position may be modified later on....
+						SecondaryTrack(railkey, new string[] {"0", "0"}, ref Data, BlockIndex, UnitOfLength);
+						idx = FindRailIndex(railkey.Trim(), Data.Blocks[BlockIndex].Rail);
+					}
+
+					//Arguments 1 is whether this is a ground based object or a rail based object
+					Interface.TryParseIntVb6(Arguments[1], out type);
+					//Arguments 2 is the span (Length of object for rotations- Only supports 25m legacy block lengths at present)
+					Interface.TryParseDoubleVb6(Arguments[2], out span);
+					//Arguments 3 is the repetiton distance, again only supports legacy 25m block lengths
+					Interface.TryParseDoubleVb6(Arguments[3], out interval);
+
+					//Structure key
+					string structurekey = Arguments[4].Trim().RemoveEnclosingQuotes();
+					//Find the structure type
+					sttype = FindStructureIndex(structurekey, Data);
+					if (sttype == -1)
+					{
+						//TODO: Add error message
+						return;
+					}
+					//TODO: Multiple repeating objects (cycle) are not handled
+				}
+				else
+				{
+					//TODO: Add error message that we have an incomplete repeater definition (Missing structure key.....)
+					return;
+				}
 			}
 			Data.Blocks[BlockIndex].Repeaters[n].RailIndex = idx;
 			Data.Blocks[BlockIndex].Repeaters[n].Name = key;
@@ -482,6 +547,13 @@ namespace OpenBve
 			Data.Blocks[BlockIndex].Repeaters[n].Span = span;
 			Data.Blocks[BlockIndex].Repeaters[n].RepetitionInterval = interval;
 			Data.Blocks[BlockIndex].Repeaters[n].TrackPosition = Data.TrackPosition;
+
+			Data.Blocks[BlockIndex].Repeaters[n].X = x;
+			Data.Blocks[BlockIndex].Repeaters[n].Y = y;
+			Data.Blocks[BlockIndex].Repeaters[n].Z = z;
+			Data.Blocks[BlockIndex].Repeaters[n].Yaw = yaw;
+			Data.Blocks[BlockIndex].Repeaters[n].Pitch = pitch;
+			Data.Blocks[BlockIndex].Repeaters[n].Roll = roll;
 		}
 
 		/// <summary>Ends a repeating object</summary>
