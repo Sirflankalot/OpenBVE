@@ -54,6 +54,13 @@ namespace OpenBve
 			internal double Roll;
 		}
 
+		private struct Crack
+		{
+			internal int PrimaryRail;
+			internal int SecondaryRail;
+			internal int Type;
+		}
+
 		private struct RepeaterType
 		{
 			internal int Type;
@@ -146,6 +153,7 @@ namespace OpenBve
 			internal Object[][] RailFreeObj;
 			internal Object[] GroundFreeObj;
 			internal Rail[] Rail;
+			internal Crack[] Crack;
 			internal int[] RailType;
 			internal Signal[] Signal;
 			internal Section[] Section;
@@ -281,6 +289,7 @@ namespace OpenBve
 				Data.Blocks[0].Height = IsRW ? 0.3 : 0.0;
 				Data.Blocks[0].RailFreeObj = new Object[][] { };
 				Data.Blocks[0].GroundFreeObj = new Object[] { };
+				Data.Blocks[0].Crack = new Crack[] { };
 				Data.Blocks[0].Signal = new Signal[] { };
 				Data.Blocks[0].Section = new Section[] { };
 				Data.Blocks[0].RunSounds = new TrackSound[] { new TrackSound(0.0, 0, 0) };
@@ -392,12 +401,29 @@ namespace OpenBve
 							//Rough equivilant of the FreeObj command
 							int ida = Expressions[e].Text.IndexOf('[');
 							int idb = Expressions[e].Text.IndexOf(']');
-							string key = Expressions[e].Text.Substring(ida + 1, idb - ida -1);
+							int idc = Expressions[e].Text.IndexOf('(');
+							string key = Expressions[e].Text.Substring(ida + 1, idb - ida - 1);
+							string type = Expressions[e].Text.Substring(idb + 2, idc - idb - 2).ToLowerInvariant();
 							//Remove the single quotes BVE5 uses to surround names
 							key = key.RemoveEnclosingQuotes();
 							if (!PreviewOnly)
 							{
-								PutStructure(key, Arguments, ref Data, BlockIndex, UnitOfLength);
+								switch (type)
+								{
+									case "put":
+										PutStructure(key, Arguments, ref Data, BlockIndex, UnitOfLength, false);
+										break;
+									case "put0":
+										PutStructure(key, Arguments, ref Data, BlockIndex, UnitOfLength, true);
+										break;
+									case "putbetween":
+										//Equivilant to the Track.Crack command
+										PutStructureBetween(key, Arguments, ref Data, BlockIndex, UnitOfLength);
+										break;
+									default:
+										//Unrecognised command, so break out of the loop and continue
+										continue;
+								}
 							}
 							continue;
 						}
@@ -1719,6 +1745,52 @@ namespace OpenBve
 								dh = 0.0;
 								updown = 0.0;
 								RailTransformation = new World.Transformation(TrackTransformation, 0.0, 0.0, 0.0);
+							}
+						}
+						// cracks
+						for (int k = 0; k < Data.Blocks[i].Crack.Length; k++)
+						{
+							if (Data.Blocks[i].Crack[k].PrimaryRail == j)
+							{
+								int p = Data.Blocks[i].Crack[k].PrimaryRail;
+								double px0 = p > 0 ? Data.Blocks[i].Rail[p].RailStartX : 0.0;
+								double px1 = p > 0 ? Data.Blocks[i + 1].Rail[p].RailEndX : 0.0;
+								int s = Data.Blocks[i].Crack[k].SecondaryRail;
+								if (s < 0 || s >= Data.Blocks[i].Rail.Length || !Data.Blocks[i].Rail[s].RailStart)
+								{
+									Interface.AddMessage(Interface.MessageType.Error, false, "RailIndex2 is out of range in Track.Crack at track position " + StartingDistance.ToString(Culture) + " in file " + FileName);
+								}
+								else
+								{
+									double sx0 = Data.Blocks[i].Rail[s].RailStartX;
+									double sx1 = Data.Blocks[i + 1].Rail[s].RailEndX;
+									double d0 = sx0 - px0;
+									double d1 = sx1 - px1;
+									if (d0 < 0.0)
+									{
+										if (Data.Blocks[i].Crack[k].Type >= Data.Structure.Objects.Length || Data.Structure.Objects[Data.Blocks[i].Crack[k].Type] == null)
+										{
+											Interface.AddMessage(Interface.MessageType.Error, false, "CrackStructureIndex references a CrackL not loaded in Track.Crack at track position " + StartingDistance.ToString(Culture) + " in file " + FileName + ".");
+										}
+										else
+										{
+											ObjectManager.StaticObject Crack = GetTransformedStaticObject((ObjectManager.StaticObject)Data.Structure.Objects[Data.Blocks[i].Crack[k].Type], d0, d1);
+											ObjectManager.CreateStaticObject(Crack, pos, RailTransformation, NullTransformation, Data.AccurateObjectDisposal, StartingDistance, EndingDistance, Data.BlockInterval, StartingDistance);
+										}
+									}
+									else if (d0 > 0.0)
+									{
+										if (Data.Blocks[i].Crack[k].Type >= Data.Structure.Objects.Length || Data.Structure.Objects[Data.Blocks[i].Crack[k].Type] == null)
+										{
+											Interface.AddMessage(Interface.MessageType.Error, false, "CrackStructureIndex references a CrackR not loaded in Track.Crack at track position " + StartingDistance.ToString(Culture) + " in file " + FileName + ".");
+										}
+										else
+										{
+											ObjectManager.StaticObject Crack = GetTransformedStaticObject((ObjectManager.StaticObject)Data.Structure.Objects[Data.Blocks[i].Crack[k].Type], d0, d1);
+											ObjectManager.CreateStaticObject(Crack, pos, RailTransformation, NullTransformation, Data.AccurateObjectDisposal, StartingDistance, EndingDistance, Data.BlockInterval, StartingDistance);
+										}
+									}
+								}
 							}
 						}
 						// free objects

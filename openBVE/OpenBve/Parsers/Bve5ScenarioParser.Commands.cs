@@ -129,7 +129,7 @@ namespace OpenBve
 		/// <param name="Data">The RouteData (updated via 'ref')</param>
 		/// <param name="BlockIndex">The index of the current block</param>
 		/// <param name="UnitOfLength">The current unit of length</param>
-		static void PutStructure(string key, string[] Arguments, ref RouteData Data, int BlockIndex, double[] UnitOfLength)
+		static void PutStructure(string key, string[] Arguments, ref RouteData Data, int BlockIndex, double[] UnitOfLength, bool Type2)
 		{
 			//Find the key in our object list
 			int sttype = FindStructureIndex(key, Data);
@@ -155,12 +155,12 @@ namespace OpenBve
 				 * Unhelpfully, there are two types of structure command
 				 * If our argument length is 3, then it's type 1, otherwise type 2
 				 * 
-				 * TYPE 1:
+				 * TYPE 1 .Put0:
 				 * 0 = Rail key
 				 * 1 = 0- Flat object 1- Follows gradient 2- Follows gradient & cant
 				 * 2 = Object length, used for rotations (NOT IMPLEMENTED AT PRESENT)
 				 * 
-				 * TYPE 2:
+				 * TYPE 2 .Put:
 				 * 0 = Rail key
 				 * 1 = X
 				 * 2 = Y
@@ -171,7 +171,7 @@ namespace OpenBve
 				 * 7 = 0- Flat object 1- Follows gradient 2- Follows gradient & cant
 				 * 8 = Object length
 				 */
-			if (Arguments.Length == 3)
+			if (Type2)
 			{
 				if (!Interface.TryParseIntVb6(Arguments[1], out Type))
 				{
@@ -262,6 +262,72 @@ namespace OpenBve
 					Data.Blocks[BlockIndex].RailFreeObj[idx][n].Pitch = pitch*0.0174532925199433;
 					Data.Blocks[BlockIndex].RailFreeObj[idx][n].Roll = roll*0.0174532925199433;
 					break;
+			}
+		}
+
+		static void PutStructureBetween(string key, string[] Arguments, ref RouteData Data, int BlockIndex, double[] UnitOfLength)
+		{
+			int sttype = FindStructureIndex(key, Data);
+			if (sttype == -1)
+			{
+				//Object not loaded
+				return;
+			}
+			string railkey = Arguments[0].Trim().RemoveEnclosingQuotes();
+			int idx1 = FindRailIndex(railkey.Trim(), Data.Blocks[BlockIndex].Rail);
+			if (idx1 == -1)
+			{
+				//Our rail index was not found in the array, so we must create it with a starting position of 0,0
+				//As commands may come in any order, the position may be modified later on....
+				SecondaryTrack(railkey, new string[] { "0", "0" }, ref Data, BlockIndex, UnitOfLength);
+				idx1 = FindRailIndex(railkey.Trim(), Data.Blocks[BlockIndex].Rail);
+			}
+
+			railkey = Arguments[1].Trim().RemoveEnclosingQuotes();
+			int idx2 = FindRailIndex(railkey.Trim(), Data.Blocks[BlockIndex].Rail);
+			if (idx2 == -1)
+			{
+				//Our rail index was not found in the array, so we must create it with a starting position of 0,0
+				//As commands may come in any order, the position may be modified later on....
+				SecondaryTrack(railkey, new string[] { "0", "0" }, ref Data, BlockIndex, UnitOfLength);
+				idx2 = FindRailIndex(railkey.Trim(), Data.Blocks[BlockIndex].Rail);
+			}
+			double length = 0.0;
+			if (Arguments.Length >= 3 && Arguments[2].Length > 0 && !Interface.TryParseDoubleVb6(Arguments[2], out length))
+			{
+				//Interface.AddMessage(Interface.MessageType.Error, false, "CrackStructureIndex is invalid in Track.Crack at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+				length = 0.0;
+			}
+			else
+			{
+				if (idx1 < 0)
+				{
+					//Interface.AddMessage(Interface.MessageType.Error, false, "RailIndex1 is expected to be non-negative in Track.Crack at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+				}
+				else if (idx2 < 0)
+				{
+					//Interface.AddMessage(Interface.MessageType.Error, false, "RailIndex2 is expected to be non-negative in Track.Crack at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+				}
+				else if (idx1 == idx2)
+				{
+					//Interface.AddMessage(Interface.MessageType.Error, false, "RailIndex1 is expected to be unequal to Index2 in Track.Crack at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+				}
+				else
+				{
+					if (idx1 >= Data.Blocks[BlockIndex].Rail.Length || !Data.Blocks[BlockIndex].Rail[idx1].RailStart)
+					{
+						//Interface.AddMessage(Interface.MessageType.Warning, false, "RailIndex1 " + idx1 + " could be out of range in Track.Crack at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+					}
+					if (idx2 >= Data.Blocks[BlockIndex].Rail.Length || !Data.Blocks[BlockIndex].Rail[idx2].RailStart)
+					{
+						//Interface.AddMessage(Interface.MessageType.Warning, false, "RailIndex2 " + idx2 + " could be out of range in Track.Crack at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+					}
+					int n = Data.Blocks[BlockIndex].Crack.Length;
+					Array.Resize<Crack>(ref Data.Blocks[BlockIndex].Crack, n + 1);
+					Data.Blocks[BlockIndex].Crack[n].PrimaryRail = idx1;
+					Data.Blocks[BlockIndex].Crack[n].SecondaryRail = idx2;
+					Data.Blocks[BlockIndex].Crack[n].Type = sttype;
+				}
 			}
 		}
 
