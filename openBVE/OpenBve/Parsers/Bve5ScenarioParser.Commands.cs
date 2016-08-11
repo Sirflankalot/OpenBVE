@@ -137,55 +137,87 @@ namespace OpenBve
 			int idx = FindRailIndex(railkey.Trim(), Data.Blocks[BlockIndex].Rail);
 			if (idx == -1)
 			{
-				idx = 0;
+				//Our rail index was not found in the array, so we must create it with a starting position of 0,0
+				//As commands may come in any order, the position may be modified later on....
+				SecondaryTrack(railkey, new string[]{"0","0"}, ref Data, BlockIndex, UnitOfLength);
+				idx = FindRailIndex(railkey.Trim(), Data.Blocks[BlockIndex].Rail);
 			}
 			if (sttype == -1)
 			{
 				//TODO: Add error message
 				return;
 			}
+
 			double x = 0.0, y = 0.0, z = 0.0;
 			double yaw = 0.0, pitch = 0.0, roll = 0.0;
 			int Type = 0;
-			if (Arguments.Length >= 2 && Arguments[1].Length > 0 &&
-			    !Interface.TryParseDoubleVb6(Arguments[1], UnitOfLength, out x))
+				/*
+				 * Unhelpfully, there are two types of structure command
+				 * If our argument length is 3, then it's type 1, otherwise type 2
+				 * 
+				 * TYPE 1:
+				 * 0 = Rail key
+				 * 1 = 0- Flat object 1- Follows gradient 2- Follows gradient & cant
+				 * 2 = Object length, used for rotations (NOT IMPLEMENTED AT PRESENT)
+				 * 
+				 * TYPE 2:
+				 * 0 = Rail key
+				 * 1 = X
+				 * 2 = Y
+				 * 3 = Z
+				 * 4 = Pitch (??)
+				 * 5 = Yaw (??)
+				 * 6 = Roll
+				 * 7 = 0- Flat object 1- Follows gradient 2- Follows gradient & cant
+				 * 8 = Object length
+				 */
+			if (Arguments.Length == 3)
 			{
-				//Interface.AddMessage(Interface.MessageType.Error, false,"X is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
-				x = 0.0;
+				if (!Interface.TryParseIntVb6(Arguments[1], out Type))
+				{
+					//Interface.AddMessage(Interface.MessageType.Error, false,"Roll is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+					Type = 0;
+				}
 			}
-			if (Arguments.Length >= 3 && Arguments[2].Length > 0 &&
-			    !Interface.TryParseDoubleVb6(Arguments[2], UnitOfLength, out y))
+			else
 			{
-				//Interface.AddMessage(Interface.MessageType.Error, false,"Y is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
-				y = 0.0;
-			}
-			if (Arguments.Length >= 4 && Arguments[3].Length > 0 &&
-			    !Interface.TryParseDoubleVb6(Arguments[3], UnitOfLength, out z))
-			{
-				//Interface.AddMessage(Interface.MessageType.Error, false,"Y is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
-				z = 0.0;
-			}
-			//BVETS documentation states that yaw and pitch are the opposite way around......
-			//Not sure whether this is our bug or that of BVETS at the minute
-			if (Arguments.Length >= 5 && Arguments[4].Length > 0 && !Interface.TryParseDoubleVb6(Arguments[4], out pitch))
-			{
-				//Interface.AddMessage(Interface.MessageType.Error, false,"Yaw is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
-				pitch = 0.0;
-			}
-			if (Arguments.Length >= 6 && Arguments[5].Length > 0 && !Interface.TryParseDoubleVb6(Arguments[5], out yaw))
-			{
-				//Interface.AddMessage(Interface.MessageType.Error, false,"Pitch is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
-				yaw = 0.0;
-			}
-			if (Arguments.Length >= 7 && Arguments[6].Length > 0 && !Interface.TryParseDoubleVb6(Arguments[6], out roll))
-			{
-				//Interface.AddMessage(Interface.MessageType.Error, false,"Roll is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
-				roll = 0.0;
-			}
-			if (Arguments.Length >= 8 && Arguments[7].Length > 0 && !Interface.TryParseIntVb6(Arguments[7], out Type))
-			{
-				//Interface.AddMessage(Interface.MessageType.Error, false,"Roll is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
-				//roll = 0.0;
+				if (Arguments.Length >= 2 && Arguments[1].Length > 0 && !Interface.TryParseDoubleVb6(Arguments[1], UnitOfLength, out x))
+				{
+					//Interface.AddMessage(Interface.MessageType.Error, false,"X is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+					x = 0.0;
+				}
+				if (Arguments.Length >= 3 && Arguments[2].Length > 0 && !Interface.TryParseDoubleVb6(Arguments[2], UnitOfLength, out y))
+				{
+					//Interface.AddMessage(Interface.MessageType.Error, false,"Y is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+					y = 0.0;
+				}
+				if (Arguments.Length >= 4 && Arguments[3].Length > 0 && !Interface.TryParseDoubleVb6(Arguments[3], UnitOfLength, out z))
+				{
+					//Interface.AddMessage(Interface.MessageType.Error, false,"Y is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+					z = 0.0;
+				}
+				//BVETS documentation states that yaw and pitch are the opposite way around......
+				//Not sure whether this is our bug or that of BVETS at the minute
+				if (Arguments.Length >= 5 && Arguments[4].Length > 0 && !Interface.TryParseDoubleVb6(Arguments[4], out pitch))
+				{
+					//Interface.AddMessage(Interface.MessageType.Error, false,"Yaw is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+					pitch = 0.0;
+				}
+				if (Arguments.Length >= 6 && Arguments[5].Length > 0 && !Interface.TryParseDoubleVb6(Arguments[5], out yaw))
+				{
+					//Interface.AddMessage(Interface.MessageType.Error, false,"Pitch is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+					yaw = 0.0;
+				}
+				if (Arguments.Length >= 7 && Arguments[6].Length > 0 && !Interface.TryParseDoubleVb6(Arguments[6], out roll))
+				{
+					//Interface.AddMessage(Interface.MessageType.Error, false,"Roll is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+					roll = 0.0;
+				}
+				if (Arguments.Length >= 8 && Arguments[7].Length > 0 && !Interface.TryParseIntVb6(Arguments[7], out Type))
+				{
+					//Interface.AddMessage(Interface.MessageType.Error, false,"Roll is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+					Type = 0;
+				}
 			}
 			int n;
 			switch (Type)
@@ -342,7 +374,10 @@ namespace OpenBve
 				idx = FindRailIndex(railkey.Trim(), Data.Blocks[BlockIndex].Rail);
 				if (idx == -1)
 				{
-					idx = 0;
+					//Our rail index was not found in the array, so we must create it with a starting position of 0,0
+					//As commands may come in any order, the position may be modified later on....
+					SecondaryTrack(railkey, new string[] { "0", "0" }, ref Data, BlockIndex, UnitOfLength);
+					idx = FindRailIndex(railkey.Trim(), Data.Blocks[BlockIndex].Rail);
 				}
 
 				//Arguments 1 is whether this is a ground based object or a rail based object
