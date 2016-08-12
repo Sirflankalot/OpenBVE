@@ -580,7 +580,7 @@ namespace OpenBve
 							}
 							continue;
 						}
-						if (command.StartsWith("track["))
+						if (command.StartsWith("track[") && !PreviewOnly)
 						{
 							int ida = Expressions[e].Text.IndexOf('[');
 							int idb = Expressions[e].Text.IndexOf(']');
@@ -589,10 +589,25 @@ namespace OpenBve
 							string type = Expressions[e].Text.Substring(idb + 2, idc - idb - 2).ToLowerInvariant();
 							//Remove the single quotes BVE5 uses to surround names
 							key = key.RemoveEnclosingQuotes();
+							double Distance;
 							switch (type)
 							{
 								case "position":
 									SecondaryTrack(key, Arguments, ref Data, BlockIndex, UnitOfLength);
+									break;
+								case "y.interpolate":
+									//Moves the track in the Y axis....
+									if (Interface.TryParseDoubleVb6(Arguments[0], out Distance))
+									{
+										InterpolateSecondaryTrack(key, Distance, ref Data, BlockIndex, UnitOfLength, true);
+									}
+									break;
+								case "x.interpolate":
+									//Moves the track in the X axis....
+									if (Interface.TryParseDoubleVb6(Arguments[0], out Distance))
+									{
+										InterpolateSecondaryTrack(key, Distance, ref Data, BlockIndex, UnitOfLength, false);
+									}
 									break;
 								default:
 									//Not currently supported....

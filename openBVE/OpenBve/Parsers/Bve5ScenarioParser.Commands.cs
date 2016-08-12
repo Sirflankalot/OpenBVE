@@ -944,8 +944,9 @@ namespace OpenBve
 				//We haven't found the rail in our list, so we need to set the variable to the last member of the array & resize
 				idx = Data.Blocks[BlockIndex].Rail.Length;
 				Array.Resize(ref Data.Blocks[BlockIndex].Rail, idx + 1);
+				Data.Blocks[BlockIndex].Rail[idx].Key = key;
 			}
-			Data.Blocks[BlockIndex].Rail[idx].Key = key;
+			
 			if (Data.Blocks[BlockIndex].Rail[idx].RailStartRefreshed)
 			{
 				Data.Blocks[BlockIndex].Rail[idx].RailEnd = true;
@@ -994,6 +995,46 @@ namespace OpenBve
 				
 			}
 
+		}
+
+		static void InterpolateSecondaryTrack(string key, double Distance, ref RouteData Data, int BlockIndex, double[] UnitOfLength, bool Vertical)
+		{
+			int idx = FindRailIndex(key, Data.Blocks[BlockIndex].Rail);
+			if (idx == -1)
+			{
+				//We haven't found the rail in our list, so we need to set the variable to the last member of the array & resize
+				idx = Data.Blocks[BlockIndex].Rail.Length;
+				Array.Resize(ref Data.Blocks[BlockIndex].Rail, idx + 1);
+				Data.Blocks[BlockIndex].Rail[idx].Key = key;
+			}
+			//NOTE: No interpolation at the minute, straight move.....
+
+			if (Data.Blocks[BlockIndex].Rail[idx].RailStartRefreshed)
+			{
+				Data.Blocks[BlockIndex].Rail[idx].RailEnd = true;
+			}
+			if (Vertical)
+			{
+				//Vertically interpolate the height of the track
+				Data.Blocks[BlockIndex].Rail[idx].RailStart = true;
+				Data.Blocks[BlockIndex].Rail[idx].RailStartRefreshed = true;
+				Data.Blocks[BlockIndex].Rail[idx].RailStartY = Distance;
+				if (!Data.Blocks[BlockIndex].Rail[idx].RailEnd)
+				{
+					Data.Blocks[BlockIndex].Rail[idx].RailEndY = Data.Blocks[BlockIndex].Rail[idx].RailStartY;
+				}
+			}
+			else
+			{
+				//Horizontally interpolate the height of the track
+				Data.Blocks[BlockIndex].Rail[idx].RailStart = true;
+				Data.Blocks[BlockIndex].Rail[idx].RailStartRefreshed = true;
+				Data.Blocks[BlockIndex].Rail[idx].RailStartX = Distance;
+				if (!Data.Blocks[BlockIndex].Rail[idx].RailEnd)
+				{
+					Data.Blocks[BlockIndex].Rail[idx].RailEndX = Data.Blocks[BlockIndex].Rail[idx].RailStartX;
+				}
+			}
 		}
 
 	}
