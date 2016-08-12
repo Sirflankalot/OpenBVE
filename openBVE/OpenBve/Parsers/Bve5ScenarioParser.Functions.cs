@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
@@ -120,9 +121,9 @@ namespace OpenBve
 			}
 		}
 
+
 		private static void CreateMissingRepeaters(ref RouteData Data, int CurrentBlock)
 		{
-
 			if (Data.Blocks[CurrentBlock - 1] == null || Data.Blocks[CurrentBlock - 1].Repeaters == null || Data.Blocks[CurrentBlock] == null)
 			{
 				return;
@@ -133,7 +134,7 @@ namespace OpenBve
 				Data.Blocks[CurrentBlock].Repeaters[j] = new Repeater();
 				Data.Blocks[CurrentBlock].Repeaters[j].Name = Data.Blocks[CurrentBlock -1].Repeaters[j].Name;
 				Data.Blocks[CurrentBlock].Repeaters[j].StructureTypes = new int[Data.Blocks[CurrentBlock - 1].Repeaters[j].StructureTypes.Length];
-				Data.Blocks[CurrentBlock].Repeaters[j].TrackPosition = Data.TrackPosition;
+				Data.Blocks[CurrentBlock].Repeaters[j].TrackPosition = Data.Blocks[CurrentBlock -1].Repeaters[j].TrackPosition + Data.BlockInterval;
 				Data.Blocks[CurrentBlock].Repeaters[j].RailIndex = Data.Blocks[CurrentBlock - 1].Repeaters[j].RailIndex;
 				Data.Blocks[CurrentBlock].Repeaters[j].Type = Data.Blocks[CurrentBlock - 1].Repeaters[j].Type;
 				for (int k = 0; k < Data.Blocks[CurrentBlock - 1].Repeaters[j].StructureTypes.Length; k++)
