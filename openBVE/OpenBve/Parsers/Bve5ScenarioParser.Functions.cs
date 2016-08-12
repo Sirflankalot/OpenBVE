@@ -137,6 +137,11 @@ namespace OpenBve
 				Data.Blocks[CurrentBlock].Repeaters[j].TrackPosition = Data.Blocks[CurrentBlock -1].Repeaters[j].TrackPosition + Data.BlockInterval;
 				Data.Blocks[CurrentBlock].Repeaters[j].RailIndex = Data.Blocks[CurrentBlock - 1].Repeaters[j].RailIndex;
 				Data.Blocks[CurrentBlock].Repeaters[j].Type = Data.Blocks[CurrentBlock - 1].Repeaters[j].Type;
+				Data.Blocks[CurrentBlock].Repeaters[j].RepetitionInterval = Data.Blocks[CurrentBlock - 1].Repeaters[j].RepetitionInterval;
+				Data.Blocks[CurrentBlock].Repeaters[j].Span = Data.Blocks[CurrentBlock - 1].Repeaters[j].Span;
+				Data.Blocks[CurrentBlock].Repeaters[j].X = Data.Blocks[CurrentBlock - 1].Repeaters[j].X;
+				Data.Blocks[CurrentBlock].Repeaters[j].Y = Data.Blocks[CurrentBlock - 1].Repeaters[j].Y;
+				Data.Blocks[CurrentBlock].Repeaters[j].Z = Data.Blocks[CurrentBlock - 1].Repeaters[j].Z;
 				for (int k = 0; k < Data.Blocks[CurrentBlock - 1].Repeaters[j].StructureTypes.Length; k++)
 				{
 					Data.Blocks[CurrentBlock].Repeaters[j].StructureTypes[k] = Data.Blocks[CurrentBlock - 1].Repeaters[j].StructureTypes[k];

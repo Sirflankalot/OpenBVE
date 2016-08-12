@@ -603,6 +603,7 @@ namespace OpenBve {
 			internal double AdhesionMultiplier;
 			internal double CsvRwAccuracyLevel;
 			internal double Pitch;
+			internal bool BeginInterpolation;
 			internal Vector3 WorldPosition;
 			internal Vector3 WorldDirection;
 			internal Vector3 WorldUp;
@@ -621,6 +622,7 @@ namespace OpenBve {
 				this.WorldUp = new Vector3(0.0, 1.0, 0.0);
 				this.WorldSide = new Vector3(1.0, 0.0, 0.0);
 				this.Events = new GeneralEvent[] { };
+				this.BeginInterpolation = false;
 			}
 		}
 

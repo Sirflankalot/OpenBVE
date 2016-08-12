@@ -123,6 +123,55 @@ namespace OpenBve
 			}
 		}
 
+		static void SetCurve(string command, string[] Arguments, ref RouteData Data, int BlockIndex, double[] UnitOfLength)
+		{
+			switch (command)
+			{
+				case "begintransition":
+					Data.Blocks[BlockIndex].CurrentTrackState.BeginInterpolation = true;
+					break;
+				case "begincircular":
+					double radius = 0.0;
+					if (Arguments.Length >= 1 && Arguments[0].Length > 0 &&
+					    !Interface.TryParseDoubleVb6(Arguments[0], UnitOfLength, out radius))
+					{
+						//Interface.AddMessage(Interface.MessageType.Error, false, "Radius is invalid in " + Command + " at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+						radius = 0.0;
+					}
+					double cant = 0.0;
+					if (Arguments.Length >= 2 && Arguments[1].Length > 0 && !Interface.TryParseDoubleVb6(Arguments[1], out cant))
+					{
+						//Interface.AddMessage(Interface.MessageType.Error, false, "CantInMillimeters is invalid in " + Command + " at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+						cant = 0.0;
+					}
+					else
+					{
+						cant *= 0.001;
+					}
+					if (Data.SignedCant)
+					{
+						if (radius != 0.0)
+						{
+							cant *= (double) Math.Sign(radius);
+						}
+					}
+					else
+					{
+						cant = Math.Abs(cant)*(double) Math.Sign(radius);
+					}
+					Data.Blocks[BlockIndex].CurrentTrackState.CurveRadius = radius;
+					Data.Blocks[BlockIndex].CurrentTrackState.CurveCant = cant;
+					Data.Blocks[BlockIndex].CurrentTrackState.CurveCantTangent = 0.0;
+					break;
+				case "end":
+					Data.Blocks[BlockIndex].CurrentTrackState.CurveRadius = 0.0;
+					Data.Blocks[BlockIndex].CurrentTrackState.CurveCant = 0.0;
+					Data.Blocks[BlockIndex].CurrentTrackState.CurveCantTangent = 0.0;
+					break;
+			}
+			
+		}
+
 		/// <summary>Places a structure in the world</summary>
 		/// <param name="key">The structure key</param>
 		/// <param name="Arguments">The command arguments</param>
@@ -432,7 +481,7 @@ namespace OpenBve
 
 			if (Type2 == false)
 			{
-				if (Arguments.Length > 10)
+				if (Arguments.Length >= 10)
 				{
 					//Find the rail key
 					string railkey = Arguments[0].Trim().RemoveEnclosingQuotes();
@@ -491,7 +540,16 @@ namespace OpenBve
 						//Interface.AddMessage(Interface.MessageType.Error, false,"Roll is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
 						type = 0;
 					}
-					
+					if (!Interface.TryParseDoubleVb6(Arguments[8], out span))
+					{
+						//Interface.AddMessage(Interface.MessageType.Error, false,"Roll is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+						span = 0.0;
+					}
+					if (!Interface.TryParseDoubleVb6(Arguments[9], out interval))
+					{
+						//Interface.AddMessage(Interface.MessageType.Error, false,"Roll is invalid in Track.FreeObj at line " + Expressions[j].Line.ToString(Culture) + ", column " +Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+						interval = 0.0;
+					}
 				}
 				else
 				{
