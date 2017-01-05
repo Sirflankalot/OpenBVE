@@ -165,6 +165,11 @@ namespace OpenBve {
         /// <summary>This method should be called once a frame to update the player's score</summary>
         /// <param name="TimeElapsed">The time elapsed since this function was last called</param>
 		internal static void UpdateScore(double TimeElapsed) {
+	        if (Interface.CurrentOptions.GameMode == Interface.GameMode.Developer)
+	        {
+				//We don't want to update the score in developer (viewer) mode
+		        return;
+	        }
 			// doors
 			{
 				bool leftopen = false;

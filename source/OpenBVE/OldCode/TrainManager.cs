@@ -1449,7 +1449,7 @@ namespace OpenBve
 		}
 		private static void UpdateTrainObjects(Train Train, double TimeElapsed, bool ForceUpdate)
 		{
-			if (!Game.MinimalisticSimulation)
+			if (!Game.MinimalisticSimulation && Interface.CurrentOptions.GameMode != Interface.GameMode.Developer)
 			{
 				for (int i = 0; i < Train.Cars.Length; i++)
 				{
@@ -3135,6 +3135,10 @@ namespace OpenBve
 		// update train physics and controls
 		private static void UpdateTrainPhysicsAndControls(Train Train, double TimeElapsed)
 		{
+			if (Interface.CurrentOptions.GameMode == Interface.GameMode.Developer)
+			{
+				return;
+			}
 			if (TimeElapsed == 0.0)
 			{
 				return;

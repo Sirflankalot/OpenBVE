@@ -263,7 +263,9 @@ namespace OpenBve {
 			MainBreaker,
 			//Other
 			/// <summary>Shows or hides the route information window</summary>
-			RouteInformation
+			RouteInformation,
+			/// <summary>Triggers a reload, when in developer (route viewer) mode</summary>
+			Reload
 
 		}
 

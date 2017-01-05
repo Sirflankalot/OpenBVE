@@ -99,6 +99,7 @@ namespace OpenBve
 							case Interface.GameMode.Arcade: s = GetInterfaceString("mode_arcade"); break;
 							case Interface.GameMode.Normal: s = GetInterfaceString("mode_normal"); break;
 							case Interface.GameMode.Expert: s = GetInterfaceString("mode_expert"); break;
+							case Interface.GameMode.Developer: s = GetInterfaceString("mode_developer"); break;
 							default: s = GetInterfaceString("mode_unknown"); break;
 					}
 					Builder.Append('║');

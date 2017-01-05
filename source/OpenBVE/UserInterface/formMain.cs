@@ -263,8 +263,8 @@ namespace OpenBve {
 			}
 			// modes
 			comboboxMode.Items.Clear();
-			comboboxMode.Items.AddRange(new object[] { "", "", "" });
-			comboboxMode.SelectedIndex = Interface.CurrentOptions.GameMode == Interface.GameMode.Arcade ? 0 : Interface.CurrentOptions.GameMode == Interface.GameMode.Expert ? 2 : 1;
+			comboboxMode.Items.AddRange(new object[] { "", "", "", "" });
+			comboboxMode.SelectedIndex = (int)Interface.CurrentOptions.GameMode;
 			// review last game
 			{
 				if (Game.LogRouteName.Length == 0 | Game.LogTrainName.Length == 0)
@@ -286,6 +286,7 @@ namespace OpenBve {
 						case Interface.GameMode.Arcade: labelRatingModeValue.Text = Interface.GetInterfaceString("mode_arcade"); break;
 						case Interface.GameMode.Normal: labelRatingModeValue.Text = Interface.GetInterfaceString("mode_normal"); break;
 						case Interface.GameMode.Expert: labelRatingModeValue.Text = Interface.GetInterfaceString("mode_expert"); break;
+						case Interface.GameMode.Developer: labelRatingModeValue.Text = Interface.GetInterfaceString("mode_developer"); break;
 						default: labelRatingModeValue.Text = Interface.GetInterfaceString("mode_unknown"); break;
 					}
 					if (Game.CurrentScore.Maximum == 0)
@@ -608,6 +609,7 @@ namespace OpenBve {
 			comboboxMode.Items[0] = Interface.GetInterfaceString("mode_arcade");
 			comboboxMode.Items[1] = Interface.GetInterfaceString("mode_normal");
 			comboboxMode.Items[2] = Interface.GetInterfaceString("mode_expert");
+			comboboxMode.Items[3] = Interface.GetInterfaceString("mode_developer");
 			/*
 			 * Localisation for strings in the game review pane
 			 */
@@ -628,6 +630,8 @@ namespace OpenBve {
 				case Interface.GameMode.Arcade: labelRatingModeValue.Text = Interface.GetInterfaceString("mode_arcade"); break;
 				case Interface.GameMode.Normal: labelRatingModeValue.Text = Interface.GetInterfaceString("mode_normal"); break;
 				case Interface.GameMode.Expert: labelRatingModeValue.Text = Interface.GetInterfaceString("mode_expert"); break;
+				case Interface.GameMode.Developer: labelRatingModeValue.Text = Interface.GetInterfaceString("mode_developer"); break;
+
 				default: labelRatingModeValue.Text = Interface.GetInterfaceString("mode_unkown"); break;
 			}
 			{
