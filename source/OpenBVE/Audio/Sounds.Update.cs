@@ -528,7 +528,7 @@ namespace OpenBve {
 					OpenBveApi.Math.Vector3 position;
 					OpenBveApi.Math.Vector3 velocity;
 					OpenBveApi.Math.Vector3 direction;
-					switch (Sources[i].Type)
+					switch (source.Type)
 					{
 						case SoundType.TrainCar:
 							var Train = (TrainManager.Train)Sources[i].Parent;
@@ -537,7 +537,7 @@ namespace OpenBve {
 							velocity = Train.Cars[source.Car].Specs.CurrentSpeed * direction;
 						break;
 						case SoundType.AnimatedObject:
-							var Object = (ObjectManager.AnimatedWorldObject)Sources[i].Parent;
+							var Object = (ObjectManager.AnimatedWorldObject)source.Parent;
 							position = Object.FrontAxleFollower.WorldPosition;
 							direction = Object.FrontAxleFollower.WorldDirection;
 							//TODO: Need to calculate the velocity for trackfollower objects properly
@@ -545,7 +545,7 @@ namespace OpenBve {
 							
 						break;
 						default:
-							position = Sources[i].Position;
+							position = source.Position;
 							velocity = OpenBveApi.Math.Vector3.Null;
 						break;
 					}
