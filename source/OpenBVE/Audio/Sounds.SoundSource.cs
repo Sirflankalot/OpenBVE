@@ -15,13 +15,15 @@
 
 		/// <summary>Represents the different types of sound</summary>
 		internal enum SoundType {
-			/// <summary>The sound source is attached to the car of a train</summary>
+			/// <summary>The sound source is triggered passing over a set of points</summary>
+			PointSound,
+			/// <summary>The sound source is attached to a car within the train, and moves with the car</summary>
 			TrainCar,
-			/// <summary>The sound source is emitted when triggered from a track location</summary>
+			/// <summary>The sound source is attached to a fixed track location, and is triggered by the train</summary>
 			TrackSound,
 			/// <summary>The sound source is ambient</summary>
 			Ambient,
-			/// <summary>The sound source is emitted from a fixed position (Placed via the routefile)</summary>
+			/// <summary>The sound source is constantly emitted from a fixed position (Placed via the routefile)</summary>
 			FixedPosition,
 			/// <summary>The sound source is emitted by a static object</summary>
 			StaticObject,
@@ -44,8 +46,8 @@
 			internal double Volume;
 			/// <summary>The position. If a train and car are specified, the position is relative to the car, otherwise absolute.</summary>
 			internal OpenBveApi.Math.Vector3 Position;
-			/// <summary>The train this sound is attached to, or a null reference.</summary>
-			internal TrainManager.Train Train;
+			/// <summary>The parent object this sound is attached to, or a null reference.</summary>
+			internal object Parent;
 			/// <summary>The car this sound is attached to, or a null reference.</summary>
 			internal int Car;
 			/// <summary>Whether this sound plays in a loop.</summary>
@@ -73,7 +75,7 @@
 				this.Pitch = pitch;
 				this.Volume = volume;
 				this.Position = position;
-				this.Train = train;
+				this.Parent = train;
 				this.Car = car;
 				this.Looped = looped;
 				this.State = SoundSourceState.PlayPending;
@@ -96,18 +98,18 @@
 			/// <param name="pitch">The pitch change factor.</param>
 			/// <param name="volume">The volume change factor.</param>
 			/// <param name="position">The position. If a train and car are specified, the position is relative to the car, otherwise absolute.</param>
-			/// <param name="train">The train this sound source is attached to, or a null reference.</param>
+			/// <param name="parent">The train this sound source is attached to, or a null reference.</param>
 			/// <param name="type">The type of sound</param>
 			/// <param name="car">The car this sound source is attached to, or a null reference.</param>
 			/// <param name="looped">Whether this sound source plays in a loop.</param>
-			internal SoundSource(SoundBuffer buffer, double radius, double pitch, double volume, OpenBveApi.Math.Vector3 position, TrainManager.Train train, SoundType type, int car, bool looped)
+			internal SoundSource(SoundBuffer buffer, double radius, double pitch, double volume, OpenBveApi.Math.Vector3 position, object parent, SoundType type, int car, bool looped)
 			{
 				this.Buffer = buffer;
 				this.Radius = radius;
 				this.Pitch = pitch;
 				this.Volume = volume;
 				this.Position = position;
-				this.Train = train;
+				this.Parent = parent;
 				this.Car = car;
 				this.Looped = looped;
 				this.State = SoundSourceState.PlayPending;

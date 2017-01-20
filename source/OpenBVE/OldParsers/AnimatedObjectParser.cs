@@ -463,6 +463,17 @@ namespace OpenBve
 													 * Not aware of any uses, but these should stay there anyway
 													 * 
 													 */
+												case "sound":
+													try
+													{
+														//Constant 30m sound radius, conforms to other train generated sounds
+														Result.Objects[ObjectCount].SoundBuffer = new Sounds.SoundBuffer(OpenBveApi.Path.CombineFile(System.IO.Path.GetDirectoryName(FileName), b), 30.0);
+													}
+													catch
+													{
+														Interface.AddMessage(Interface.MessageType.Error, true, "The sound file " + b + "was not found in " + a + " at line " + (i + 1).ToString(Culture) + " in file " + FileName);
+													}
+													break;
 												case "translatexfunctionrpn":
 													try
 													{

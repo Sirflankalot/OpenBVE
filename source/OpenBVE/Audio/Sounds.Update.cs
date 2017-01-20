@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using OpenBveApi.Math;
 using OpenTK.Audio.OpenAL;
 
 
@@ -10,10 +11,10 @@ namespace OpenBve {
 		/// <param name="timeElapsed">The time in seconds that elapsed since the last call to this function.</param>
 		/// <param name="model">The sound model.</param>
 		internal static void Update(double timeElapsed, SoundModels model) {
-            //The time elapsed is used to work out the clamp factor
-            //If this is zero, or above 0.5, then this causes sounds bugs
-            //TODO: This is a nasty hack. Store the previous clamp factor in these cases??
-		    if (timeElapsed == 0.0 || timeElapsed > 0.5) return;
+			//The time elapsed is used to work out the clamp factor
+			//If this is zero, or above 0.5, then this causes sounds bugs
+			//TODO: This is a nasty hack. Store the previous clamp factor in these cases??
+			if (timeElapsed == 0.0 || timeElapsed > 0.5) return;
 			if (model == SoundModels.Linear) {
 				UpdateLinearModel(timeElapsed);
 			} else {
@@ -37,10 +38,10 @@ namespace OpenBve {
 			} else {
 				listenerVelocity = World.CameraAlignmentSpeed.Position;
 			}
-            AL.Listener(ALListener3f.Position, 0.0f, 0.0f, 0.0f);
-            AL.Listener(ALListener3f.Velocity, (float)listenerVelocity.X, (float)listenerVelocity.Y, (float)listenerVelocity.Z);
-		    var Orientation = new[]{(float) listenerOrientation.Z.X, (float) listenerOrientation.Z.Y, (float) listenerOrientation.Z.Z,-(float) listenerOrientation.Y.X, -(float) listenerOrientation.Y.Y, -(float) listenerOrientation.Y.Z};
-            AL.Listener(ALListenerfv.Orientation, ref Orientation );
+			AL.Listener(ALListener3f.Position, 0.0f, 0.0f, 0.0f);
+			AL.Listener(ALListener3f.Velocity, (float)listenerVelocity.X, (float)listenerVelocity.Y, (float)listenerVelocity.Z);
+			var Orientation = new[]{(float) listenerOrientation.Z.X, (float) listenerOrientation.Z.Y, (float) listenerOrientation.Z.Z,-(float) listenerOrientation.Y.X, -(float) listenerOrientation.Y.Y, -(float) listenerOrientation.Y.Z};
+			AL.Listener(ALListenerfv.Orientation, ref Orientation );
 			/*
 			 * Set up the atmospheric attributes
 			 * */
@@ -49,7 +50,7 @@ namespace OpenBve {
 			double airPressure = Game.GetAirPressure(elevation, airTemperature);
 			double speedOfSound = Game.GetSpeedOfSound(airPressure, airTemperature);
 			try {
-                AL.SpeedOfSound((float)speedOfSound);
+				AL.SpeedOfSound((float)speedOfSound);
 			} catch { }
 			/*
 			 * Update the sound sources
@@ -106,9 +107,17 @@ namespace OpenBve {
 					switch (Sources[i].Type)
 					{
 						case SoundType.TrainCar:
+							//The sound is attached to a car within the train, so we must calculate it's new position & velocity
 							OpenBveApi.Math.Vector3 direction;
-							TrainManager.CreateWorldCoordinates(Sources[i].Train, Sources[i].Car, Sources[i].Position.X, Sources[i].Position.Y, Sources[i].Position.Z, out position.X, out position.Y, out position.Z, out direction.X, out direction.Y, out direction.Z);
-							velocity = Sources[i].Train.Cars[Sources[i].Car].Specs.CurrentSpeed * direction;
+							var Train = (TrainManager.Train) Sources[i].Parent;
+							TrainManager.CreateWorldCoordinates(Train, Sources[i].Car, Sources[i].Position.X, Sources[i].Position.Y, Sources[i].Position.Z, out position.X, out position.Y, out position.Z, out direction.X, out direction.Y, out direction.Z);
+							velocity = Train.Cars[Sources[i].Car].Specs.CurrentSpeed * direction;
+							break;
+						case SoundType.AnimatedObject:
+							var Object = (ObjectManager.AnimatedWorldObject) Sources[i].Parent;
+							position = Object.FrontAxleFollower.WorldPosition;
+							//TODO: Need to calculate the velocity for trackfollower objects, probably do in the update function
+							velocity = 10.0 * Object.FrontAxleFollower.WorldDirection;
 							break;
 						default:
 							position = Sources[i].Position;
@@ -123,7 +132,9 @@ namespace OpenBve {
 						double distance = positionDifference.Norm();
 						double innerRadius = Sources[i].Radius;
 						if (World.CameraMode == World.CameraViewMode.Interior | World.CameraMode == World.CameraViewMode.InteriorLookAhead) {
-							if (Sources[i].Train != TrainManager.PlayerTrain || Sources[i].Car != TrainManager.PlayerTrain.DriverCar) {
+							if (Sources[i].Parent != TrainManager.PlayerTrain || Sources[i].Car != TrainManager.PlayerTrain.DriverCar) {
+								//When inside the player's train, all externally generated sounds are reduced in volume by 50%
+								//TODO: Allow the volume reduction to be set on a per-sound basis
 								innerRadius *= 0.5;
 							}
 						}
@@ -294,7 +305,7 @@ namespace OpenBve {
 			}
 			AL.Listener(ALListener3f.Position, 0.0f, 0.0f, 0.0f);
 			AL.Listener(ALListener3f.Velocity, (float)listenerVelocity.X, (float)listenerVelocity.Y, (float)listenerVelocity.Z);
-		    var Orientation = new float[]{(float) listenerOrientation.Z.X, (float) listenerOrientation.Z.Y, (float) listenerOrientation.Z.Z,-(float) listenerOrientation.Y.X, -(float) listenerOrientation.Y.Y, -(float) listenerOrientation.Y.Z};
+			var Orientation = new float[]{(float) listenerOrientation.Z.X, (float) listenerOrientation.Z.Y, (float) listenerOrientation.Z.Z,-(float) listenerOrientation.Y.X, -(float) listenerOrientation.Y.Y, -(float) listenerOrientation.Y.Z};
 			AL.Listener(ALListenerfv.Orientation, ref Orientation);
 			/*
 			 * Set up the atmospheric attributes.
@@ -376,18 +387,25 @@ namespace OpenBve {
 					 * Calculate the gain, then add the sound
 					 * to the list of sounds to be played.
 					 * */
-					OpenBveApi.Math.Vector3 position;
-					if (Sources[i].Train != null) {
-						OpenBveApi.Math.Vector3 direction;
-						TrainManager.CreateWorldCoordinates(Sources[i].Train, Sources[i].Car, Sources[i].Position.X, Sources[i].Position.Y, Sources[i].Position.Z, out position.X, out position.Y, out position.Z, out direction.X, out direction.Y, out direction.Z);
-					} else {
-						position = Sources[i].Position;
+					OpenBveApi.Math.Vector3 position, direction;
+					switch (Sources[i].Type)
+					{
+						case SoundType.TrainCar:
+							TrainManager.CreateWorldCoordinates((TrainManager.Train)Sources[i].Parent, Sources[i].Car, Sources[i].Position.X, Sources[i].Position.Y, Sources[i].Position.Z, out position.X, out position.Y, out position.Z, out direction.X, out direction.Y, out direction.Z);
+							break;
+						case SoundType.AnimatedObject:
+							var Object = (ObjectManager.AnimatedWorldObject)Sources[i].Parent;
+							position = Object.FrontAxleFollower.WorldPosition;
+							break;
+						default:
+							position = Sources[i].Position;
+							break;
 					}
 					OpenBveApi.Math.Vector3 positionDifference = position - listenerPosition;
 					double distance = positionDifference.Norm();
 					double radius = Sources[i].Radius;
 					if (World.CameraMode == World.CameraViewMode.Interior | World.CameraMode == World.CameraViewMode.InteriorLookAhead) {
-						if (Sources[i].Train != TrainManager.PlayerTrain || Sources[i].Car != TrainManager.PlayerTrain.DriverCar) {
+						if (Sources[i].Parent != TrainManager.PlayerTrain || Sources[i].Car != TrainManager.PlayerTrain.DriverCar) {
 							radius *= 0.5;
 						}
 					}
@@ -509,13 +527,27 @@ namespace OpenBve {
 					}
 					OpenBveApi.Math.Vector3 position;
 					OpenBveApi.Math.Vector3 velocity;
-					if (source.Train != null) {
-						OpenBveApi.Math.Vector3 direction;
-						TrainManager.CreateWorldCoordinates(source.Train, source.Car, source.Position.X, source.Position.Y, source.Position.Z, out position.X, out position.Y, out position.Z, out direction.X, out direction.Y, out direction.Z);
-						velocity = source.Train.Cars[source.Car].Specs.CurrentSpeed * direction;
-					} else {
-						position = source.Position;
-						velocity = OpenBveApi.Math.Vector3.Null;
+					OpenBveApi.Math.Vector3 direction;
+					switch (Sources[i].Type)
+					{
+						case SoundType.TrainCar:
+							var Train = (TrainManager.Train)Sources[i].Parent;
+							
+							TrainManager.CreateWorldCoordinates(Train, source.Car, source.Position.X, source.Position.Y, source.Position.Z, out position.X, out position.Y, out position.Z, out direction.X, out direction.Y, out direction.Z);
+							velocity = Train.Cars[source.Car].Specs.CurrentSpeed * direction;
+						break;
+						case SoundType.AnimatedObject:
+							var Object = (ObjectManager.AnimatedWorldObject)Sources[i].Parent;
+							position = Object.FrontAxleFollower.WorldPosition;
+							direction = Object.FrontAxleFollower.WorldDirection;
+							//TODO: Need to calculate the velocity for trackfollower objects properly
+							velocity = 10.0 * direction;
+							
+						break;
+						default:
+							position = Sources[i].Position;
+							velocity = OpenBveApi.Math.Vector3.Null;
+						break;
 					}
 					position -= listenerPosition;
 					AL.Source(source.OpenAlSourceName, ALSource3f.Position, (float)position.X, (float)position.Y, (float)position.Z);
@@ -530,6 +562,5 @@ namespace OpenBve {
 				}
 			}
 		}
-		
 	}
 }

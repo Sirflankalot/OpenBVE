@@ -467,21 +467,24 @@ namespace OpenBve {
 			/// <summary>The sound buffer to play.
 			/// HACK: Set to a null reference to indicate the train point sound.</summary>
 			internal Sounds.SoundBuffer SoundBuffer;
+			internal Sounds.SoundType Type;
 			internal bool PlayerTrainOnly;
 			internal bool Once;
 			internal bool Dynamic;
 			internal Vector3 Position;
 			internal double Speed;
 
+
 			/// <param name="TrackPositionDelta">The delta position of the sound within a track block.</param>
-			/// <param name="SoundBuffer">The sound buffer to play. 
-			/// HACK: Set to a null reference to indicate the train point sound.</param>
+			/// <param name="SoundBuffer">The sound buffer to play.</param>
+			/// <param name="Type"></param>
 			/// <param name="PlayerTrainOnly">Defines whether this sound is played for the player's train only, or for player and AI trains</param>
 			/// <param name="Once">Defines whether this sound repeats looped, or plays once</param>
 			/// <param name="Dynamic">Whether this sound is dynamic (Attached to a train)</param>
 			/// <param name="Position">The position of the sound relative to it's track location</param>
 			/// <param name="Speed">The speed in km/h at which this sound is played at it's original pitch (Set to zero to play at original pitch at all times)</param>
-			internal SoundEvent(double TrackPositionDelta, Sounds.SoundBuffer SoundBuffer, bool PlayerTrainOnly, bool Once, bool Dynamic, Vector3 Position, double Speed) {
+			internal SoundEvent(double TrackPositionDelta, Sounds.SoundBuffer SoundBuffer, Sounds.SoundType Type, bool PlayerTrainOnly, bool Once, bool Dynamic, Vector3 Position, double Speed)
+			{
 				this.TrackPositionDelta = TrackPositionDelta;
 				this.DontTriggerAnymore = false;
 				this.SoundBuffer = SoundBuffer;
@@ -490,6 +493,7 @@ namespace OpenBve {
 				this.Dynamic = Dynamic;
 				this.Position = Position;
 				this.Speed = Speed;
+				this.Type = Type;
 			}
 
 			/// <summary>Triggers the playback of a sound</summary>
@@ -505,8 +509,8 @@ namespace OpenBve {
 						double pitch = 1.0;
 						double gain = 1.0;
 						Sounds.SoundBuffer buffer = this.SoundBuffer;
-						if (buffer == null) {
-							// HACK: Represents the train point sound
+						if (Type == Sounds.SoundType.PointSound) {
+							// The sound buffer should now be loaded from those attached to the train
 							if (TriggerType == EventTriggerType.FrontCarFrontAxle | TriggerType == EventTriggerType.OtherCarFrontAxle) {
 								if (Train.Specs.CurrentAverageSpeed <= 0.0) return;
 								buffer = Train.Cars[CarIndex].Sounds.PointFrontAxle.Buffer;

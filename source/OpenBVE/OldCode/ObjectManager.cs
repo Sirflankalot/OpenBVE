@@ -148,6 +148,7 @@ namespace OpenBve {
 			//This section holds parameters used by the track following function
 			internal double FrontAxlePosition = 1;
 			internal double RearAxlePosition = -1;
+			internal Sounds.SoundBuffer SoundBuffer;
 			// methods
 			internal bool IsFreeOfFunctions() {
 				if (this.StateFunction != null) return false;
@@ -862,6 +863,10 @@ namespace OpenBve {
 			internal double Radius;
 			/// <summary>Whether the object is currently visible</summary>
 			internal bool Visible;
+			/// <summary>The object's sound buffer</summary>
+			internal Sounds.SoundBuffer SoundBuffer;
+
+			internal Sounds.SoundSource SoundSource;
 			/*
 			 * NOT IMPLEMENTED, BUT REQUIRED LATER
 			 */
@@ -955,6 +960,10 @@ namespace OpenBve {
 				AnimatedWorldObjects[a].RearAxleFollower.UpdateWorldCoordinates(false);
 				
 			}
+			if (Prototype.SoundBuffer != null)
+			{
+				AnimatedWorldObjects[a].SoundBuffer = Prototype.SoundBuffer;
+			}
 			for (int i = 0; i < AnimatedWorldObjects[a].Object.States.Length; i++) {
 				if (AnimatedWorldObjects[a].Object.States[i].Object == null) {
 					AnimatedWorldObjects[a].Object.States[i].Object = new StaticObject
@@ -1039,6 +1048,14 @@ namespace OpenBve {
 							}
 							//Update the actual animated object- This must be done last in case the user has used Translation or Rotation
 							UpdateAnimatedObject(ref AnimatedWorldObjects[i].Object, false, train, train == null ? 0 : train.DriverCar, AnimatedWorldObjects[i].SectionIndex, AnimatedWorldObjects[i].FrontAxleFollower.TrackPosition, AnimatedWorldObjects[i].FrontAxleFollower.WorldPosition, AnimatedWorldObjects[i].Direction, AnimatedWorldObjects[i].Up, AnimatedWorldObjects[i].Side, false, true, true, timeDelta);
+							if (AnimatedWorldObjects[i].Visible)
+							{
+								//Our object is (or has become) visible, check if the sound needs to be started
+								if ((AnimatedWorldObjects[i].SoundSource == null || AnimatedWorldObjects[i].SoundSource.State == Sounds.SoundSourceState.Stopped) && AnimatedWorldObjects[i].SoundBuffer != null)
+								{
+									AnimatedWorldObjects[i].SoundSource = Sounds.PlaySound(AnimatedWorldObjects[i].SoundBuffer, 1.0, 1.0, AnimatedWorldObjects[i].Position, AnimatedWorldObjects[i], true);
+								}
+							}
 							
 						}
 						else
@@ -1057,6 +1074,11 @@ namespace OpenBve {
 				} else {
 					AnimatedWorldObjects[i].Object.SecondsSinceLastUpdate += TimeElapsed;
 					if (AnimatedWorldObjects[i].Visible) {
+						if (AnimatedWorldObjects[i].SoundBuffer != null)
+						{
+							//If our object is no longer visible & has a sound playing, stop it
+							Sounds.StopSound(AnimatedWorldObjects[i].SoundSource);
+						}
 						Renderer.HideObject(AnimatedWorldObjects[i].Object.ObjectIndex);
 						AnimatedWorldObjects[i].Visible = false;
 					}

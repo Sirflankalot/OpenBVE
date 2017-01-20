@@ -29,13 +29,13 @@ namespace OpenBve {
 		private static SoundBuffer[] Buffers = new SoundBuffer[16];
 		
 		/// <summary>The number of sound buffers.</summary>
-		private static int BufferCount = 0;
+		private static int BufferCount;
 		
 		/// <summary>A list of all sound sources.</summary>
 		private static SoundSource[] Sources = new SoundSource[16];
 		
 		/// <summary>The number of sound sources.</summary>
-		private static int SourceCount = 0;
+		private static int SourceCount;
 		
 		/// <summary>The gain threshold. Sounds with gains below this value are not played.</summary>
 		internal const double GainThreshold = 0.0001;
@@ -236,7 +236,24 @@ namespace OpenBve {
 			SourceCount++;
 			return Sources[SourceCount - 1];
 		}
-		
+
+		/// <summary>Plays a sound.</summary>
+		/// <param name="buffer">The sound buffer.</param>
+		/// <param name="pitch">The pitch change factor.</param>
+		/// <param name="volume">The volume change factor.</param>
+		/// <param name="position">The position. If a train and car are specified, the position is relative to the car, otherwise absolute.</param>
+		/// <param name="parent">The parent animated object the sound is attached to.</param>
+		/// <param name="looped">Whether to play the sound in a loop.</param>
+		/// <returns>The sound source.</returns>
+		internal static SoundSource PlaySound(SoundBuffer buffer, double pitch, double volume, OpenBveApi.Math.Vector3 position, ObjectManager.AnimatedWorldObject parent, bool looped) {
+			if (Sources.Length == SourceCount) {
+				Array.Resize<SoundSource>(ref Sources, Sources.Length << 1);
+			}
+			Sources[SourceCount] = new SoundSource(buffer, buffer.Radius, pitch, volume, position, parent, SoundType.AnimatedObject, -1, looped);
+			SourceCount++;
+			return Sources[SourceCount - 1];
+		}
+
 		/// <summary>Plays a sound.</summary>
 		/// <param name="buffer">The sound buffer.</param>
 		/// <param name="pitch">The pitch change factor.</param>
@@ -246,15 +263,17 @@ namespace OpenBve {
 		/// <param name="car">The car in the train the sound is attached to.</param>
 		/// <param name="looped">Whether to play the sound in a loop.</param>
 		/// <returns>The sound source.</returns>
-		internal static SoundSource PlaySound(SoundBuffer buffer, double pitch, double volume, OpenBveApi.Math.Vector3 position, TrainManager.Train train, int car, bool looped) {
-			if (Sources.Length == SourceCount) {
+		internal static SoundSource PlaySound(SoundBuffer buffer, double pitch, double volume, OpenBveApi.Math.Vector3 position, TrainManager.Train train, int car, bool looped)
+		{
+			if (Sources.Length == SourceCount)
+			{
 				Array.Resize<SoundSource>(ref Sources, Sources.Length << 1);
 			}
 			Sources[SourceCount] = new SoundSource(buffer, buffer.Radius, pitch, volume, position, train, car, looped);
 			SourceCount++;
 			return Sources[SourceCount - 1];
 		}
-		
+
 		/// <summary>Stops the specified sound source.</summary>
 		/// <param name="source">The sound source, or a null reference.</param>
 		internal static void StopSound(SoundSource source) {
@@ -282,7 +301,7 @@ namespace OpenBve {
 		/// <param name="train">The train.</param>
 		internal static void StopAllSounds(TrainManager.Train train) {
 			for (int i = 0; i < SourceCount; i++) {
-				if (Sources[i].Train == train) {
+				if (Sources[i].Parent == train) {
 					if (Sources[i].State == SoundSourceState.Playing) {
 						AL.DeleteSources(1, ref Sources[i].OpenAlSourceName);
 						Sources[i].OpenAlSourceName = 0;

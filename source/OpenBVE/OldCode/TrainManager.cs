@@ -1291,6 +1291,10 @@ namespace OpenBve
 		// create world coordinates
 		internal static void CreateWorldCoordinates(Train Train, int CarIndex, double CarX, double CarY, double CarZ, out double PositionX, out double PositionY, out double PositionZ, out double DirectionX, out double DirectionY, out double DirectionZ)
 		{
+			if (CarIndex == -1)
+			{
+				CarIndex = 0;
+			}
 			DirectionX = Train.Cars[CarIndex].FrontAxle.Follower.WorldPosition.X - Train.Cars[CarIndex].RearAxle.Follower.WorldPosition.X;
 			DirectionY = Train.Cars[CarIndex].FrontAxle.Follower.WorldPosition.Y - Train.Cars[CarIndex].RearAxle.Follower.WorldPosition.Y;
 			DirectionZ = Train.Cars[CarIndex].FrontAxle.Follower.WorldPosition.Z - Train.Cars[CarIndex].RearAxle.Follower.WorldPosition.Z;
