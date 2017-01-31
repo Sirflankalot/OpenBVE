@@ -963,6 +963,7 @@ namespace OpenBve {
 			if (Prototype.SoundBuffer != null)
 			{
 				AnimatedWorldObjects[a].SoundBuffer = Prototype.SoundBuffer;
+				//new Sounds.SoundBuffer().Clone(Prototype.SoundBuffer);
 			}
 			for (int i = 0; i < AnimatedWorldObjects[a].Object.States.Length; i++) {
 				if (AnimatedWorldObjects[a].Object.States[i].Object == null) {
@@ -1048,13 +1049,28 @@ namespace OpenBve {
 							}
 							//Update the actual animated object- This must be done last in case the user has used Translation or Rotation
 							UpdateAnimatedObject(ref AnimatedWorldObjects[i].Object, false, train, train == null ? 0 : train.DriverCar, AnimatedWorldObjects[i].SectionIndex, AnimatedWorldObjects[i].FrontAxleFollower.TrackPosition, AnimatedWorldObjects[i].FrontAxleFollower.WorldPosition, AnimatedWorldObjects[i].Direction, AnimatedWorldObjects[i].Up, AnimatedWorldObjects[i].Side, false, true, true, timeDelta);
-							if (AnimatedWorldObjects[i].Visible)
+							if (AnimatedWorldObjects[i].Visible && AnimatedWorldObjects[i].SoundBuffer != null)
 							{
 								//Our object is (or has become) visible, check if the sound needs to be started
-								if ((AnimatedWorldObjects[i].SoundSource == null || AnimatedWorldObjects[i].SoundSource.State == Sounds.SoundSourceState.Stopped) && AnimatedWorldObjects[i].SoundBuffer != null)
+								double Pitch = 1.0;
+								double Volume = 1.0;
+								if (AnimatedWorldObjects[i].SoundBuffer.PitchFunction != null)
 								{
-									AnimatedWorldObjects[i].SoundSource = Sounds.PlaySound(AnimatedWorldObjects[i].SoundBuffer, 1.0, 1.0, AnimatedWorldObjects[i].Position, AnimatedWorldObjects[i], true);
+									AnimatedWorldObjects[i].SoundBuffer.PitchFunction.Perform(train, train == null ? 0 : train.DriverCar,AnimatedWorldObjects[i].Position, AnimatedWorldObjects[i].TrackPosition, AnimatedWorldObjects[i].SectionIndex, false, TimeElapsed, AnimatedWorldObjects[i].Object.CurrentState);
+									Pitch = AnimatedWorldObjects[i].SoundBuffer.PitchFunction.LastResult;
 								}
+								if (AnimatedWorldObjects[i].SoundBuffer.VolumeFunction != null)
+								{
+									AnimatedWorldObjects[i].SoundBuffer.VolumeFunction.Perform(train, train == null ? 0 : train.DriverCar, AnimatedWorldObjects[i].Position, AnimatedWorldObjects[i].TrackPosition, AnimatedWorldObjects[i].SectionIndex, false, TimeElapsed, AnimatedWorldObjects[i].Object.CurrentState);
+									Volume = AnimatedWorldObjects[i].SoundBuffer.VolumeFunction.LastResult;
+								}
+								if (AnimatedWorldObjects[i].SoundSource == null || AnimatedWorldObjects[i].SoundSource.State == Sounds.SoundSourceState.Stopped ||
+								    AnimatedWorldObjects[i].SoundSource.Volume != Volume || AnimatedWorldObjects[i].SoundSource.Pitch != Pitch)
+								{
+									AnimatedWorldObjects[i].SoundSource = Sounds.PlaySound(AnimatedWorldObjects[i].SoundBuffer, Pitch, Volume,
+										AnimatedWorldObjects[i].Position, AnimatedWorldObjects[i], true);
+								}
+
 							}
 							
 						}

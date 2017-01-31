@@ -466,8 +466,15 @@ namespace OpenBve
 												case "sound":
 													try
 													{
-														//Constant 30m sound radius, conforms to other train generated sounds
-														Result.Objects[ObjectCount].SoundBuffer = new Sounds.SoundBuffer(OpenBveApi.Path.CombineFile(System.IO.Path.GetDirectoryName(FileName), b), 30.0);
+														if (b.ToLowerInvariant().EndsWith(".xml"))
+														{
+															Result.Objects[ObjectCount].SoundBuffer = SoundXMLParser.ReadSoundXML(OpenBveApi.Path.CombineFile(System.IO.Path.GetDirectoryName(FileName), b));
+														}
+														else
+														{
+															//Constant 30m sound radius pitch & volume, conforms to other train generated sounds
+															Result.Objects[ObjectCount].SoundBuffer = new Sounds.SoundBuffer(OpenBveApi.Path.CombineFile(System.IO.Path.GetDirectoryName(FileName), b), 30.0);
+														}
 													}
 													catch
 													{
