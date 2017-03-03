@@ -1,7 +1,5 @@
 ﻿using OpenTK;
 using System.Collections.Generic;
-using GL = OpenTK.Graphics.OpenGL;
-using GLFunc = OpenTK.Graphics.OpenGL.GL;
 
 namespace LibRender {
     
