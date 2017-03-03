@@ -76,6 +76,9 @@ OPEN_BVE_FILE         :=OpenBve.exe
 OPEN_BVE_API_ROOT     :=source/OpenBveApi
 OPEN_BVE_API_FILE     :=OpenBveApi.dll
 
+LIB_RENDER_ROOT       :=source/CoreLibs/LibRender
+LIB_RENDER_FILE       :=LibRender.dll
+
 OPEN_BVE_ATS_ROOT     :=source/Plugins/OpenBveAts
 OPEN_BVE_ATS_FILE     :=Data/Plugins/OpenBveAts.dll
 
@@ -293,6 +296,7 @@ $(OPEN_BVE_ROOT)/Properties/AssemblyInfo.cs: $(OPEN_BVE_ROOT)/Properties/Assembl
 $(call create_resource, $(OPEN_BVE_RESOURCE), $(OPEN_BVE_RESX))
 
 $(DEBUG_DIR)/$(OPEN_BVE_FILE): $(DEBUG_DIR)/$(OPEN_BVE_API_FILE) 
+$(DEBUG_DIR)/$(OPEN_BVE_FILE): $(DEBUG_DIR)/$(LIB_RENDER_FILE)
 $(DEBUG_DIR)/$(OPEN_BVE_FILE): $(DEBUG_DIR)/$(OPEN_BVE_ATS_FILE) 
 $(DEBUG_DIR)/$(OPEN_BVE_FILE): $(DEBUG_DIR)/$(SOUND_FLAC_FILE) 
 $(DEBUG_DIR)/$(OPEN_BVE_FILE): $(DEBUG_DIR)/$(SOUND_RIFFWAVE_FILE) 
@@ -300,6 +304,7 @@ $(DEBUG_DIR)/$(OPEN_BVE_FILE): $(DEBUG_DIR)/$(TEXTURE_ACE_FILE)
 $(DEBUG_DIR)/$(OPEN_BVE_FILE): $(DEBUG_DIR)/$(TEXTURE_BGJPT_FILE)
 
 $(RELEASE_DIR)/$(OPEN_BVE_FILE): $(RELEASE_DIR)/$(OPEN_BVE_API_FILE) 
+$(RELEASE_DIR)/$(OPEN_BVE_FILE): $(RELEASE_DIR)/$(LIB_RENDER_FILE)
 $(RELEASE_DIR)/$(OPEN_BVE_FILE): $(RELEASE_DIR)/$(OPEN_BVE_ATS_FILE) 
 $(RELEASE_DIR)/$(OPEN_BVE_FILE): $(RELEASE_DIR)/$(SOUND_FLAC_FILE) 
 $(RELEASE_DIR)/$(OPEN_BVE_FILE): $(RELEASE_DIR)/$(SOUND_RIFFWAVE_FILE) 
@@ -339,6 +344,31 @@ $(DEBUG_DIR)/$(OPEN_BVE_API_FILE) $(RELEASE_DIR)/$(OPEN_BVE_API_FILE): $(OPEN_BV
 	/reference:$(OUTPUT_DIR)/CSScriptLibrary.dll /reference:$(OUTPUT_DIR)/NUniversalCharDet.dll /reference:$(OUTPUT_DIR)/SharpCompress.Unsigned.dll \
 	/reference:System.Core.dll /reference:System.dll \
 	$(addprefix /resource:, $(OPEN_BVE_API_RESOURCE))
+
+
+#############
+# LibRender #
+#############
+
+LIB_RENDER_FOLDERS  := . Properties
+LIB_RENDER_FOLDERS  := $(addprefix $(LIB_RENDER_ROOT)/, $(LIB_RENDER_FOLDERS))
+LIB_RENDER_SRC      := $(foreach sdir, $(LIB_RENDER_FOLDERS), $(wildcard $(sdir)/*.cs))
+LIB_RENDER_DOC      := $(addprefix /doc:, $(foreach sdir, $(LIB_RENDER_FOLDERS), $(wildcard $(sdir)/*.xml)))
+LIB_RENDER_RESX     := $(foreach sdir, $(LIB_RENDER_FOLDERS), $(wildcard $(sdir)/*.resx))
+LIB_RENDER_RESOURCE := $(addprefix $(LIB_RENDER_ROOT)/, $(subst /,., $(subst /./,/, $(patsubst source/%.resx, %.resources, $(LIB_RENDER_RESX)))))
+LIB_RENDER_OUT       =$(OUTPUT_DIR)/$(LIB_RENDER_FILE)
+
+$(call create_resource, $(LIB_RENDER_RESOURCE), $(LIB_RENDER_RESX))
+
+$(DEBUG_DIR)/$(LIB_RENDER_FILE): $(DEBUG_DEPEND)
+$(RELEASE_DIR)/$(LIB_RENDER_FILE): $(RELEASE_DEPEND)
+
+$(DEBUG_DIR)/$(LIB_RENDER_FILE) $(RELEASE_DIR)/$(LIB_RENDER_FILE): $(LIB_RENDER_SRC) $(LIB_RENDER_RESOURCE)
+	@echo $(COLOR_MAGENTA)Building $(COLOR_CYAN)$(LIB_RENDER_OUT)$(COLOR_END)
+	@$(CSC) /out:$(LIB_RENDER_OUT) /target:library $(LIB_RENDER_SRC) $(ARGS) $(LIB_RENDER_DOC) \
+	/reference:$(OUTPUT_DIR)/OpenTK.dll \
+	/reference:System.Core.dll /reference:System.dll \
+	$(addprefix /resource:, $(LIB_RENDER_RESOURCE))
 
 
 ##############
