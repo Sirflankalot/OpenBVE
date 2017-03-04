@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.ComponentModel; 
 using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics;
-using GL = OpenTK.Graphics.OpenGL.GL;
+using GL = OpenTK.Graphics.OpenGL;
+using GLFunc = OpenTK.Graphics.OpenGL.GL;
 using MatrixMode = OpenTK.Graphics.OpenGL.MatrixMode;
 
 namespace OpenBve
@@ -23,17 +24,27 @@ namespace OpenBve
 		private double RenderTimeElapsed;
 		private double RenderRealTimeElapsed;
 		//We need to explicitly specify the default constructor
-		public OpenBVEGame(int width, int height, GraphicsMode currentGraphicsMode, GameWindowFlags @default): base(width, height, currentGraphicsMode, Interface.GetInterfaceString("program_title"), @default)
+		public OpenBVEGame(int width, int height, GraphicsMode currentGraphicsMode, GameWindowFlags @default): base(width, height, currentGraphicsMode, Interface.GetInterfaceString("program_title"), GameWindowFlags.Default, DisplayDevice.Default, 2, 1, GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
 		{
 			try
 			{
 				var assemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 				System.Drawing.Icon ico = new System.Drawing.Icon(OpenBveApi.Path.CombineFile(OpenBveApi.Path.CombineDirectory(assemblyFolder, "Data"), "icon.ico"));
 				this.Icon = ico;
-			}
+
+#if DEBUG
+                int[] ids = { 0 };
+                Program.AppendToLogFile("DEBUG: Registering OpenGL Callback...");
+                GLFunc.Enable(GL.EnableCap.DebugOutputSynchronous);
+                GLFunc.DebugMessageCallback(OpenGLCallback.callback, new IntPtr());
+                GLFunc.DebugMessageControl(GL.DebugSourceControl.DontCare, GL.DebugTypeControl.DontCare, GL.DebugSeverityControl.DontCare, 0, ids, true);
+                var renderer = new LibRender.Renderer();
+                renderer.initialize();
+#endif
+            }
 			catch
 			{
-			}
+            }
 		}
 
 
@@ -683,11 +694,11 @@ namespace OpenBve
 
 		private void LoadingScreenLoop()
 		{
-			GL.MatrixMode(MatrixMode.Projection);
-			GL.PushMatrix();
-			GL.LoadIdentity();
-			GL.Ortho(0.0, (double)Screen.Width, (double)Screen.Height, 0.0, -1.0, 1.0);
-			GL.Viewport(0, 0, Screen.Width, Screen.Height);
+			GLFunc.MatrixMode(MatrixMode.Projection);
+			GLFunc.PushMatrix();
+			GLFunc.LoadIdentity();
+			GLFunc.Ortho(0.0, (double)Screen.Width, (double)Screen.Height, 0.0, -1.0, 1.0);
+			GLFunc.Viewport(0, 0, Screen.Width, Screen.Height);
 
 			while (!Loading.Complete && !Loading.Cancel)
 			{
@@ -722,8 +733,8 @@ namespace OpenBve
 			}
 			if(!Loading.Cancel)
 			{
-				GL.PopMatrix();
-				GL.MatrixMode(MatrixMode.Projection);
+				GLFunc.PopMatrix();
+				GLFunc.MatrixMode(MatrixMode.Projection);
 				SetupSimulation();
 			} else {
 				this.Exit();

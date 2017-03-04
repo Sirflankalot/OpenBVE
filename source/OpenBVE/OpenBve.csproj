@@ -3,8 +3,6 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.50727</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{34743421-2EB8-4F68-9600-AEAE79AECFA5}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -47,19 +45,26 @@
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <BaseAddress>4194304</BaseAddress>
+    <FileAlignment>4096</FileAlignment>
+    <StartAction>Project</StartAction>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <PlatformTarget>x86</PlatformTarget>
     <OutputPath>..\..\bin_release\</OutputPath>
-    <DefineConstants>
-    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile>..\..\bin_release\OpenBve.XML</DocumentationFile>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <StartAction>Project</StartAction>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <BaseAddress>4194304</BaseAddress>
+    <FileAlignment>4096</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
@@ -84,25 +89,22 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CSScriptLibrary">
-      <HintPath>..\..\Dependencies\CSScriptLibrary.dll</HintPath>
-    </Reference>
-    <Reference Include="NUniversalCharDet, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Dependencies\NUniversalCharDet.dll</HintPath>
-    </Reference>
-    <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Dependencies\OpenTK.dll</HintPath>
-    </Reference>
-    <Reference Include="SharpCompress.Unsigned, Version=0.11.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Dependencies\SharpCompress.Unsigned.dll</HintPath>
+      <HintPath>..\..\dependencies\CSScriptLibrary.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="NUniversalCharDet">
+      <HintPath>..\..\dependencies\NUniversalCharDet.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTK">
+      <HintPath>..\..\dependencies\OpenTK.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpCompress.Unsigned">
+      <HintPath>..\..\dependencies\SharpCompress.Unsigned.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Game\AI.cs" />
@@ -113,6 +115,7 @@
     <Compile Include="Game\Menu.cs" />
     <Compile Include="Game\RouteConstants.cs" />
     <Compile Include="Game\Station.cs" />
+    <Compile Include="Graphics\OpenGLCallback.cs" />
     <Compile Include="Graphics\Renderer\Background.cs" />
     <Compile Include="Graphics\Renderer\Colors.cs" />
     <Compile Include="Graphics\Renderer\Functions.cs" />
@@ -321,7 +324,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CoreLibs\LibRender\LibRender.csproj">
-      <Project>{f86484cd-6e1e-4b42-a7fe-4f0564a8a1a5}</Project>
+      <Project>{F86484CD-6E1E-4B42-A7FE-4F0564A8A1A5}</Project>
       <Name>LibRender</Name>
     </ProjectReference>
     <ProjectReference Include="..\OpenBveApi\OpenBveApi.csproj">
@@ -357,7 +360,7 @@
     <OverwriteReadOnlyOutputFiles>true</OverwriteReadOnlyOutputFiles>
   </PropertyGroup>
   <PropertyGroup>
-    <TransformOutOfDateOnly>false</TransformOutOfDateOnly>
+    <TransformOutOfDateOnly>true</TransformOutOfDateOnly>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent Condition=" '$(OS)' == 'Unix' ">bash $(ProjectDir)Properties/AssemblyInfo.sh</PreBuildEvent>
