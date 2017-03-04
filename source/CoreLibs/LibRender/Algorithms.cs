@@ -6,7 +6,7 @@ using GLFunc = OpenTK.Graphics.OpenGL.GL;
 
 namespace LibRender {
     internal static class Algorithms {
-        internal static void update_mesh_normals(List<Mesh> meshes, int start, int end) {
+        internal static void UpdateMeshNormals(List<Mesh> meshes, int start, int end) {
             // Check for valid indices
             if (!(start < meshes.Count && end < meshes.Count && start <= end)) {
                 throw new System.ArgumentException("Range invalid");

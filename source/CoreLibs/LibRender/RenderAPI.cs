@@ -7,24 +7,24 @@ namespace LibRender {
         internal Shader fragment_shader;
         internal ShaderProgram prog;
 
-        public void initialize() {
+        public void Initialize() {
             vertex_shader = new Shader(GL.ShaderType.VertexShader, Shader_Sources.basic_vs);
             fragment_shader = new Shader(GL.ShaderType.FragmentShader, Shader_Sources.basic_fs);
             prog = new ShaderProgram(vertex_shader, fragment_shader);
         }
 
-        public void update() {
-            Algorithms.update_mesh_normals(meshes, 0, meshes.Count);
+        public void Update() {
+            Algorithms.UpdateMeshNormals(meshes, 0, meshes.Count);
         }
 
-        public void render_all() {
+        public void RenderAll() {
 
         }
 
-        public void deinitialize() {
-            vertex_shader.clear();
-            fragment_shader.clear();
-            prog.clear();
+        public void Deinitialize() {
+            vertex_shader.Clear();
+            fragment_shader.Clear();
+            prog.Clear();
         }
     }
 }

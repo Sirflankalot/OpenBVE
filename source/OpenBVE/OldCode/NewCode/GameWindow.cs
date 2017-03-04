@@ -39,7 +39,7 @@ namespace OpenBve
                 GLFunc.DebugMessageCallback(OpenGLCallback.callback, new IntPtr());
                 GLFunc.DebugMessageControl(GL.DebugSourceControl.DontCare, GL.DebugTypeControl.DontCare, GL.DebugSeverityControl.DontCare, 0, ids, true);
                 var renderer = new LibRender.Renderer();
-                renderer.initialize();
+                renderer.Initialize();
 #endif
             }
 			catch

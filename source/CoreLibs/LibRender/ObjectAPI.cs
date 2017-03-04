@@ -106,7 +106,7 @@ namespace LibRender {
         internal List<Camera> cameras;
         internal int active_camera;
 
-        internal void assert_valid(Mesh_Handle mh) {
+        internal void AssertValid(Mesh_Handle mh) {
             if (meshes.Count <= mh.id) {
                 throw new System.ArgumentException("Mesh Handle ID larger than array: " + mh.id.ToString());
             }
@@ -115,7 +115,7 @@ namespace LibRender {
             }
         }
         
-        internal void assert_valid(Object_Handle oh) {
+        internal void AssertValid(Object_Handle oh) {
             if (objects.Count <= oh.id) {
                 throw new System.ArgumentException("Object Handle ID larger than array: " + oh.id.ToString());
             }
@@ -124,7 +124,7 @@ namespace LibRender {
             }
         }
 
-        internal void assert_valid(Texture_Handle th) {
+        internal void AssertValid(Texture_Handle th) {
             if (textures.Count <= th.id) {
                 throw new System.ArgumentException("Texture Handle ID larger than array: " + th.id.ToString());
             }
@@ -133,7 +133,7 @@ namespace LibRender {
             }
         }
 
-        internal void assert_valid(Camera_Handle ch) {
+        internal void AssertValid(Camera_Handle ch) {
             if (cameras.Count <= ch.id) {
                 throw new System.ArgumentException("Camera Handle ID larger than array: " + ch.id.ToString());
             }
@@ -142,7 +142,7 @@ namespace LibRender {
             }
         }
 
-        public Mesh_Handle add_mesh(Vertex[] mesh, int[] vertex_indices) {
+        public Mesh_Handle AddMesh(Vertex[] mesh, int[] vertex_indices) {
             Mesh m = new Mesh();
             m.vertices.AddRange(mesh);
             m.indices.AddRange(vertex_indices);
@@ -150,7 +150,7 @@ namespace LibRender {
             return new Mesh_Handle(meshes.Count - 1);
         }
 
-        public Texture_Handle add_texture(Pixel[] pixels, int width, int height) {
+        public Texture_Handle AddTexture(Pixel[] pixels, int width, int height) {
             Texture t = new Texture();
             t.pixels.AddRange(pixels);
             t.width = width;
@@ -159,7 +159,7 @@ namespace LibRender {
             return new Texture_Handle(textures.Count - 1);
         }
 
-        public Object_Handle add_object(Mesh_Handle mh, Texture_Handle th, bool visible = true) {
+        public Object_Handle AddObject(Mesh_Handle mh, Texture_Handle th, bool visible = true) {
             Object o = new Object();
             o.mesh_id = mh.id;
             o.tex_id = th.id;
@@ -168,7 +168,7 @@ namespace LibRender {
             return new Object_Handle(objects.Count - 1);
         }
 
-        public Camera_Handle add_camera(Vector3 location, Vector2 rotation, float fov, bool active = true) {
+        public Camera_Handle AddCamera(Vector3 location, Vector2 rotation, float fov, bool active = true) {
             Camera c = new Camera();
             c.position = location;
             c.rotation = rotation;
@@ -181,19 +181,19 @@ namespace LibRender {
             return new Camera_Handle(index);
         }
 
-        public void delete(Mesh_Handle mh) {
+        public void Delete(Mesh_Handle mh) {
             meshes[mh.id] = null;
         }
 
-        public void delete(Texture_Handle th) {
+        public void Delete(Texture_Handle th) {
             textures[th.id] = null;
         }
 
-        public void delete(Object_Handle oh) {
+        public void Delete(Object_Handle oh) {
             objects[oh.id] = null;
         }
 
-        public void delete(Camera_Handle oh) {
+        public void Delete(Camera_Handle oh) {
             cameras[oh.id] = null;
         }
 
@@ -201,51 +201,51 @@ namespace LibRender {
         // Object Setters and Getters //
         ////////////////////////////////
 
-        public bool get_visibility(Object_Handle oh) {
-            assert_valid(oh);
+        public bool GetVisibility(Object_Handle oh) {
+            AssertValid(oh);
 
             return objects[oh.id].visible;
         }
 
-        public Vector3 get_location(Object_Handle oh) {
-            assert_valid(oh);
+        public Vector3 GetLocation(Object_Handle oh) {
+            AssertValid(oh);
 
             return objects[oh.id].position;
         }
 
-        public Vector3 get_rotation(Object_Handle oh) {
-            assert_valid(oh);
+        public Vector3 GetRotation(Object_Handle oh) {
+            AssertValid(oh);
 
             return objects[oh.id].rotation;
         }
 
-        public Vector3 get_scale(Object_Handle oh) {
-            assert_valid(oh);
+        public Vector3 GetScale(Object_Handle oh) {
+            AssertValid(oh);
 
             return objects[oh.id].scale;
         }
 
-        public void set_visibility(Object_Handle oh, bool visible) {
-            assert_valid(oh);
+        public void SeVisibility(Object_Handle oh, bool visible) {
+            AssertValid(oh);
 
             objects[oh.id].visible = visible;
         }
 
-        public void set_location(Object_Handle oh, Vector3 pos) {
-            assert_valid(oh);
+        public void SetLocation(Object_Handle oh, Vector3 pos) {
+            AssertValid(oh);
 
             objects[oh.id].position = pos;
             objects[oh.id].matrix_valid = false;
         }
 
-        public void set_rotation(Object_Handle oh, Vector3 rot) {
-            assert_valid(oh);
+        public void SetRotation(Object_Handle oh, Vector3 rot) {
+            AssertValid(oh);
             objects[oh.id].rotation = rot;
             objects[oh.id].matrix_valid = false;
         }
 
-        public void set_scale(Object_Handle oh, Vector3 scale) {
-            assert_valid(oh);
+        public void SetScale(Object_Handle oh, Vector3 scale) {
+            AssertValid(oh);
 
             objects[oh.id].scale = scale;
             objects[oh.id].matrix_valid = false;
@@ -255,48 +255,48 @@ namespace LibRender {
         // Camera Setters and Getters //
         ////////////////////////////////
 
-        public Vector3 get_location(Camera_Handle ch) {
-            assert_valid(ch);
+        public Vector3 GetLocation(Camera_Handle ch) {
+            AssertValid(ch);
 
             return cameras[ch.id].position;
         }
 
-        public Vector2 get_rotation(Camera_Handle ch) {
-            assert_valid(ch);
+        public Vector2 GetRotation(Camera_Handle ch) {
+            AssertValid(ch);
 
             return cameras[ch.id].rotation;
         }
 
-        public float get_fov(Camera_Handle ch) {
-            assert_valid(ch);
+        public float GetFOV(Camera_Handle ch) {
+            AssertValid(ch);
 
             return cameras[ch.id].fov;
         }
 
-        public Camera_Handle get_active_camera() {
+        public Camera_Handle GetActiveCamera() {
             return new Camera_Handle(active_camera);
         }
 
-        public void set_location(Camera_Handle ch, Vector3 location) {
-            assert_valid(ch);
+        public void SetLocation(Camera_Handle ch, Vector3 location) {
+            AssertValid(ch);
 
             cameras[ch.id].position = location;
         }
 
-        public void set_rotation(Camera_Handle ch, Vector2 rotation) {
-            assert_valid(ch);
+        public void SetRotation(Camera_Handle ch, Vector2 rotation) {
+            AssertValid(ch);
 
             cameras[ch.id].rotation = rotation;
         }
 
-        public void set_fov(Camera_Handle ch, float fov) {
-            assert_valid(ch);
+        public void SetFOV(Camera_Handle ch, float fov) {
+            AssertValid(ch);
 
             cameras[ch.id].fov = fov;
         }
 
-        public void set_active_camera(Camera_Handle ch) {
-            assert_valid(ch);
+        public void SetActiveCamera(Camera_Handle ch) {
+            AssertValid(ch);
 
             active_camera = ch.id;
         }

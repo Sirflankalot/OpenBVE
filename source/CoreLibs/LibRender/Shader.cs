@@ -15,11 +15,11 @@ namespace LibRender {
             compiled = false;
         }
 
-        public void clear() {
+        public void Clear() {
             GLFunc.DeleteShader(gl_identifier);
         }
 
-        public int compile() {
+        public int Compile() {
             if (compiled) {
                 return gl_identifier;
             }
@@ -44,7 +44,7 @@ namespace LibRender {
         public ShaderProgram(params Shader[] shaders) {
             gl_ident = GLFunc.CreateProgram();
             foreach(Shader s in shaders) {
-                GLFunc.AttachShader(gl_ident, s.compile());
+                GLFunc.AttachShader(gl_ident, s.Compile());
             }
 
             GLFunc.LinkProgram(gl_ident);
@@ -56,15 +56,15 @@ namespace LibRender {
             }
 
             foreach(Shader s in shaders) {
-                GLFunc.DetachShader(gl_ident, s.compile());
+                GLFunc.DetachShader(gl_ident, s.Compile());
             }
         }
 
-        public void use() {
+        public void Use() {
             GLFunc.UseProgram(gl_ident);
         }
 
-        public void clear() {
+        public void Clear() {
             GLFunc.DeleteProgram(gl_ident);
         }
     }
