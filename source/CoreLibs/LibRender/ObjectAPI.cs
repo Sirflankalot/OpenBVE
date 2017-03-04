@@ -142,7 +142,7 @@ namespace LibRender {
             }
         }
 
-        public Mesh_Handle add_mesh(Vertex[] mesh, int[] vertex_indices, bool has_normals = false) {
+        public Mesh_Handle add_mesh(Vertex[] mesh, int[] vertex_indices) {
             Mesh m = new Mesh();
             m.vertices.AddRange(mesh);
             m.indices.AddRange(vertex_indices);
@@ -240,7 +240,6 @@ namespace LibRender {
 
         public void set_rotation(Object_Handle oh, Vector3 rot) {
             assert_valid(oh);
-
             objects[oh.id].rotation = rot;
             objects[oh.id].matrix_valid = false;
         }

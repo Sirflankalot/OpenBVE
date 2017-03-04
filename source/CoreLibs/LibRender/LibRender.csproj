@@ -21,7 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -47,20 +47,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ObjectAPI.cs" />
+    <Compile Include="Algorithms.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Shader.cs" />
-    <Compile Include="Shaders.Designer.cs">
+    <Compile Include="Shader_Sources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Shaders.resx</DependentUpon>
+      <DependentUpon>Shader_Sources.resx</DependentUpon>
     </Compile>
     <Compile Include="RenderAPI.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <EmbeddedResource Include="Shaders.resx">
+    <EmbeddedResource Include="Shader_Sources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Shaders.Designer.cs</LastGenOutput>
+      <LastGenOutput>Shader_Sources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
