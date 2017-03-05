@@ -7,17 +7,17 @@ using GLFunc = OpenTK.Graphics.OpenGL.GL;
 namespace LibRender {
     internal static class Algorithms {
         internal static void UpdateMeshNormals(List<Mesh> meshes, int start, int end) {
-            // Check for valid indices
-            if (!(start < meshes.Count && end < meshes.Count && start <= end)) {
+            // Check indices
+            if (!(0 <= start && 0 <= end && end <= meshes.Count && (end == 0 ? start == end : start < end))) {
                 throw new System.ArgumentException("Range invalid");
             }
-            
+
             for (int mesh_it = start; mesh_it < end; ++mesh_it) {
                 // Reference to working mesh
                 Mesh m = meshes[mesh_it];
 
-                // Skip if normals already updated
-                if (m.updated_normals) {
+                // Skip if normals already updated or is null
+                if (m == null || m.updated_normals) {
                     continue;
                 }
 
@@ -59,11 +59,36 @@ namespace LibRender {
 
                 // Normalize all normals
                 for (int i = 0; i < m.normals.Count; ++i) {
-                    m.normals[i].Normalize();
+                    var n = m.normals[i];
+                    n.Normalize();
+                    m.normals[i] = n;
                 }
 
                 // Normals have been updated
                 m.updated_normals = true;
+            }
+        }
+
+        internal static void UpdateObjectMatrices(List<Object> objects, int start, int end) {
+            // Check indices
+            if (!(0 <= start && 0 <= end && end <= objects.Count && (end == 0 ? start == end : start < end))) {
+                throw new System.ArgumentException("Range invalid");
+            }
+
+            for (int i = start; i < end; ++i) {
+                // Reference to Object
+                Object o = objects[i];
+
+                if (o == null || o.matrix_valid) {
+                    continue;
+                }
+
+                var translation = Matrix4.CreateTranslation(o.position);
+                var rotation = Matrix4.CreateFromQuaternion(Quaternion.FromEulerAngles(o.rotation));
+                var scale = Matrix4.CreateScale(o.scale);
+
+                o.transform = scale * rotation * translation;
+                o.matrix_valid = true;
             }
         }
     }

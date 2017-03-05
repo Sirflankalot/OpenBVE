@@ -1,4 +1,5 @@
-﻿using GL = OpenTK.Graphics.OpenGL;
+﻿using System.Collections.Generic;
+using GL = OpenTK.Graphics.OpenGL;
 using GLFunc = OpenTK.Graphics.OpenGL.GL;
 
 namespace LibRender {
@@ -57,6 +58,22 @@ namespace LibRender {
 
             foreach(Shader s in shaders) {
                 GLFunc.DetachShader(gl_ident, s.Compile());
+            }
+        }
+
+        private Dictionary<string, int> uniform_cache = new Dictionary<string, int>();
+        public int GetUniform(string name, bool required = false) {
+            int id;
+            if (uniform_cache.TryGetValue(name, out id)) {
+                return id;
+            } 
+            else {
+                id = GLFunc.GetUniformLocation(gl_ident, name);
+                uniform_cache.Add(name, id);
+                if (id == -1 && required == true) {
+                    throw new System.Exception("Uniform \"" + name + "\" not found.");
+                }
+                return id;
             }
         }
 

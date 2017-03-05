@@ -1,5 +1,8 @@
 ﻿using OpenTK;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using GL = OpenTK.Graphics.OpenGL;
+using GLFunc = OpenTK.Graphics.OpenGL.GL;
 
 namespace LibRender {
     
@@ -31,6 +34,7 @@ namespace LibRender {
         }
     }
 
+    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = sizeof(float) * 8)]
     public struct Vertex {
         public Vector3 position;
         public Vector2 tex_pos;
@@ -38,13 +42,16 @@ namespace LibRender {
     }
 
     internal class Mesh {
-        internal List<Vertex> vertices;
-        internal List<int> indices;
-        internal List<Vector3> normals;
+        internal List<Vertex> vertices = new List<Vertex>();
+        internal List<int> indices = new List<int>();
+        internal List<Vector3> normals = new List<Vector3>();
 
         internal bool updated_normals = false;
 
-        internal int gl_id = 0;
+        internal int gl_vao_id = 0;
+        internal int gl_vert_id = 0;
+        internal int gl_indices_id = 0;
+        internal bool uploaded = false;
 
         public Mesh Copy() {
             Mesh m = new Mesh();
@@ -57,6 +64,7 @@ namespace LibRender {
         }
     }
 
+    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 4)]
     public struct Pixel {
         public byte r;
         public byte g;
@@ -65,11 +73,12 @@ namespace LibRender {
     }
 
     internal class Texture {
-        internal List<Pixel> pixels;
+        internal List<Pixel> pixels = new List<Pixel>();
         internal int width;
         internal int height;
 
         internal int gl_id = 0;
+        internal bool uploaded = false;
 
         public Texture Copy() {
             Texture t = new Texture();
@@ -94,16 +103,16 @@ namespace LibRender {
     internal class Camera {
         internal Vector3 position;
         internal Vector2 rotation;
-        internal Matrix4 transform;
-        internal bool matrix_valid;
+        internal Matrix4 transform = new Matrix4();
+        internal bool matrix_valid = false;
         internal float fov;
     }
 
     public partial class Renderer {
-        internal List<Mesh> meshes;
-        internal List<Texture> textures;
-        internal List<Object> objects;
-        internal List<Camera> cameras;
+        internal List<Mesh> meshes = new List<Mesh>();
+        internal List<Texture> textures = new List<Texture>();
+        internal List<Object> objects = new List<Object>();
+        internal List<Camera> cameras = new List<Camera>() { new Camera() { position = new Vector3(0), rotation = new Vector2(0), fov = 80 }};
         internal int active_camera;
 
         internal void AssertValid(Mesh_Handle mh) {
@@ -141,6 +150,10 @@ namespace LibRender {
                 throw new System.ArgumentNullException("Accessing a deleted camera: " + ch.id.ToString());
             }
         }
+
+        ///////////////////////////////////
+        // Adders, Updaters and Deleters //
+        ///////////////////////////////////
 
         public Mesh_Handle AddMesh(Vertex[] mesh, int[] vertex_indices) {
             Mesh m = new Mesh();
@@ -181,20 +194,66 @@ namespace LibRender {
             return new Camera_Handle(index);
         }
 
+        public void Update(Mesh_Handle mh, Vertex[] mesh, int[] vertex_indices) {
+            AssertValid(mh);
+
+            meshes[mh.id].vertices.Clear();
+            meshes[mh.id].vertices.AddRange(mesh);
+            meshes[mh.id].indices.Clear();
+            meshes[mh.id].indices.AddRange(vertex_indices);
+            meshes[mh.id].updated_normals = false;
+            meshes[mh.id].uploaded = false;
+        }
+
+        public void Update(Texture_Handle th, Pixel[] pixels, int width, int height) {
+            AssertValid(th);
+
+            textures[th.id].pixels.Clear();
+            textures[th.id].pixels.AddRange(pixels);
+            textures[th.id].width = width;
+            textures[th.id].height = height;
+            textures[th.id].uploaded = false;
+        }
+
+        public void Update(Object_Handle oh, Mesh_Handle mh, Texture_Handle th) {
+            AssertValid(oh);
+            AssertValid(mh);
+            AssertValid(th);
+
+            objects[oh.id].mesh_id = mh.id;
+            objects[oh.id].tex_id = th.id;
+        }
+
         public void Delete(Mesh_Handle mh) {
+            AssertValid(mh);
+
+            GLFunc.DeleteVertexArray(meshes[mh.id].gl_vao_id);
+            GLFunc.DeleteBuffer(meshes[mh.id].gl_vert_id);
+            GLFunc.DeleteBuffer(meshes[mh.id].gl_indices_id);
+
             meshes[mh.id] = null;
         }
 
         public void Delete(Texture_Handle th) {
+            AssertValid(th);
+
             textures[th.id] = null;
         }
 
         public void Delete(Object_Handle oh) {
+            AssertValid(oh);
+
             objects[oh.id] = null;
         }
 
-        public void Delete(Camera_Handle oh) {
-            cameras[oh.id] = null;
+        public void Delete(Camera_Handle ch) {
+            AssertValid(ch);
+
+            if (ch.id == 0) {
+                throw new System.ArgumentException("Cannot delete starting camera");
+            }
+
+            cameras[ch.id] = null;
         }
 
         ////////////////////////////////
@@ -277,6 +336,10 @@ namespace LibRender {
             return new Camera_Handle(active_camera);
         }
 
+        public Camera_Handle GetStartingCamera() {
+            return new Camera_Handle(0);
+        }
+
         public void SetLocation(Camera_Handle ch, Vector3 location) {
             AssertValid(ch);
 
@@ -300,7 +363,5 @@ namespace LibRender {
 
             active_camera = ch.id;
         }
-
-
     }
 }

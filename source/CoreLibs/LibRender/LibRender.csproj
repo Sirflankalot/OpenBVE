@@ -22,6 +22,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,6 +32,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -46,9 +48,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GFXInterface.cs" />
     <Compile Include="ObjectAPI.cs" />
     <Compile Include="Algorithms.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Rendering.cs" />
     <Compile Include="Shader.cs" />
     <Compile Include="Shader_Sources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -56,6 +60,7 @@
       <DependentUpon>Shader_Sources.resx</DependentUpon>
     </Compile>
     <Compile Include="RenderAPI.cs" />
+    <Compile Include="Tests.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

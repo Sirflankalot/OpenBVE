@@ -24,8 +24,12 @@ namespace OpenBve
 		private double RenderTimeElapsed;
 		private double RenderRealTimeElapsed;
 		//We need to explicitly specify the default constructor
-		public OpenBVEGame(int width, int height, GraphicsMode currentGraphicsMode, GameWindowFlags @default): base(width, height, currentGraphicsMode, Interface.GetInterfaceString("program_title"), GameWindowFlags.Default, DisplayDevice.Default, 2, 1, GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
-		{
+		public OpenBVEGame(int width, int height, GraphicsMode currentGraphicsMode, GameWindowFlags @default): base(width, height, currentGraphicsMode, Interface.GetInterfaceString("program_title"), GameWindowFlags.Default, DisplayDevice.Default, 2, 1, GraphicsContextFlags.ForwardCompatible
+#if DEBUG
+                           | GraphicsContextFlags.Debug
+#endif
+                          )
+        {
 			try
 			{
 				var assemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -38,18 +42,19 @@ namespace OpenBve
                 GLFunc.Enable(GL.EnableCap.DebugOutputSynchronous);
                 GLFunc.DebugMessageCallback(OpenGLCallback.callback, new IntPtr());
                 GLFunc.DebugMessageControl(GL.DebugSourceControl.DontCare, GL.DebugTypeControl.DontCare, GL.DebugSeverityControl.DontCare, 0, ids, true);
-                var renderer = new LibRender.Renderer();
-                renderer.Initialize();
 #endif
             }
-			catch
+            catch
 			{
             }
-		}
+            var renderer = new LibRender.Renderer();
+            renderer.Initialize();
+            LibRender.Tests.test(renderer);
+        }
 
 
-		//This renders the frame
-		protected override void OnRenderFrame(FrameEventArgs e)
+        //This renders the frame
+        protected override void OnRenderFrame(FrameEventArgs e)
 		{
 			
 			if (!firstFrame)
