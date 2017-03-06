@@ -106,7 +106,7 @@ namespace LibRender {
                     continue;
                 }
 
-                Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(c.fov), 1.0f, 0.1f, 1000.0f);
+                Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(c.fov), 800.0f/600.0f, 0.1f, 1000.0f);
 
                 Vector3 dist = new Vector3(0, 0, c.distance);
                 dist = Vector3.TransformVector(dist, Matrix4.CreateRotationX(c.rotation.X));
@@ -115,7 +115,7 @@ namespace LibRender {
 
                 Matrix4 cam = Matrix4.LookAt(dist, c.focal_point, new Vector3(0, 1, 0));
 
-                c.transform = proj * cam;
+                c.transform = cam * proj;
                 c.matrix_valid = true;
             }
         }

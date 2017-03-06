@@ -95,7 +95,7 @@ namespace LibRender {
         internal bool visible;
         internal Vector3 position;
         internal Vector3 rotation;
-        internal Vector3 scale;
+        internal Vector3 scale = new Vector3(1, 1, 1);
         internal Matrix4 transform;
         internal bool matrix_valid;
     }
@@ -113,7 +113,7 @@ namespace LibRender {
         internal List<Mesh> meshes = new List<Mesh>();
         internal List<Texture> textures = new List<Texture>();
         internal List<Object> objects = new List<Object>();
-        internal List<Camera> cameras = new List<Camera>() { new Camera() { focal_point = new Vector3(0), rotation = new Vector2(0), distance=3, fov = 70 }};
+        internal List<Camera> cameras = new List<Camera>() { new Camera() { focal_point = new Vector3(0), rotation = new Vector2(0), distance=-3, fov = 50 }};
         internal int active_camera;
 
         internal void AssertValid(Mesh_Handle mh) {

@@ -83,7 +83,6 @@ namespace OpenBve
 				{
 					Close();
 				}
-                Program.renderer.RenderAll();
                 //If the menu state has not changed, don't update the rendered simulation
                 return;
 			}
@@ -145,7 +144,8 @@ namespace OpenBve
 				Renderer.UpdateLighting();
 				Renderer.RenderScene(TimeElapsed);
 				Sounds.Update(TimeElapsed, Interface.CurrentOptions.SoundModel);
-				Program.currentGameWindow.SwapBuffers();
+                Program.renderer.RenderAll();
+                Program.currentGameWindow.SwapBuffers();
 
 				Game.UpdateBlackBox();
 
@@ -162,7 +162,6 @@ namespace OpenBve
 				MainLoop.ProcessControls(TimeElapsed);
 				RenderRealTimeElapsed = 0.0;
 				RenderTimeElapsed = 0.0;
-                Program.renderer.RenderAll();
 
 
 

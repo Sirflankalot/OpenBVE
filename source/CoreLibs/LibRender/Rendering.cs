@@ -9,6 +9,8 @@ namespace LibRender {
         }
 
         internal void RenderAllObjects() {
+            GLFunc.CullFace(GL.CullFaceMode.Back);
+
             prog.Use();
 
             GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
@@ -34,6 +36,8 @@ namespace LibRender {
 
                 GLFunc.BindVertexArray(0);
             }
+
+            GLFunc.CullFace(GL.CullFaceMode.Front);
         }
     }
 }
