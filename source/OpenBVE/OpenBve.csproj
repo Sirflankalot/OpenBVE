@@ -368,7 +368,7 @@
   <PropertyGroup>
     <!-- Copy in dependancies and child projects -->
     <PostBuildEvent Condition=" '$(OS)' != 'Unix' ">
-		xcopy "$(SolutionDir)assets\*.*" "$(TargetDir)Data" /Y /I /E /C 
+		xcopy "$(SolutionDir)assets\*.*" "$(TargetDir)Data" /Y /I /E /C /D
 	</PostBuildEvent>
     <!-- NOTE: Whilst AtsPluginProxy.dll is Windows specific, we still want to copy it in the auto-generated nightly builds -->
     <PostBuildEvent Condition=" '$(OS)' == 'Unix' ">

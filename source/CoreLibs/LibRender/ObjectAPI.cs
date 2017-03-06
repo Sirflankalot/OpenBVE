@@ -101,8 +101,9 @@ namespace LibRender {
     }
 
     internal class Camera {
-        internal Vector3 position;
+        internal Vector3 focal_point;
         internal Vector2 rotation;
+        internal float distance;
         internal Matrix4 transform = new Matrix4();
         internal bool matrix_valid = false;
         internal float fov;
@@ -112,7 +113,7 @@ namespace LibRender {
         internal List<Mesh> meshes = new List<Mesh>();
         internal List<Texture> textures = new List<Texture>();
         internal List<Object> objects = new List<Object>();
-        internal List<Camera> cameras = new List<Camera>() { new Camera() { position = new Vector3(0), rotation = new Vector2(0), fov = 80 }};
+        internal List<Camera> cameras = new List<Camera>() { new Camera() { focal_point = new Vector3(0), rotation = new Vector2(0), distance=3, fov = 70 }};
         internal int active_camera;
 
         internal void AssertValid(Mesh_Handle mh) {
@@ -183,7 +184,7 @@ namespace LibRender {
 
         public Camera_Handle AddCamera(Vector3 location, Vector2 rotation, float fov, bool active = true) {
             Camera c = new Camera();
-            c.position = location;
+            c.focal_point = location;
             c.rotation = rotation;
             c.fov = fov;
             cameras.Add(c);
@@ -236,6 +237,8 @@ namespace LibRender {
 
         public void Delete(Texture_Handle th) {
             AssertValid(th);
+
+            GLFunc.DeleteTexture(textures[th.id].gl_id);
 
             textures[th.id] = null;
         }
@@ -317,13 +320,19 @@ namespace LibRender {
         public Vector3 GetLocation(Camera_Handle ch) {
             AssertValid(ch);
 
-            return cameras[ch.id].position;
+            return cameras[ch.id].focal_point;
         }
 
         public Vector2 GetRotation(Camera_Handle ch) {
             AssertValid(ch);
 
             return cameras[ch.id].rotation;
+        }
+
+        public float GetDistance(Camera_Handle ch) {
+            AssertValid(ch);
+
+            return cameras[ch.id].distance;
         }
 
         public float GetFOV(Camera_Handle ch) {
@@ -343,25 +352,36 @@ namespace LibRender {
         public void SetLocation(Camera_Handle ch, Vector3 location) {
             AssertValid(ch);
 
-            cameras[ch.id].position = location;
+            cameras[ch.id].focal_point = location;
+            cameras[ch.id].matrix_valid = false;
         }
 
         public void SetRotation(Camera_Handle ch, Vector2 rotation) {
             AssertValid(ch);
 
             cameras[ch.id].rotation = rotation;
+            cameras[ch.id].matrix_valid = false;
+        }
+
+        public void SetDistance(Camera_Handle ch, float distance) {
+            AssertValid(ch);
+
+            cameras[ch.id].distance = distance;
+            cameras[ch.id].matrix_valid = false;
         }
 
         public void SetFOV(Camera_Handle ch, float fov) {
             AssertValid(ch);
 
             cameras[ch.id].fov = fov;
+            cameras[ch.id].matrix_valid = false;
         }
 
         public void SetActiveCamera(Camera_Handle ch) {
             AssertValid(ch);
 
             active_camera = ch.id;
+            cameras[ch.id].matrix_valid = false;
         }
     }
 }

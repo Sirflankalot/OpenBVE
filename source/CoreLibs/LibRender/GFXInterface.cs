@@ -79,20 +79,22 @@ namespace LibRender {
                 // Fix this garbage
                 List<Vertex> vertex_full = new List<Vertex>();
                 for (int j = 0; j < m.normals.Count; ++j) {
-                    m.vertices.Add(new Vertex() { normal = m.normals[j], position = m.vertices[j].position, tex_pos = m.vertices[j].tex_pos });
+                    vertex_full.Add(new Vertex() { normal = m.normals[j], position = m.vertices[j].position, tex_pos = m.vertices[j].tex_pos });
                 }
-                GLFunc.BufferData(GL.BufferTarget.ArrayBuffer, vertex_full.Count, vertex_full.ToArray(), GL.BufferUsageHint.StaticDraw);
+                unsafe {
+                    GLFunc.BufferData(GL.BufferTarget.ArrayBuffer, vertex_full.Count * sizeof(Vertex), vertex_full.ToArray(), GL.BufferUsageHint.StaticDraw);
+                }
 
-                GLFunc.VertexAttribPointer(0, 3, GL.VertexAttribPointerType.Float, false, 8, 0 * sizeof(float));
-                GLFunc.VertexAttribPointer(1, 2, GL.VertexAttribPointerType.Float, false, 8, 3 * sizeof(float));
-                GLFunc.VertexAttribPointer(2, 3, GL.VertexAttribPointerType.Float, false, 8, 5 * sizeof(float));
+                GLFunc.VertexAttribPointer(0, 3, GL.VertexAttribPointerType.Float, false, 8 * sizeof(float), 0 * sizeof(float));
+                GLFunc.VertexAttribPointer(1, 2, GL.VertexAttribPointerType.Float, false, 8 * sizeof(float), 3 * sizeof(float));
+                GLFunc.VertexAttribPointer(2, 3, GL.VertexAttribPointerType.Float, false, 8 * sizeof(float), 5 * sizeof(float));
 
                 GLFunc.EnableVertexAttribArray(0);
                 GLFunc.EnableVertexAttribArray(1);
                 GLFunc.EnableVertexAttribArray(2);
 
                 GLFunc.BindBuffer(GL.BufferTarget.ElementArrayBuffer, m.gl_indices_id);
-                GLFunc.BufferData(GL.BufferTarget.ElementArrayBuffer, m.indices.Count, m.indices.ToArray(), GL.BufferUsageHint.StaticDraw);
+                GLFunc.BufferData(GL.BufferTarget.ElementArrayBuffer, m.indices.Count * sizeof(int), m.indices.ToArray(), GL.BufferUsageHint.StaticDraw);
 
                 GLFunc.BindVertexArray(0);
                 GLFunc.BindBuffer(GL.BufferTarget.ArrayBuffer, 0);

@@ -8,6 +8,8 @@ namespace LibRender {
         internal Shader fragment_shader;
         internal ShaderProgram prog;
 
+        internal bool ready_for_render = false;
+
         internal Matrix4 projection_matrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(75f), 1, 0.1f, 1000.0f);
 
         public void Initialize() {
@@ -23,10 +25,13 @@ namespace LibRender {
             GFXInterface.UploadMeshes(meshes, 0, meshes.Count);
             GFXInterface.UpdateTextureObjects(textures, 0, textures.Count);
             GFXInterface.UploadTextures(textures, 0, textures.Count);
+            Algorithms.UpdateCameraMatrices(cameras, 0, cameras.Count);
         }
 
         public void RenderAll() {
-
+            ClearScreen();
+            PrepareForRender();
+            RenderAllObjects();
         }
 
         public void Deinitialize() {

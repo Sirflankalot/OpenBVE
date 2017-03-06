@@ -91,5 +91,33 @@ namespace LibRender {
                 o.matrix_valid = true;
             }
         }
+
+        internal static void UpdateCameraMatrices(List<Camera> cameras, int start, int end) {
+            // Check indices
+            if (!(0 <= start && 0 <= end && end <= cameras.Count && (end == 0 ? start == end : start < end))) {
+                throw new System.ArgumentException("Range invalid");
+            }
+
+            for (int i = start; i < end; ++i) {
+                // Reference to Camera
+                Camera c = cameras[i];
+
+                if (c == null || c.matrix_valid) {
+                    continue;
+                }
+
+                Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(c.fov), 1.0f, 0.1f, 1000.0f);
+
+                Vector3 dist = new Vector3(0, 0, c.distance);
+                dist = Vector3.TransformVector(dist, Matrix4.CreateRotationX(c.rotation.X));
+                dist = Vector3.TransformVector(dist, Matrix4.CreateRotationY(c.rotation.Y));
+                dist = Vector3.TransformVector(dist, Matrix4.CreateTranslation(c.focal_point));
+
+                Matrix4 cam = Matrix4.LookAt(dist, c.focal_point, new Vector3(0, 1, 0));
+
+                c.transform = proj * cam;
+                c.matrix_valid = true;
+            }
+        }
     }
 }

@@ -33,7 +33,7 @@ namespace LibRender {
                 5, 3, 6
             };
 
-            Pixel[] pixels = new Pixel[] {
+            Pixel[] pixels = new Pixel[16] {
                 new Pixel() { r= 68, g= 68, b= 68, a= 68 },
                 new Pixel() { r=232, g=232, b=232, a=232 },
                 new Pixel() { r= 48, g= 48, b= 48, a= 48 },
@@ -55,7 +55,6 @@ namespace LibRender {
             var m = renderer.AddMesh(mesh, indices);
             var t = renderer.AddTexture(pixels, 4, 4);
             renderer.AddObject(m, t);
-            renderer.PrepareForRender();
         }
     }
 }

@@ -44,6 +44,10 @@ namespace OpenBve {
 		internal static bool GenerateDebugLogging = false;
 
 		public static GameWindow currentGameWindow;
+
+        public static LibRender.Renderer renderer = new LibRender.Renderer();
+
+        public static readonly OpenTK.Graphics.OpenGL.DebugProc callback_ref = OpenGLCallback.callback;
 		
 		// --- functions ---
 		
@@ -292,7 +296,7 @@ namespace OpenBve {
 			World.BackgroundImageDistance = (double)Interface.CurrentOptions.ViewingDistance;
 			// end HACK //
 			ClearLogFile();
-			return true;
+            return true;
 		}
 		
 		/// <summary>Deinitializes the program.</summary>

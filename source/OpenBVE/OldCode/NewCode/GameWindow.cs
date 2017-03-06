@@ -40,16 +40,16 @@ namespace OpenBve
                 int[] ids = { 0 };
                 Program.AppendToLogFile("DEBUG: Registering OpenGL Callback...");
                 GLFunc.Enable(GL.EnableCap.DebugOutputSynchronous);
-                GLFunc.DebugMessageCallback(OpenGLCallback.callback, new IntPtr());
+                GLFunc.DebugMessageCallback(Program.callback_ref, new IntPtr());
                 GLFunc.DebugMessageControl(GL.DebugSourceControl.DontCare, GL.DebugTypeControl.DontCare, GL.DebugSeverityControl.DontCare, 0, ids, true);
 #endif
+                // Initalize the Renderer
+                Program.renderer.Initialize();
+                LibRender.Tests.test(Program.renderer);
             }
             catch
 			{
             }
-            var renderer = new LibRender.Renderer();
-            renderer.Initialize();
-            LibRender.Tests.test(renderer);
         }
 
 
@@ -83,8 +83,9 @@ namespace OpenBve
 				{
 					Close();
 				}
-				//If the menu state has not changed, don't update the rendered simulation
-				return;
+                Program.renderer.RenderAll();
+                //If the menu state has not changed, don't update the rendered simulation
+                return;
 			}
 			
 			//Use the OpenTK framerate as this is much more accurate
@@ -161,11 +162,12 @@ namespace OpenBve
 				MainLoop.ProcessControls(TimeElapsed);
 				RenderRealTimeElapsed = 0.0;
 				RenderTimeElapsed = 0.0;
-				
-				
+                Program.renderer.RenderAll();
+
+
 
 #if DEBUG
-			MainLoop.CheckForOpenGlError("MainLoop");
+            MainLoop.CheckForOpenGlError("MainLoop");
 			 
 #endif
 			if (Interface.CurrentOptions.UnloadUnusedTextures)
