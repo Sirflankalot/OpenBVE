@@ -24,11 +24,11 @@ namespace OpenBve
 		private double RenderTimeElapsed;
 		private double RenderRealTimeElapsed;
 		//We need to explicitly specify the default constructor
-		public OpenBVEGame(int width, int height, GraphicsMode currentGraphicsMode, GameWindowFlags @default): base(width, height, currentGraphicsMode, Interface.GetInterfaceString("program_title"), GameWindowFlags.Default, DisplayDevice.Default, 2, 1, GraphicsContextFlags.ForwardCompatible
-#if DEBUG
-                           | GraphicsContextFlags.Debug
-#endif
-                          )
+		public OpenBVEGame(int width, int height, GraphicsMode currentGraphicsMode, GameWindowFlags @default): base(width, height, currentGraphicsMode, Interface.GetInterfaceString("program_title"), GameWindowFlags.Default, DisplayDevice.Default, 2, 1,
+//#if DEBUG
+                           GraphicsContextFlags.Debug |  GraphicsContextFlags.ForwardCompatible
+//#endif
+                           )
         {
 			try
 			{
@@ -36,16 +36,16 @@ namespace OpenBve
 				System.Drawing.Icon ico = new System.Drawing.Icon(OpenBveApi.Path.CombineFile(OpenBveApi.Path.CombineDirectory(assemblyFolder, "Data"), "icon.ico"));
 				this.Icon = ico;
 
-#if DEBUG
+//#if DEBUG
                 int[] ids = { 0 };
                 Program.AppendToLogFile("DEBUG: Registering OpenGL Callback...");
                 GLFunc.Enable(GL.EnableCap.DebugOutputSynchronous);
                 GLFunc.DebugMessageCallback(Program.callback_ref, new IntPtr());
                 GLFunc.DebugMessageControl(GL.DebugSourceControl.DontCare, GL.DebugTypeControl.DontCare, GL.DebugSeverityControl.DontCare, 0, ids, true);
-#endif
+//#endif
                 // Initalize the Renderer
                 Program.renderer.Initialize();
-                LibRender.Tests.test(Program.renderer);
+                LibRender.Tests.Test(Program.renderer);
             }
             catch
 			{
@@ -78,6 +78,7 @@ namespace OpenBve
 				}
 				//Renderer.UpdateLighting();
 				Renderer.RenderScene(TimeElapsed);
+                
 				Program.currentGameWindow.SwapBuffers();
 				if (MainLoop.Quit)
 				{
@@ -145,6 +146,7 @@ namespace OpenBve
 				Renderer.RenderScene(TimeElapsed);
 				Sounds.Update(TimeElapsed, Interface.CurrentOptions.SoundModel);
                 Program.renderer.RenderAll();
+                LibRender.Tests.TestFrame(Program.renderer);
                 Program.currentGameWindow.SwapBuffers();
 
 				Game.UpdateBlackBox();

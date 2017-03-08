@@ -119,5 +119,26 @@ namespace LibRender {
                 c.matrix_valid = true;
             }
         }
+
+        internal static void UpdateConeLightMatrices(List<Cone_Light> cone_lights, int start, int end) {
+            // Check indices
+            if (!(0 <= start && 0 <= end && end <= cone_lights.Count && (end == 0 ? start == end : start < end))) {
+                throw new System.ArgumentException("Range invalid");
+            }
+
+            for (int i = start; i < end; ++i) {
+                // Reference to Cone Light
+                Cone_Light cl = cone_lights[i];
+
+                if (cl == null || cl.matrix_valid) {
+                    continue;
+                }
+
+                // Formula for matrices
+
+                cl.transform = new Matrix4();
+                cl.matrix_valid = true;
+            }
+        }
     }
 }

@@ -13,6 +13,7 @@ namespace LibRender {
 
             prog.Use();
 
+            GLFunc.Uniform1(prog.GetUniform("tex"), 0);
             GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
             
             foreach (Object o in objects) {

@@ -34,6 +34,20 @@ namespace LibRender {
         }
     }
 
+    public struct Cone_Light_Handle {
+        internal int id;
+        internal Cone_Light_Handle(int id) {
+            this.id = id;
+        }
+    }
+
+    public struct Point_Light_Handle {
+        internal int id;
+        internal Point_Light_Handle(int id) {
+            this.id = id;
+        }
+    }
+
     [StructLayout(LayoutKind.Sequential, Pack = 1, Size = sizeof(float) * 8)]
     public struct Vertex {
         public Vector3 position;
@@ -109,12 +123,30 @@ namespace LibRender {
         internal float fov;
     }
 
+    internal class Cone_Light {
+        internal Vector3 location;
+        internal Vector3 direction;
+        internal Matrix4 transform;
+        internal bool matrix_valid = false;
+        internal float brightness;
+        internal float fov;
+        internal bool shadow;
+        internal int gl_tex_id = 0;
+    }
+
+    internal class Point_Light {
+        internal Vector3 location;
+        internal float brightness;
+    }
+
     public partial class Renderer {
         internal List<Mesh> meshes = new List<Mesh>();
         internal List<Texture> textures = new List<Texture>();
         internal List<Object> objects = new List<Object>();
         internal List<Camera> cameras = new List<Camera>() { new Camera() { focal_point = new Vector3(0), rotation = new Vector2(0), distance=-3, fov = 50 }};
         internal int active_camera;
+        internal List<Cone_Light> cone_lights = new List<Cone_Light>();
+        internal List<Point_Light> point_lights = new List<Point_Light>();
 
         internal void AssertValid(Mesh_Handle mh) {
             if (meshes.Count <= mh.id) {
@@ -149,6 +181,24 @@ namespace LibRender {
             }
             if (cameras[ch.id] == null) {
                 throw new System.ArgumentNullException("Accessing a deleted camera: " + ch.id.ToString());
+            }
+        }
+
+        internal void AssertValid(Cone_Light_Handle clh) {
+            if (cone_lights.Count <= clh.id) {
+                throw new System.ArgumentException("Cone Light Handle ID larger than array: " + clh.id.ToString());
+            }
+            if (cone_lights[clh.id] == null) {
+                throw new System.ArgumentNullException("Accessing a deleted cone light: " + clh.id.ToString());
+            }
+        }
+
+        internal void AssertValid(Point_Light_Handle plh) {
+            if (point_lights.Count <= plh.id) {
+                throw new System.ArgumentException("Point Light Handle ID larger than array: " + plh.id.ToString());
+            }
+            if (point_lights[plh.id] == null) {
+                throw new System.ArgumentNullException("Accessing a deleted point light: " + plh.id.ToString());
             }
         }
 
@@ -193,6 +243,25 @@ namespace LibRender {
                 active_camera = index;
             }
             return new Camera_Handle(index);
+        }
+
+        public Cone_Light_Handle AddConeLight(Vector3 location, Vector3 direction, float brightness, float fov, bool shadow_casting = false) {
+            Cone_Light cl = new Cone_Light();
+            cl.location = location;
+            cl.direction = direction;
+            cl.brightness = brightness;
+            cl.fov = fov;
+            cl.shadow = shadow_casting;
+            cone_lights.Add(cl);
+            return new Cone_Light_Handle(cone_lights.Count - 1);
+        }
+
+        public Point_Light_Handle AddPointLight(Vector3 location, float brightness) {
+            Point_Light pl = new Point_Light();
+            pl.location = location;
+            pl.brightness = brightness;
+            point_lights.Add(pl);
+            return new Point_Light_Handle(point_lights.Count - 1);
         }
 
         public void Update(Mesh_Handle mh, Vertex[] mesh, int[] vertex_indices) {
@@ -257,6 +326,23 @@ namespace LibRender {
             }
 
             cameras[ch.id] = null;
+        }
+
+        public void Delete(Cone_Light_Handle clh) {
+            AssertValid(clh);
+
+            int tex = cone_lights[clh.id].gl_tex_id;
+            if (tex != 0) {
+                GLFunc.DeleteTexture(tex);
+            }
+
+            cone_lights[clh.id] = null;
+        }
+
+        public void Delete(Point_Light_Handle plh) {
+            AssertValid(plh);
+
+            point_lights[plh.id] = null;
         }
 
         ////////////////////////////////
@@ -382,6 +468,98 @@ namespace LibRender {
 
             active_camera = ch.id;
             cameras[ch.id].matrix_valid = false;
+        }
+
+        ////////////////////////////////////
+        // Cone Light Getters and Setters //
+        ////////////////////////////////////
+
+        public Vector3 GetLocation(Cone_Light_Handle clh) {
+            AssertValid(clh);
+
+            return cone_lights[clh.id].location;
+        }
+
+        public Vector3 GetDirection(Cone_Light_Handle clh) {
+            AssertValid(clh);
+
+            return cone_lights[clh.id].direction;
+        }
+
+        public float GetFOV(Cone_Light_Handle clh) {
+            AssertValid(clh);
+
+            return cone_lights[clh.id].fov;
+        }
+
+        public float GetBrightness(Cone_Light_Handle clh) {
+            AssertValid(clh);
+
+            return cone_lights[clh.id].brightness;
+        }
+
+        public bool GetShadow(Cone_Light_Handle clh) {
+            AssertValid(clh);
+
+            return cone_lights[clh.id].shadow;
+        }
+
+        public void SetLocation(Cone_Light_Handle clh, Vector3 location) {
+            AssertValid(clh);
+
+            cone_lights[clh.id].location = location;
+        }
+
+        public void SetDirection(Cone_Light_Handle clh, Vector3 direction) {
+            AssertValid(clh);
+
+            cone_lights[clh.id].direction = direction;
+        }
+
+        public void SetFOV(Cone_Light_Handle clh, float fov) {
+            AssertValid(clh);
+
+            cone_lights[clh.id].fov = fov;
+        }
+
+        public void SetBrightness(Cone_Light_Handle clh, float brightness) {
+            AssertValid(clh);
+
+            cone_lights[clh.id].brightness = brightness;
+        }
+
+        public void SetShadow(Cone_Light_Handle clh, bool shadow) {
+            AssertValid(clh);
+
+            cone_lights[clh.id].shadow = shadow;
+        }
+
+        ///////////////////////////////////////
+        /// Point Light Getters and Setters ///
+        ///////////////////////////////////////
+
+        public Vector3 GetLocation(Point_Light_Handle plh) {
+            AssertValid(plh);
+
+            return point_lights[plh.id].location;
+        }
+
+        public float GetBrightness(Point_Light_Handle plh) {
+            AssertValid(plh);
+
+            return point_lights[plh.id].brightness;
+        }
+
+        public void SetLocation(Point_Light_Handle plh, Vector3 location) {
+            AssertValid(plh);
+
+            point_lights[plh.id].location = location;
+        }
+
+        public void SetBrightness(Point_Light_Handle plh, float brightness) {
+            AssertValid(plh);
+
+            point_lights[plh.id].brightness = brightness;
         }
     }
 }

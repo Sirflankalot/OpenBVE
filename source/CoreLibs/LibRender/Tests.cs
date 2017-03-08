@@ -6,16 +6,18 @@ using OpenTK;
 
 namespace LibRender {
     public static class Tests {
-        public static void test(Renderer renderer) {
+        public static Object_Handle oh;
+
+        public static void Test(Renderer renderer) {
             Vertex[] mesh = new Vertex[] {
-                new Vertex() { position = new Vector3( -1, -1,  1 ) },
-                new Vertex() { position = new Vector3( -1,  1,  1 ) },
-                new Vertex() { position = new Vector3(  1,  1,  1 ) },
-                new Vertex() { position = new Vector3(  1, -1,  1 ) },
-                new Vertex() { position = new Vector3( -1, -1, -1 ) },
-                new Vertex() { position = new Vector3( -1,  1, -1 ) },
-                new Vertex() { position = new Vector3(  1,  1, -1 ) },
-                new Vertex() { position = new Vector3(  1, -1, -1 ) }
+                new Vertex() { position = new Vector3( -1, -1,  1 ), tex_pos = new Vector2(0, 0) }, // Bottom, Left, Front
+                new Vertex() { position = new Vector3( -1,  1,  1 ), tex_pos = new Vector2(1, 0) }, // Bottom, Right, Front
+                new Vertex() { position = new Vector3(  1,  1,  1 ), tex_pos = new Vector2(1, 1) }, // Top, Right, Front
+                new Vertex() { position = new Vector3(  1, -1,  1 ), tex_pos = new Vector2(0, 1) }, // Top, Left, Front
+                new Vertex() { position = new Vector3( -1, -1, -1 ), tex_pos = new Vector2(0, 0) }, // Bottom, Left, Back
+                new Vertex() { position = new Vector3( -1,  1, -1 ), tex_pos = new Vector2(1, 0) }, // Bottom, Right, Back
+                new Vertex() { position = new Vector3(  1,  1, -1 ), tex_pos = new Vector2(1, 1) }, // Top, Right, Back
+                new Vertex() { position = new Vector3(  1, -1, -1 ), tex_pos = new Vector2(0, 1) }  // Top, Left, Back
             };
 
             int[] indices = new int[] {
@@ -48,7 +50,14 @@ namespace LibRender {
 
             var m = renderer.AddMesh(mesh, indices);
             var t = renderer.AddTexture(pixels, 4, 4);
-            renderer.SetLocation(renderer.AddObject(m, t), new Vector3(0, 0, 5));
+            oh = renderer.AddObject(m, t);
+            renderer.SetLocation(oh, new Vector3(0, 0, 5));
+        }
+
+        public static void TestFrame(Renderer renderer) {
+            var array = renderer.GetLocation(oh);
+            array += new Vector3(0.0f, 0.01f, 0.0f);
+            renderer.SetLocation(oh, array);
         }
     }
 }
