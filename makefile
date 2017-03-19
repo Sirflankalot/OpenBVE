@@ -370,7 +370,6 @@ $(DEBUG_DIR)/$(LIB_RENDER_FILE) $(RELEASE_DIR)/$(LIB_RENDER_FILE): $(LIB_RENDER_
 	/reference:$(OUTPUT_DIR)/OpenTK.dll \
 	/reference:System.Core.dll /reference:System.dll \
 	$(addprefix /resource:, $(LIB_RENDER_RESOURCE))
-	@echo $(dir $(LIB_RENDER_ROOT))
 
 
 ##############

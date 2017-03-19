@@ -70,8 +70,11 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\basic.fs.glsl" />
-    <None Include="Shaders\basic.vs.glsl" />
+    <None Include="Shaders\geometry.fs.glsl" />
+    <None Include="Shaders\geometry.vs.glsl" />
+    <None Include="Shaders\hdrpass.fs.glsl" />
+    <None Include="Shaders\lightpass.fs.glsl" />
+    <None Include="Shaders\onscreenquad.vs.glsl" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -121,7 +121,6 @@ namespace LibRender {
                 }
             }
 
-
             // Create OpenGL textures
             int[] ids = new int[idless_textures.Count];
             GLFunc.CreateTextures(GL.TextureTarget.Texture2D, idless_textures.Count, ids);

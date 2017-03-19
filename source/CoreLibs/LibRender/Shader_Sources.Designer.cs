@@ -63,9 +63,9 @@ namespace LibRender {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] basic_fs {
+        internal static byte[] geometry_fs {
             get {
-                object obj = ResourceManager.GetObject("basic_fs", resourceCulture);
+                object obj = ResourceManager.GetObject("geometry_fs", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -73,9 +73,39 @@ namespace LibRender {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] basic_vs {
+        internal static byte[] geometry_vs {
             get {
-                object obj = ResourceManager.GetObject("basic_vs", resourceCulture);
+                object obj = ResourceManager.GetObject("geometry_vs", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] hdrpass_fs {
+            get {
+                object obj = ResourceManager.GetObject("hdrpass_fs", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] lightpass_fs {
+            get {
+                object obj = ResourceManager.GetObject("lightpass_fs", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] onscreenquad_vs {
+            get {
+                object obj = ResourceManager.GetObject("onscreenquad_vs", resourceCulture);
                 return ((byte[])(obj));
             }
         }

@@ -92,7 +92,7 @@ namespace LibRender {
             }
         }
 
-        internal static void UpdateCameraMatrices(List<Camera> cameras, int start, int end) {
+        internal static void UpdateCameraMatrices(List<Camera> cameras, int start, int end, float ratio) {
             // Check indices
             if (!(0 <= start && 0 <= end && end <= cameras.Count && (end == 0 ? start == end : start < end))) {
                 throw new System.ArgumentException("Range invalid");
@@ -106,16 +106,16 @@ namespace LibRender {
                     continue;
                 }
 
-                Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(c.fov), 800.0f/600.0f, 0.1f, 1000.0f);
+				var projection_matrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(c.fov), ratio, 0.1f, 1000.0f);
 
-                Vector3 dist = new Vector3(0, 0, c.distance);
-                dist = Vector3.TransformVector(dist, Matrix4.CreateRotationX(c.rotation.X));
-                dist = Vector3.TransformVector(dist, Matrix4.CreateRotationY(c.rotation.Y));
-                dist = Vector3.TransformVector(dist, Matrix4.CreateTranslation(c.focal_point));
+				Vector3 cam_point = new Vector3(0, 0, c.distance);
+                cam_point = Vector3.TransformVector(cam_point, Matrix4.CreateRotationX(c.rotation.Y));
+                cam_point = Vector3.TransformVector(cam_point, Matrix4.CreateRotationY(c.rotation.X));
+                cam_point += c.focal_point;
 
-                Matrix4 cam = Matrix4.LookAt(dist, c.focal_point, new Vector3(0, 1, 0));
+                Matrix4 cam = Matrix4.LookAt(cam_point, c.focal_point, new Vector3(0, 1, 0));
 
-                c.transform = cam * proj;
+                c.transform = cam * projection_matrix;
                 c.matrix_valid = true;
             }
         }
@@ -130,12 +130,11 @@ namespace LibRender {
                 // Reference to Cone Light
                 Cone_Light cl = cone_lights[i];
 
-                if (cl == null || cl.matrix_valid) {
+                if (cl == null || cl.matrix_valid || !cl.shadow) {
                     continue;
                 }
 
                 // Formula for matrices
-
                 cl.transform = new Matrix4();
                 cl.matrix_valid = true;
             }

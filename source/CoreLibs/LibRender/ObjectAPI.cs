@@ -143,7 +143,7 @@ namespace LibRender {
         internal List<Mesh> meshes = new List<Mesh>();
         internal List<Texture> textures = new List<Texture>();
         internal List<Object> objects = new List<Object>();
-        internal List<Camera> cameras = new List<Camera>() { new Camera() { focal_point = new Vector3(0), rotation = new Vector2(0), distance=-3, fov = 50 }};
+        internal List<Camera> cameras = new List<Camera>() { new Camera() { focal_point = new Vector3(0), rotation = new Vector2(0), distance=-10, fov = 50 }};
         internal int active_camera;
         internal List<Cone_Light> cone_lights = new List<Cone_Light>();
         internal List<Point_Light> point_lights = new List<Point_Light>();

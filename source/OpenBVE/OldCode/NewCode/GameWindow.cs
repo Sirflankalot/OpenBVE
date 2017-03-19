@@ -44,8 +44,8 @@ namespace OpenBve
                 GLFunc.DebugMessageControl(GL.DebugSourceControl.DontCare, GL.DebugTypeControl.DontCare, GL.DebugSeverityControl.DontCare, 0, ids, true);
 //#endif
                 // Initalize the Renderer
-                Program.renderer.Initialize();
-                LibRender.Tests.Test(Program.renderer);
+                Program.renderer.Initialize(width, height);
+                LibRender.Tests.InitializeTest(Program.renderer, 2);
             }
             catch
 			{
@@ -142,30 +142,29 @@ namespace OpenBve
 			{
 				Program.currentGameWindow.Exit();
 			}
-				Renderer.UpdateLighting();
-				Renderer.RenderScene(TimeElapsed);
-				Sounds.Update(TimeElapsed, Interface.CurrentOptions.SoundModel);
-                Program.renderer.RenderAll();
-                LibRender.Tests.TestFrame(Program.renderer);
-                Program.currentGameWindow.SwapBuffers();
+			
+			Renderer.UpdateLighting();
+			//Renderer.RenderScene(TimeElapsed);
+			Sounds.Update(TimeElapsed, Interface.CurrentOptions.SoundModel);
+			LibRender.Tests.Render();
+			Program.renderer.RenderAll();
+            Program.currentGameWindow.SwapBuffers();
 
-				Game.UpdateBlackBox();
+			Game.UpdateBlackBox();
 
-				// pause/menu
+			// pause/menu
 				
-				// limit framerate
-				if (MainLoop.LimitFramerate)
-				{
-					System.Threading.Thread.Sleep(10);
-				}
-				MainLoop.UpdateControlRepeats(RealTimeElapsed);
-				MainLoop.ProcessKeyboard();
-				World.UpdateMouseGrab(TimeElapsed);
-				MainLoop.ProcessControls(TimeElapsed);
-				RenderRealTimeElapsed = 0.0;
-				RenderTimeElapsed = 0.0;
-
-
+			// limit framerate
+			if (MainLoop.LimitFramerate)
+			{
+				System.Threading.Thread.Sleep(10);
+			}
+			MainLoop.UpdateControlRepeats(RealTimeElapsed);
+			MainLoop.ProcessKeyboard();
+			World.UpdateMouseGrab(TimeElapsed);
+			MainLoop.ProcessControls(TimeElapsed);
+			RenderRealTimeElapsed = 0.0;
+			RenderTimeElapsed = 0.0;
 
 #if DEBUG
             MainLoop.CheckForOpenGlError("MainLoop");
@@ -268,6 +267,7 @@ namespace OpenBve
 		protected override void OnResize(EventArgs e)
 		{
 			Screen.WindowResize(Width,Height);
+			Program.renderer.Resize(Width, Height);
 		}
 
 		protected override void OnLoad(EventArgs e)
