@@ -268,7 +268,10 @@ $(DEBIAN_BUILD_RESULT): all-release
 define resource_rule_impl
 $1: $2 
 	@echo $$(COLOR_GREEN)Generating resource file $$(COLOR_CYAN)$$@$(COLOR_END)
-	@$(RESGEN) /useSourcePath /compile "$$<,$$@" > /dev/null
+	@cat $$< | tr \\ / > "$$<.resx" 2>/dev/null
+	@$(RESGEN) /useSourcePath /compile "$$<.resx,$$@" > /dev/null
+	@rm $$<.resx
+
 endef
 
 create_resource = $(foreach combo, $(join $(1), $(foreach resx, $(2), $(addprefix ^, $(resx)))), $(call create_resource_tmp, $(combo)))
