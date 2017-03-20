@@ -18,7 +18,7 @@ namespace LibRender {
 			// - Normal color buffer
 			GLFunc.GenTextures(1, out gNormal);
 			GLFunc.BindTexture(GL.TextureTarget.Texture2D, gNormal);
-			GLFunc.TexImage2D(GL.TextureTarget.Texture2D, 0, GL.PixelInternalFormat.Rgb16f, width, height, 0, GL.PixelFormat.Rgb, GL.PixelType.Float, new System.IntPtr(0));
+			GLFunc.TexImage2D(GL.TextureTarget.Texture2D, 0, GL.PixelInternalFormat.Rgb16f, width, height, 0, GL.PixelFormat.Rgb, GL.PixelType.HalfFloat, new System.IntPtr(0));
 			GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMinFilter, (int) GL.TextureMinFilter.Nearest);
 			GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMagFilter, (int) GL.TextureMagFilter.Nearest);
 			GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapS, (int) GL.TextureWrapMode.ClampToEdge);
@@ -49,14 +49,18 @@ namespace LibRender {
 			GL.DrawBuffersEnum[] attachments = new GL.DrawBuffersEnum[] { GL.DrawBuffersEnum.ColorAttachment0, GL.DrawBuffersEnum.ColorAttachment1 };
 			GLFunc.DrawBuffers(2, attachments);
 
+			if (GLFunc.CheckFramebufferStatus(GL.FramebufferTarget.Framebuffer) != GL.FramebufferErrorCode.FramebufferComplete) {
+				throw new System.Exception("gBuffer incomplete");
+			}
+
 			////////////////////////////
-			// Initialize the GBuffer //
+			// Initialize the LBuffer //
 			////////////////////////////
 
 			GLFunc.GenFramebuffers(1, out lBuffer);
 			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, lBuffer);
 
-			// - Normal color buffer
+			// - Color buffer
 			GLFunc.GenTextures(1, out lColor);
 			GLFunc.BindTexture(GL.TextureTarget.Texture2D, lColor);
 			GLFunc.TexImage2D(GL.TextureTarget.Texture2D, 0, GL.PixelInternalFormat.Rgb16f, width, height, 0, GL.PixelFormat.Rgb, GL.PixelType.Float, new System.IntPtr(0));
@@ -73,6 +77,10 @@ namespace LibRender {
 			GLFunc.DrawBuffers(1, attachments);
 
 			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, 0);
+
+			if (GLFunc.CheckFramebufferStatus(GL.FramebufferTarget.Framebuffer) != GL.FramebufferErrorCode.FramebufferComplete) {
+				throw new System.Exception("lBuffer incomplete");
+			}
 		}
 
 		internal void DeleteFramebuffers() {
@@ -112,11 +120,6 @@ namespace LibRender {
 			lightpass_prog.Clear();
 		}
 
-		internal void ClearScreen() {
-            GLFunc.ClearColor(0, 0, 0, 1);
-            GLFunc.Clear(GL.ClearBufferMask.ColorBufferBit | GL.ClearBufferMask.DepthBufferBit | GL.ClearBufferMask.StencilBufferBit);
-        }
-
         internal void RenderAllObjects() {
             GLFunc.CullFace(GL.CullFaceMode.Back);
 			GLFunc.Enable(GL.EnableCap.CullFace);
@@ -130,7 +133,8 @@ namespace LibRender {
             GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
 
 			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, gBuffer);
-			
+
+			GLFunc.ClearColor(0.5f, 0.5f, 0.5f, 1);
 			GLFunc.Clear(GL.ClearBufferMask.ColorBufferBit | GL.ClearBufferMask.DepthBufferBit | GL.ClearBufferMask.StencilBufferBit);
             
             foreach (Object o in objects) {
@@ -169,6 +173,7 @@ namespace LibRender {
 			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, lBuffer);
 			GLFunc.DepthFunc(GL.DepthFunction.Greater);
 
+			GLFunc.ClearColor(66f / 255f, 149f / 255f, 244f / 255f, 1.0f);
 			GLFunc.Clear(GL.ClearBufferMask.ColorBufferBit);
 			RenderFullscreenQuad();
 

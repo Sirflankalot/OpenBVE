@@ -5,7 +5,6 @@ using GL = OpenTK.Graphics.OpenGL;
 using GLFunc = OpenTK.Graphics.OpenGL.GL;
 
 namespace LibRender {
-    
     public struct Texture_Handle {
         internal int id;
         internal Texture_Handle(int id) {
@@ -126,7 +125,7 @@ namespace LibRender {
     internal class Cone_Light {
         internal Vector3 location;
         internal Vector3 direction;
-        internal Matrix4 transform;
+        internal Matrix4 shadow_matrix;
         internal bool matrix_valid = false;
         internal float brightness;
         internal float fov;
@@ -139,6 +138,16 @@ namespace LibRender {
         internal float brightness;
     }
 
+	internal class Sun {
+		internal Vector3 color;
+		internal Vector2 location;
+		internal float brightness;
+		internal Vector3 direction;
+		internal Matrix4 shadow_matrix;
+		internal bool matrix_valid;
+		internal int gl_tex_id = 0;
+	}
+
     public partial class Renderer {
         internal List<Mesh> meshes = new List<Mesh>();
         internal List<Texture> textures = new List<Texture>();
@@ -147,6 +156,7 @@ namespace LibRender {
         internal int active_camera;
         internal List<Cone_Light> cone_lights = new List<Cone_Light>();
         internal List<Point_Light> point_lights = new List<Point_Light>();
+		internal Sun sun = new Sun();
 
         internal void AssertValid(Mesh_Handle mh) {
             if (meshes.Count <= mh.id) {
@@ -534,9 +544,9 @@ namespace LibRender {
             cone_lights[clh.id].shadow = shadow;
         }
 
-        ///////////////////////////////////////
-        /// Point Light Getters and Setters ///
-        ///////////////////////////////////////
+        /////////////////////////////////////
+        // Point Light Getters and Setters //
+        /////////////////////////////////////
 
         public Vector3 GetLocation(Point_Light_Handle plh) {
             AssertValid(plh);
@@ -561,5 +571,34 @@ namespace LibRender {
 
             point_lights[plh.id].brightness = brightness;
         }
-    }
+
+		/////////////////////////////
+		// Sun Getters and Setters //
+		/////////////////////////////
+
+		public Vector3 GetSunColor() {
+			return sun.color;
+		}
+
+		public Vector2 GetSunLocation() {
+			return sun.location;
+		}
+
+		public float GetSunBrightness() {
+			return sun.brightness;
+		}
+
+		public void SetSunColor(Vector3 color) {
+			sun.color = color;
+		}
+
+		public void SetSunLocation(Vector2 location) {
+			sun.location = location;
+			sun.matrix_valid = false;
+		}
+
+		public void SetSunBrightness(float brightness) {
+			sun.brightness = brightness;
+		}
+	}
 }

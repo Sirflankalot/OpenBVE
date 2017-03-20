@@ -27,10 +27,11 @@ namespace LibRender {
             GFXInterface.UploadTextures(textures, 0, textures.Count);
 
             Algorithms.UpdateCameraMatrices(cameras, 0, cameras.Count, (float) width / height);
+
+			Algorithms.UpdateSunMatrix(sun, cameras[active_camera].focal_point);
         }
 
         public void RenderAll() {
-            ClearScreen();
             PrepareForRender();
             RenderAllObjects();
         }

@@ -8,5 +8,6 @@ in vec2 vTexCoord;
 out vec4 FragColor;
 
 void main () {
-	FragColor = vec4(texture(AlbedoSpec, vTexCoord).rgb, 1.0);
+	//FragColor = vec4(texture(AlbedoSpec, vTexCoord).rgb, 1.0);
+	FragColor = vec4(texture(Normal, vTexCoord).rgb, 1.0);
 }

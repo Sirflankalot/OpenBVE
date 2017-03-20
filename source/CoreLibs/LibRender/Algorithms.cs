@@ -135,9 +135,24 @@ namespace LibRender {
                 }
 
                 // Formula for matrices
-                cl.transform = new Matrix4();
+                cl.shadow_matrix = new Matrix4();
                 cl.matrix_valid = true;
             }
         }
+
+		internal static void UpdateSunMatrix(Sun sun, Vector3 camera_position) {
+			if (sun.matrix_valid) {
+				return;
+			}
+
+			sun.direction = new Vector3((Matrix4.CreateRotationY(sun.location.X) * Matrix4.CreateRotationX(sun.location.Y)) * new Vector4(1, 0, 0, 1));
+			sun.direction.Normalize();
+			sun.direction *= 500;
+			Matrix4 proj = Matrix4.CreateOrthographic(100, 100, 0, 1000);
+			Matrix4 cam = Matrix4.LookAt(camera_position + sun.direction, camera_position, new Vector3(0, 1, 0));
+
+			sun.shadow_matrix = cam * proj;
+			sun.matrix_valid = true;
+		}
     }
 }
