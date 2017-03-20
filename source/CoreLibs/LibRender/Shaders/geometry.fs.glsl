@@ -13,6 +13,6 @@ void main () {
 	//if (texcolor.a < 0.9) {
 	//	discard;
 	//}
-	Normal = vec3(1,1,1); //vNormal;
+	Normal = vNormal;
 	AlbedoSpec = vec4(texcolor.rgb, 1.0);
 }

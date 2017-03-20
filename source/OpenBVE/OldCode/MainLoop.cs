@@ -552,7 +552,7 @@ namespace OpenBve {
 						message += error.ToString();
 						break;
 				}
-				throw new InvalidOperationException(message);
+				//throw new InvalidOperationException(message);
 			}
 		}
 		#endif

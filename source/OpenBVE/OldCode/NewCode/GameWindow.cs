@@ -26,7 +26,7 @@ namespace OpenBve
 		//We need to explicitly specify the default constructor
 		public OpenBVEGame(int width, int height, GraphicsMode currentGraphicsMode, GameWindowFlags @default): base(width, height, currentGraphicsMode, Interface.GetInterfaceString("program_title"), GameWindowFlags.Default, DisplayDevice.Default, 2, 1,
 //#if DEBUG
-                           GraphicsContextFlags.Debug |  GraphicsContextFlags.ForwardCompatible
+                           GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug
 //#endif
                            )
         {

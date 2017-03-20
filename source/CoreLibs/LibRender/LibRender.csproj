@@ -61,6 +61,7 @@
     </Compile>
     <Compile Include="RenderAPI.cs" />
     <Compile Include="Tests.cs" />
+    <Compile Include="Error.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

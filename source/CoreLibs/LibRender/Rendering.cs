@@ -11,19 +11,21 @@ namespace LibRender {
 			////////////////////////////
 			// Initialize the GBuffer //
 			////////////////////////////
-			
+
+            GLFunc.GetError();
 			GLFunc.GenFramebuffers(1, out gBuffer);
 			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, gBuffer);
 
 			// - Normal color buffer
 			GLFunc.GenTextures(1, out gNormal);
 			GLFunc.BindTexture(GL.TextureTarget.Texture2D, gNormal);
-			GLFunc.TexImage2D(GL.TextureTarget.Texture2D, 0, GL.PixelInternalFormat.Rgb16f, width, height, 0, GL.PixelFormat.Rgb, GL.PixelType.HalfFloat, new System.IntPtr(0));
+			GLFunc.TexImage2D(GL.TextureTarget.Texture2D, 0, GL.PixelInternalFormat.Rgba16f, width, height, 0, GL.PixelFormat.Rgba, GL.PixelType.Float, new System.IntPtr(0));
 			GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMinFilter, (int) GL.TextureMinFilter.Nearest);
 			GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMagFilter, (int) GL.TextureMagFilter.Nearest);
 			GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapS, (int) GL.TextureWrapMode.ClampToEdge);
 			GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapT, (int) GL.TextureWrapMode.ClampToEdge);
-			GLFunc.FramebufferTexture2D(GL.FramebufferTarget.Framebuffer, GL.FramebufferAttachment.ColorAttachment0, GL.TextureTarget.Texture2D, gNormal, 0);
+            GLFunc.FramebufferTexture2D(GL.FramebufferTarget.Framebuffer, GL.FramebufferAttachment.ColorAttachment0, GL.TextureTarget.Texture2D, gNormal, 0);
+            Error.CheckForOpenGlError("Normal Color Buffer");
 
 			// - Color + Specular buffer
 			GLFunc.GenTextures(1, out gAlbedoSpec);
@@ -34,6 +36,7 @@ namespace LibRender {
 			GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapS, (int) GL.TextureWrapMode.ClampToEdge);
 			GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapT, (int) GL.TextureWrapMode.ClampToEdge);
 			GLFunc.FramebufferTexture2D(GL.FramebufferTarget.Framebuffer, GL.FramebufferAttachment.ColorAttachment1, GL.TextureTarget.Texture2D, gAlbedoSpec, 0);
+            Error.CheckForOpenGlError("AlbedoSpec Color Buffer");
 
 			// - Depth Buffer
 			GLFunc.GenTextures(1, out glDepth);
@@ -44,10 +47,7 @@ namespace LibRender {
 			GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapS, (int) GL.TextureWrapMode.ClampToEdge);
 			GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapT, (int) GL.TextureWrapMode.ClampToEdge);
 			GLFunc.FramebufferTexture2D(GL.FramebufferTarget.Framebuffer, GL.FramebufferAttachment.DepthStencilAttachment, GL.TextureTarget.Texture2D, glDepth, 0);
-
-			// Tell OpenGL which color attachments we'll use
-			GL.DrawBuffersEnum[] attachments = new GL.DrawBuffersEnum[] { GL.DrawBuffersEnum.ColorAttachment0, GL.DrawBuffersEnum.ColorAttachment1 };
-			GLFunc.DrawBuffers(2, attachments);
+            Error.CheckForOpenGlError("Depth Buffer");
 
 			if (GLFunc.CheckFramebufferStatus(GL.FramebufferTarget.Framebuffer) != GL.FramebufferErrorCode.FramebufferComplete) {
 				throw new System.Exception("gBuffer incomplete");
@@ -69,12 +69,12 @@ namespace LibRender {
 			GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapS, (int) GL.TextureWrapMode.ClampToEdge);
 			GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapT, (int) GL.TextureWrapMode.ClampToEdge);
 			GLFunc.FramebufferTexture2D(GL.FramebufferTarget.Framebuffer, GL.FramebufferAttachment.ColorAttachment0, GL.TextureTarget.Texture2D, lColor, 0);
+            Error.CheckForOpenGlError("Color Buffer");
 
 			// - Depth Buffer
 			GLFunc.BindTexture(GL.TextureTarget.Texture2D, glDepth);
 			GLFunc.FramebufferTexture2D(GL.FramebufferTarget.Framebuffer, GL.FramebufferAttachment.DepthStencilAttachment, GL.TextureTarget.Texture2D, glDepth, 0);
-
-			GLFunc.DrawBuffers(1, attachments);
+            Error.CheckForOpenGlError("Depth Buffer 2");
 
 			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, 0);
 
@@ -121,6 +121,7 @@ namespace LibRender {
 		}
 
         internal void RenderAllObjects() {
+			GLFunc.Disable(GL.EnableCap.Blend);
             GLFunc.CullFace(GL.CullFaceMode.Back);
 			GLFunc.Enable(GL.EnableCap.CullFace);
 			GLFunc.FrontFace(GL.FrontFaceDirection.Ccw);
@@ -133,6 +134,10 @@ namespace LibRender {
             GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
 
 			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, gBuffer);
+
+			// Tell OpenGL which color attachments we'll use
+			GL.DrawBuffersEnum[] attachments = new GL.DrawBuffersEnum[] { GL.DrawBuffersEnum.ColorAttachment0, GL.DrawBuffersEnum.ColorAttachment1 };
+			GLFunc.DrawBuffers(2, attachments);
 
 			GLFunc.ClearColor(0.5f, 0.5f, 0.5f, 1);
 			GLFunc.Clear(GL.ClearBufferMask.ColorBufferBit | GL.ClearBufferMask.DepthBufferBit | GL.ClearBufferMask.StencilBufferBit);
@@ -171,6 +176,8 @@ namespace LibRender {
 			GLFunc.Uniform1(lightpass_prog.GetUniform("AlbedoSpec"), 1);
 
 			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, lBuffer);
+
+			GLFunc.DrawBuffers(1, attachments);
 			GLFunc.DepthFunc(GL.DepthFunction.Greater);
 
 			GLFunc.ClearColor(66f / 255f, 149f / 255f, 244f / 255f, 1.0f);
@@ -195,6 +202,7 @@ namespace LibRender {
 			RenderFullscreenQuad();
 
 			GLFunc.Enable(GL.EnableCap.DepthTest);
+			GLFunc.Enable(GL.EnableCap.Blend);
         }
 
 		private int fullscreen_quad_vao = 0;

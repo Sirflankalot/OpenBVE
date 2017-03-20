@@ -32,7 +32,7 @@ namespace LibRender {
             var info_log = GLFunc.GetShaderInfoLog(gl_identifier);
             if(info_log.Length != 0) {
                 // TODO: Log error
-                throw new System.Exception("Shader compilation failed:\n" + info_log);
+                throw new System.ArgumentException("Shader compilation failed:\n" + info_log);
             }
 
             compiled = true;
@@ -53,7 +53,7 @@ namespace LibRender {
             var log = GLFunc.GetProgramInfoLog(gl_ident);
             if (log.Length != 0) {
                 // TODO: Log error
-                throw new System.Exception("Shader linking failed:\n" + log);
+                throw new System.ArgumentException("Shader linking failed:\n" + log);
             }
 
             foreach(Shader s in shaders) {
@@ -71,7 +71,7 @@ namespace LibRender {
                 id = GLFunc.GetUniformLocation(gl_ident, name);
                 uniform_cache.Add(name, id);
                 if (id == -1 && required == true) {
-                    throw new System.Exception("Uniform \"" + name + "\" not found.");
+                    throw new System.ArgumentException("Uniform \"" + name + "\" not found.");
                 }
                 return id;
             }
