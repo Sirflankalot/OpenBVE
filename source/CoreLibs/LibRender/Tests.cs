@@ -6,15 +6,15 @@ using OpenTK;
 
 namespace LibRender {
 	public static class Tests {
-		internal static Vertex[] mesh = new Vertex[] {
-			new Vertex() { position = new Vector3(  1, -1, -1 ), tex_pos = new Vector2(0, 0), normal = new Vector3(  0.5773f, -0.5773f, -0.5773f )}, // Bottom, Left, Front
-			new Vertex() { position = new Vector3(  1, -1,  1 ), tex_pos = new Vector2(1, 0), normal = new Vector3(  0.5773f, -0.5773f,  0.5773f ) }, // Bottom, Right, Front
-			new Vertex() { position = new Vector3( -1, -1,  1 ), tex_pos = new Vector2(1, 1), normal = new Vector3( -0.5773f, -0.5773f,  0.5773f ) }, // Top, Right, Front
-			new Vertex() { position = new Vector3( -1, -1, -1 ), tex_pos = new Vector2(0, 1), normal = new Vector3( -0.5773f, -0.5773f, -0.5773f ) }, // Top, Left, Front
-			new Vertex() { position = new Vector3(  1,  1, -1 ), tex_pos = new Vector2(0, 0), normal = new Vector3(  0.5773f,  0.5773f, -0.5773f ) }, // Bottom, Left, Back
-			new Vertex() { position = new Vector3(  1,  1,  1 ), tex_pos = new Vector2(1, 0), normal = new Vector3(  0.5773f,  0.5773f,  0.5773f ) }, // Bottom, Right, Back
-			new Vertex() { position = new Vector3( -1,  1,  1 ), tex_pos = new Vector2(1, 1), normal = new Vector3( -0.5773f,  0.5773f,  0.5773f ) }, // Top, Right, Back
-			new Vertex() { position = new Vector3( -1,  1, -1 ), tex_pos = new Vector2(0, 1), normal = new Vector3( -0.5773f,  0.5773f, -0.5773f ) }  // Top, Left, Back
+		internal static Vertex3D[] mesh = new Vertex3D[] {
+			new Vertex3D() { position = new Vector3(  1, -1, -1 ), tex_pos = new Vector2(0, 0), normal = new Vector3(  0.5773f, -0.5773f, -0.5773f )}, // Bottom, Left, Front
+			new Vertex3D() { position = new Vector3(  1, -1,  1 ), tex_pos = new Vector2(1, 0), normal = new Vector3(  0.5773f, -0.5773f,  0.5773f ) }, // Bottom, Right, Front
+			new Vertex3D() { position = new Vector3( -1, -1,  1 ), tex_pos = new Vector2(1, 1), normal = new Vector3( -0.5773f, -0.5773f,  0.5773f ) }, // Top, Right, Front
+			new Vertex3D() { position = new Vector3( -1, -1, -1 ), tex_pos = new Vector2(0, 1), normal = new Vector3( -0.5773f, -0.5773f, -0.5773f ) }, // Top, Left, Front
+			new Vertex3D() { position = new Vector3(  1,  1, -1 ), tex_pos = new Vector2(0, 0), normal = new Vector3(  0.5773f,  0.5773f, -0.5773f ) }, // Bottom, Left, Back
+			new Vertex3D() { position = new Vector3(  1,  1,  1 ), tex_pos = new Vector2(1, 0), normal = new Vector3(  0.5773f,  0.5773f,  0.5773f ) }, // Bottom, Right, Back
+			new Vertex3D() { position = new Vector3( -1,  1,  1 ), tex_pos = new Vector2(1, 1), normal = new Vector3( -0.5773f,  0.5773f,  0.5773f ) }, // Top, Right, Back
+			new Vertex3D() { position = new Vector3( -1,  1, -1 ), tex_pos = new Vector2(0, 1), normal = new Vector3( -0.5773f,  0.5773f, -0.5773f ) }  // Top, Left, Back
 		};
 
 		internal static int[] indices = new int[] {
@@ -88,7 +88,7 @@ namespace LibRender {
 		}
 		
 		public static class Test0 {
-			private static Object_Handle oh;
+			private static ObjectHandle oh;
 
 			public static void Initialize(Renderer renderer) {
 				var m = renderer.AddMesh(mesh, indices);
@@ -112,7 +112,7 @@ namespace LibRender {
 		}
 		
 		public static class Test1 {
-			private static Object_Handle oh;
+			private static ObjectHandle oh;
 
 			public static void Initialize(Renderer renderer) {
 				var m = renderer.AddMesh(mesh, indices);
@@ -130,7 +130,7 @@ namespace LibRender {
 		}
 
 		public static class Test2 {
-			private static Object_Handle[] oh_list = new Object_Handle[16];
+			private static ObjectHandle[] oh_list = new ObjectHandle[16];
 
 			public static void Initialize(Renderer renderer) {
 				var m = renderer.AddMesh(mesh, indices);

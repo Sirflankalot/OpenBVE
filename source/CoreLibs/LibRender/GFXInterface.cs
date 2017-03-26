@@ -77,12 +77,12 @@ namespace LibRender {
                 GLFunc.BindVertexArray(m.gl_vao_id);
                 GLFunc.BindBuffer(GL.BufferTarget.ArrayBuffer, m.gl_vert_id);
                 // Fix this garbage
-                List<Vertex> vertex_full = new List<Vertex>();
+                List<Vertex3D> vertex_full = new List<Vertex3D>();
                 for (int j = 0; j < m.normals.Count; ++j) {
-                    vertex_full.Add(new Vertex() { normal = m.normals[j], position = m.vertices[j].position, tex_pos = m.vertices[j].tex_pos });
+                    vertex_full.Add(new Vertex3D() { normal = m.normals[j], position = m.vertices[j].position, tex_pos = m.vertices[j].tex_pos });
                 }
                 unsafe {
-                    GLFunc.BufferData(GL.BufferTarget.ArrayBuffer, vertex_full.Count * sizeof(Vertex), vertex_full.ToArray(), GL.BufferUsageHint.StaticDraw);
+                    GLFunc.BufferData(GL.BufferTarget.ArrayBuffer, vertex_full.Count * sizeof(Vertex3D), vertex_full.ToArray(), GL.BufferUsageHint.StaticDraw);
                 }
 
                 GLFunc.VertexAttribPointer(0, 3, GL.VertexAttribPointerType.Float, false, 8 * sizeof(float), 0 * sizeof(float));

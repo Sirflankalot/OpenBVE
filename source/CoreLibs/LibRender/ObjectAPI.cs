@@ -1,61 +1,83 @@
 ﻿using OpenTK;
+using System.Drawing;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using GL = OpenTK.Graphics.OpenGL;
 using GLFunc = OpenTK.Graphics.OpenGL.GL;
 
 namespace LibRender {
-    public struct Texture_Handle {
+    public struct TextureHandle {
         internal int id;
-        internal Texture_Handle(int id) {
+        internal TextureHandle(int id) {
             this.id = id;
         }
     }
 
-    public struct Mesh_Handle {
+    public struct MeshHandle {
         internal int id;
-        internal Mesh_Handle(int id) {
+        internal MeshHandle(int id) {
             this.id = id;
         }
     }
 
-    public struct Object_Handle {
+    public struct ObjectHandle {
         internal int id;
-        internal Object_Handle(int id) {
+        internal ObjectHandle(int id) {
             this.id = id;
         }
     }
 
-    public struct Camera_Handle {
+    public struct CameraHandle {
         internal int id;
-        internal Camera_Handle(int id) {
+        internal CameraHandle(int id) {
             this.id = id;
         }
     }
 
-    public struct Cone_Light_Handle {
+    public struct ConeLightHandle {
         internal int id;
-        internal Cone_Light_Handle(int id) {
+        internal ConeLightHandle(int id) {
             this.id = id;
         }
     }
 
-    public struct Point_Light_Handle {
+    public struct PointLightHandle {
         internal int id;
-        internal Point_Light_Handle(int id) {
+        internal PointLightHandle(int id) {
             this.id = id;
         }
     }
+
+	public struct TextHandle {
+		internal int id;
+		internal TextHandle(int id) {
+			this.id = id;
+		}
+	}
+
+	public struct FlatMeshHandle {
+		internal int id;
+		internal FlatMeshHandle(int id) {
+			this.id = id;
+		}
+	}
+
+	public struct UIElementHandle {
+		internal int id;
+		internal UIElementHandle(int id) {
+			this.id = id;
+		}
+	}
 
     [StructLayout(LayoutKind.Sequential, Pack = 1, Size = sizeof(float) * 8)]
-    public struct Vertex {
+    public struct Vertex3D {
         public Vector3 position;
         public Vector2 tex_pos;
         public Vector3 normal;
     }
 
     internal class Mesh {
-        internal List<Vertex> vertices = new List<Vertex>();
+        internal List<Vertex3D> vertices = new List<Vertex3D>();
         internal List<int> indices = new List<int>();
         internal List<Vector3> normals = new List<Vector3>();
 
@@ -153,6 +175,72 @@ namespace LibRender {
 		internal int gl_tex_id = 0;
 	}
 
+	internal class Text {
+		internal Font font;
+		internal string text;
+		internal int font_size;
+		internal int max_width;
+		internal int depth;
+
+		internal Vector4 color;
+		internal Vector4 bg_color;
+
+		internal Vector2 origin;
+
+		internal List<Pixel> texture;
+		internal bool texture_ready = false;
+
+		internal int gl_tex_id = 0;
+		internal bool uploaded = false;
+
+		internal Text Copy() {
+			Text t = new Text();
+			t.font = font;
+			t.font_size = font_size;
+			t.color = color;
+			t.bg_color = bg_color;
+			t.origin = origin;
+			if (texture_ready) {
+				t.texture.AddRange(texture);
+			}
+			t.texture_ready = texture_ready;
+			return t;
+		}
+	}
+
+	[StructLayout(LayoutKind.Sequential, Pack = 1, Size = sizeof(float) * 4)]
+	public struct Vertex2D {
+		public Vector2 position;
+		public Vector2 texcoord;
+	}
+
+	internal class FlatMesh {
+		internal List<Vertex2D> vertices;
+
+		internal int gl_vao_id = 0;
+        internal int gl_vert_id = 0;
+
+		internal bool uploaded = false;
+
+		internal FlatMesh Copy() {
+			FlatMesh fm = new FlatMesh();
+			fm.vertices.AddRange(vertices);
+
+			return fm;
+		}
+	}
+
+	internal class UIElement {
+		internal int flatmesh_id;
+		internal int tex_id;
+		internal Vector2 location;
+		internal Vector2 scale;
+		internal float rotation;
+		internal int depth;
+		internal Matrix2 transform;
+		internal bool matrix_valid;
+	}
+
     public partial class Renderer {
         internal List<Mesh> meshes = new List<Mesh>();
         internal List<Texture> textures = new List<Texture>();
@@ -162,8 +250,11 @@ namespace LibRender {
         internal List<Cone_Light> cone_lights = new List<Cone_Light>();
         internal List<Point_Light> point_lights = new List<Point_Light>();
 		internal Sun sun = new Sun();
+		internal List<Text> texts = new List<Text>();
+		internal List<FlatMesh> flat_meshes = new List<FlatMesh>();
+		internal List<UIElement> uielements = new List<UIElement>();
 
-        internal void AssertValid(Mesh_Handle mh) {
+        internal void AssertValid(MeshHandle mh) {
             if (meshes.Count <= mh.id) {
                 throw new System.ArgumentException("Mesh Handle ID larger than array: " + mh.id.ToString());
             }
@@ -172,7 +263,7 @@ namespace LibRender {
             }
         }
         
-        internal void AssertValid(Object_Handle oh) {
+        internal void AssertValid(ObjectHandle oh) {
             if (objects.Count <= oh.id) {
                 throw new System.ArgumentException("Object Handle ID larger than array: " + oh.id.ToString());
             }
@@ -181,7 +272,7 @@ namespace LibRender {
             }
         }
 
-        internal void AssertValid(Texture_Handle th) {
+        internal void AssertValid(TextureHandle th) {
             if (textures.Count <= th.id) {
                 throw new System.ArgumentException("Texture Handle ID larger than array: " + th.id.ToString());
             }
@@ -190,7 +281,7 @@ namespace LibRender {
             }
         }
 
-        internal void AssertValid(Camera_Handle ch) {
+        internal void AssertValid(CameraHandle ch) {
             if (cameras.Count <= ch.id) {
                 throw new System.ArgumentException("Camera Handle ID larger than array: " + ch.id.ToString());
             }
@@ -199,7 +290,7 @@ namespace LibRender {
             }
         }
 
-        internal void AssertValid(Cone_Light_Handle clh) {
+        internal void AssertValid(ConeLightHandle clh) {
             if (cone_lights.Count <= clh.id) {
                 throw new System.ArgumentException("Cone Light Handle ID larger than array: " + clh.id.ToString());
             }
@@ -208,7 +299,7 @@ namespace LibRender {
             }
         }
 
-        internal void AssertValid(Point_Light_Handle plh) {
+        internal void AssertValid(PointLightHandle plh) {
             if (point_lights.Count <= plh.id) {
                 throw new System.ArgumentException("Point Light Handle ID larger than array: " + plh.id.ToString());
             }
@@ -217,37 +308,66 @@ namespace LibRender {
             }
         }
 
-        ///////////////////////////////////
-        // Adders, Updaters and Deleters //
-        ///////////////////////////////////
+		internal void AssertValid(TextHandle th) {
+			if (texts.Count <= th.id) {
+				throw new System.ArgumentException("Text Handle ID larger than array: " + th.id.ToString());
+			}
+			if (texts[th.id] == null) {
+				throw new System.ArgumentNullException("Accessing a deleted text: " + th.id.ToString());
+			}
+		}
 
-        public Mesh_Handle AddMesh(Vertex[] mesh, int[] vertex_indices) {
+		internal void AssertValid(FlatMeshHandle fmh) {
+			if (flat_meshes.Count <= fmh.id) {
+				throw new System.ArgumentException("Flat Mesh Handle ID larger than array: " + fmh.id.ToString());
+			}
+
+			if (flat_meshes[fmh.id] == null) {
+				throw new System.ArgumentNullException("Accessing a deleted flat mesh: " + fmh.id.ToString());
+			}
+		}
+
+		internal void AssertValid(UIElementHandle uieh) {
+			if (uielements.Count <= uieh.id) {
+				throw new System.ArgumentException("UI Element Handle ID larger than array: " + uieh.id.ToString());
+			}
+
+			if (uielements[uieh.id] == null) {
+				throw new System.ArgumentNullException("Accessing a deleted uielement: " + uieh.id.ToString());
+			}
+		}
+
+		///////////////////////////////////
+		// Adders, Updaters and Deleters //
+		///////////////////////////////////
+
+		public MeshHandle AddMesh(Vertex3D[] mesh, int[] vertex_indices) {
             Mesh m = new Mesh();
             m.vertices.AddRange(mesh);
             m.indices.AddRange(vertex_indices);
             meshes.Add(m);
-            return new Mesh_Handle(meshes.Count - 1);
+            return new MeshHandle(meshes.Count - 1);
         }
 
-        public Texture_Handle AddTexture(Pixel[] pixels, int width, int height) {
+        public TextureHandle AddTexture(Pixel[] pixels, int width, int height) {
             Texture t = new Texture();
             t.pixels.AddRange(pixels);
             t.width = width;
             t.height = height;
             textures.Add(t);
-            return new Texture_Handle(textures.Count - 1);
+            return new TextureHandle(textures.Count - 1);
         }
 
-        public Object_Handle AddObject(Mesh_Handle mh, Texture_Handle th, bool visible = true) {
+        public ObjectHandle AddObject(MeshHandle mh, TextureHandle th, bool visible = true) {
             Object o = new Object();
             o.mesh_id = mh.id;
             o.tex_id = th.id;
             o.visible = visible;
             objects.Add(o);
-            return new Object_Handle(objects.Count - 1);
+            return new ObjectHandle(objects.Count - 1);
         }
 
-        public Camera_Handle AddCamera(Vector3 location, Vector2 rotation, float fov, bool active = true) {
+        public CameraHandle AddCamera(Vector3 location, Vector2 rotation, float fov, bool active = true) {
             Camera c = new Camera();
             c.focal_point = location;
             c.rotation = rotation;
@@ -257,10 +377,10 @@ namespace LibRender {
             if (active) {
                 active_camera = index;
             }
-            return new Camera_Handle(index);
+            return new CameraHandle(index);
         }
 
-        public Cone_Light_Handle AddConeLight(Vector3 location, Vector3 direction, float brightness, float fov, bool shadow_casting = false) {
+        public ConeLightHandle AddConeLight(Vector3 location, Vector3 direction, float brightness, float fov, bool shadow_casting = false) {
             Cone_Light cl = new Cone_Light();
             cl.location = location;
             cl.direction = direction;
@@ -268,18 +388,54 @@ namespace LibRender {
             cl.fov = fov;
             cl.shadow = shadow_casting;
             cone_lights.Add(cl);
-            return new Cone_Light_Handle(cone_lights.Count - 1);
+            return new ConeLightHandle(cone_lights.Count - 1);
         }
 
-        public Point_Light_Handle AddPointLight(Vector3 location, float brightness) {
+        public PointLightHandle AddPointLight(Vector3 location, float brightness) {
             Point_Light pl = new Point_Light();
             pl.location = location;
             pl.brightness = brightness;
             point_lights.Add(pl);
-            return new Point_Light_Handle(point_lights.Count - 1);
+            return new PointLightHandle(point_lights.Count - 1);
         }
 
-        public void Update(Mesh_Handle mh, Vertex[] mesh, int[] vertex_indices) {
+		public TextHandle AddText(string text, Font font, Pixel color, Pixel bg_color, Vector2 origin, int font_size, int depth = 0, int max_width = 0) {
+			Text t = new Text();
+			t.text = text;
+			t.font = font;
+			t.color = new Vector4(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
+			t.bg_color = new Vector4(bg_color.r / 255.0f, bg_color.g / 255.0f, bg_color.b / 255.0f, bg_color.a / 255.0f);
+			t.origin = origin;
+			t.font_size = font_size;
+			t.depth = depth;
+			t.max_width = max_width;
+			texts.Add(t);
+			return new TextHandle(texts.Count - 1);
+		}
+
+		public FlatMeshHandle AddFlatMesh(Vertex2D[] mesh) {
+			FlatMesh fm = new FlatMesh();
+			fm.vertices.AddRange(mesh);
+			flat_meshes.Add(fm);
+			return new FlatMeshHandle(flat_meshes.Count - 1);
+		}
+
+		public UIElementHandle AddUIElement(FlatMeshHandle fmh, TextureHandle th, Vector2 location, Vector2 scale, float rotation, int depth = 0) {
+			AssertValid(fmh);
+			AssertValid(th);
+
+			UIElement uie = new UIElement();
+			uie.flatmesh_id = fmh.id;
+			uie.tex_id = th.id;
+			uie.location = location;
+			uie.scale = scale;
+			uie.rotation = rotation;
+			uie.depth = depth;
+			uielements.Add(uie);
+			return new UIElementHandle(uielements.Count - 1);
+		}
+
+        public void Update(MeshHandle mh, Vertex3D[] mesh, int[] vertex_indices) {
             AssertValid(mh);
 
             meshes[mh.id].vertices.Clear();
@@ -290,7 +446,7 @@ namespace LibRender {
             meshes[mh.id].uploaded = false;
         }
 
-        public void Update(Texture_Handle th, Pixel[] pixels, int width, int height) {
+        public void Update(TextureHandle th, Pixel[] pixels, int width, int height) {
             AssertValid(th);
 
             textures[th.id].pixels.Clear();
@@ -300,7 +456,7 @@ namespace LibRender {
             textures[th.id].uploaded = false;
         }
 
-        public void Update(Object_Handle oh, Mesh_Handle mh, Texture_Handle th) {
+        public void Update(ObjectHandle oh, MeshHandle mh, TextureHandle th) {
             AssertValid(oh);
             AssertValid(mh);
             AssertValid(th);
@@ -309,7 +465,24 @@ namespace LibRender {
             objects[oh.id].tex_id = th.id;
         }
 
-        public void Delete(Mesh_Handle mh) {
+		public void Update(FlatMeshHandle fmh, Vertex2D[] mesh) {
+			AssertValid(fmh);
+
+			flat_meshes[fmh.id].vertices.Clear();
+			flat_meshes[fmh.id].vertices.AddRange(mesh);
+			flat_meshes[fmh.id].uploaded = false;
+		}
+
+		public void Update(UIElementHandle uieh, FlatMeshHandle fmh, TextureHandle th) {
+			AssertValid(uieh);
+			AssertValid(fmh);
+			AssertValid(th);
+
+			uielements[uieh.id].flatmesh_id = fmh.id;
+			uielements[uieh.id].tex_id = th.id;
+		}
+
+        public void Delete(MeshHandle mh) {
             AssertValid(mh);
 
             GLFunc.DeleteVertexArray(meshes[mh.id].gl_vao_id);
@@ -319,7 +492,7 @@ namespace LibRender {
             meshes[mh.id] = null;
         }
 
-        public void Delete(Texture_Handle th) {
+        public void Delete(TextureHandle th) {
             AssertValid(th);
 
             GLFunc.DeleteTexture(textures[th.id].gl_id);
@@ -327,13 +500,13 @@ namespace LibRender {
             textures[th.id] = null;
         }
 
-        public void Delete(Object_Handle oh) {
+        public void Delete(ObjectHandle oh) {
             AssertValid(oh);
 
             objects[oh.id] = null;
         }
 
-        public void Delete(Camera_Handle ch) {
+        public void Delete(CameraHandle ch) {
             AssertValid(ch);
 
             if (ch.id == 0) {
@@ -343,7 +516,7 @@ namespace LibRender {
             cameras[ch.id] = null;
         }
 
-        public void Delete(Cone_Light_Handle clh) {
+        public void Delete(ConeLightHandle clh) {
             AssertValid(clh);
 
             int tex = cone_lights[clh.id].gl_tex_id;
@@ -354,47 +527,70 @@ namespace LibRender {
             cone_lights[clh.id] = null;
         }
 
-        public void Delete(Point_Light_Handle plh) {
+        public void Delete(PointLightHandle plh) {
             AssertValid(plh);
 
             point_lights[plh.id] = null;
         }
 
+		public void Delete(TextHandle th) {
+			AssertValid(th);
+
+			GLFunc.DeleteTexture(texts[th.id].gl_tex_id);
+
+			texts[th.id] = null;
+		}
+
+		public void Delete(FlatMeshHandle fmh) {
+			AssertValid(fmh);
+
+			GLFunc.DeleteVertexArray(flat_meshes[fmh.id].gl_vao_id);
+			GLFunc.DeleteBuffer(flat_meshes[fmh.id].gl_vert_id);
+
+			flat_meshes[fmh.id] = null;
+		}
+
+		public void Delete(UIElementHandle uieh) {
+			AssertValid(uieh);
+
+			uielements[uieh.id] = null;
+		}
+
         ////////////////////////////////
         // Object Setters and Getters //
         ////////////////////////////////
 
-        public bool GetVisibility(Object_Handle oh) {
+        public bool GetVisibility(ObjectHandle oh) {
             AssertValid(oh);
 
             return objects[oh.id].visible;
         }
 
-        public Vector3 GetLocation(Object_Handle oh) {
+        public Vector3 GetLocation(ObjectHandle oh) {
             AssertValid(oh);
 
             return objects[oh.id].position;
         }
 
-        public Vector3 GetRotation(Object_Handle oh) {
+        public Vector3 GetRotation(ObjectHandle oh) {
             AssertValid(oh);
 
             return objects[oh.id].rotation;
         }
 
-        public Vector3 GetScale(Object_Handle oh) {
+        public Vector3 GetScale(ObjectHandle oh) {
             AssertValid(oh);
 
             return objects[oh.id].scale;
         }
 
-        public void SeVisibility(Object_Handle oh, bool visible) {
+        public void SeVisibility(ObjectHandle oh, bool visible) {
             AssertValid(oh);
 
             objects[oh.id].visible = visible;
         }
 
-        public void SetLocation(Object_Handle oh, Vector3 pos) {
+        public void SetLocation(ObjectHandle oh, Vector3 pos) {
             AssertValid(oh);
 
             objects[oh.id].position = pos;
@@ -402,14 +598,14 @@ namespace LibRender {
 			objects[oh.id].inverse_model_view_valid = false;
 		}
 
-        public void SetRotation(Object_Handle oh, Vector3 rot) {
+        public void SetRotation(ObjectHandle oh, Vector3 rot) {
             AssertValid(oh);
             objects[oh.id].rotation = rot;
             objects[oh.id].matrix_valid = false;
 			objects[oh.id].inverse_model_view_valid = false;
 		}
 
-        public void SetScale(Object_Handle oh, Vector3 scale) {
+        public void SetScale(ObjectHandle oh, Vector3 scale) {
             AssertValid(oh);
 
             objects[oh.id].scale = scale;
@@ -421,39 +617,39 @@ namespace LibRender {
         // Camera Setters and Getters //
         ////////////////////////////////
 
-        public Vector3 GetLocation(Camera_Handle ch) {
+        public Vector3 GetLocation(CameraHandle ch) {
             AssertValid(ch);
 
             return cameras[ch.id].focal_point;
         }
 
-        public Vector2 GetRotation(Camera_Handle ch) {
+        public Vector2 GetRotation(CameraHandle ch) {
             AssertValid(ch);
 
             return cameras[ch.id].rotation;
         }
 
-        public float GetDistance(Camera_Handle ch) {
+        public float GetDistance(CameraHandle ch) {
             AssertValid(ch);
 
             return cameras[ch.id].distance;
         }
 
-        public float GetFOV(Camera_Handle ch) {
+        public float GetFOV(CameraHandle ch) {
             AssertValid(ch);
 
             return cameras[ch.id].fov;
         }
 
-        public Camera_Handle GetActiveCamera() {
-            return new Camera_Handle(active_camera);
+        public CameraHandle GetActiveCamera() {
+            return new CameraHandle(active_camera);
         }
 
-        public Camera_Handle GetStartingCamera() {
-            return new Camera_Handle(0);
+        public CameraHandle GetStartingCamera() {
+            return new CameraHandle(0);
         }
 
-        public void SetLocation(Camera_Handle ch, Vector3 location) {
+        public void SetLocation(CameraHandle ch, Vector3 location) {
             AssertValid(ch);
 
             cameras[ch.id].focal_point = location;
@@ -461,7 +657,7 @@ namespace LibRender {
 			Algorithms.ClearObjectModelViewMatrices(objects, 0, objects.Count);
         }
 
-        public void SetRotation(Camera_Handle ch, Vector2 rotation) {
+        public void SetRotation(CameraHandle ch, Vector2 rotation) {
             AssertValid(ch);
 
             cameras[ch.id].rotation = rotation;
@@ -469,7 +665,7 @@ namespace LibRender {
 			Algorithms.ClearObjectModelViewMatrices(objects, 0, objects.Count);
 		}
 
-        public void SetDistance(Camera_Handle ch, float distance) {
+        public void SetDistance(CameraHandle ch, float distance) {
             AssertValid(ch);
 
             cameras[ch.id].distance = distance;
@@ -477,14 +673,14 @@ namespace LibRender {
 			Algorithms.ClearObjectModelViewMatrices(objects, 0, objects.Count);
 		}
 
-        public void SetFOV(Camera_Handle ch, float fov) {
+        public void SetFOV(CameraHandle ch, float fov) {
             AssertValid(ch);
 
             cameras[ch.id].fov = fov;
             cameras[ch.id].matrix_valid = false;
         }
 
-        public void SetActiveCamera(Camera_Handle ch) {
+        public void SetActiveCamera(CameraHandle ch) {
             AssertValid(ch);
 
             active_camera = ch.id;
@@ -496,61 +692,61 @@ namespace LibRender {
         // Cone Light Getters and Setters //
         ////////////////////////////////////
 
-        public Vector3 GetLocation(Cone_Light_Handle clh) {
+        public Vector3 GetLocation(ConeLightHandle clh) {
             AssertValid(clh);
 
             return cone_lights[clh.id].location;
         }
 
-        public Vector3 GetDirection(Cone_Light_Handle clh) {
+        public Vector3 GetDirection(ConeLightHandle clh) {
             AssertValid(clh);
 
             return cone_lights[clh.id].direction;
         }
 
-        public float GetFOV(Cone_Light_Handle clh) {
+        public float GetFOV(ConeLightHandle clh) {
             AssertValid(clh);
 
             return cone_lights[clh.id].fov;
         }
 
-        public float GetBrightness(Cone_Light_Handle clh) {
+        public float GetBrightness(ConeLightHandle clh) {
             AssertValid(clh);
 
             return cone_lights[clh.id].brightness;
         }
 
-        public bool GetShadow(Cone_Light_Handle clh) {
+        public bool GetShadow(ConeLightHandle clh) {
             AssertValid(clh);
 
             return cone_lights[clh.id].shadow;
         }
 
-        public void SetLocation(Cone_Light_Handle clh, Vector3 location) {
+        public void SetLocation(ConeLightHandle clh, Vector3 location) {
             AssertValid(clh);
 
             cone_lights[clh.id].location = location;
         }
 
-        public void SetDirection(Cone_Light_Handle clh, Vector3 direction) {
+        public void SetDirection(ConeLightHandle clh, Vector3 direction) {
             AssertValid(clh);
 
             cone_lights[clh.id].direction = direction;
         }
 
-        public void SetFOV(Cone_Light_Handle clh, float fov) {
+        public void SetFOV(ConeLightHandle clh, float fov) {
             AssertValid(clh);
 
             cone_lights[clh.id].fov = fov;
         }
 
-        public void SetBrightness(Cone_Light_Handle clh, float brightness) {
+        public void SetBrightness(ConeLightHandle clh, float brightness) {
             AssertValid(clh);
 
             cone_lights[clh.id].brightness = brightness;
         }
 
-        public void SetShadow(Cone_Light_Handle clh, bool shadow) {
+        public void SetShadow(ConeLightHandle clh, bool shadow) {
             AssertValid(clh);
 
             cone_lights[clh.id].shadow = shadow;
@@ -560,25 +756,25 @@ namespace LibRender {
         // Point Light Getters and Setters //
         /////////////////////////////////////
 
-        public Vector3 GetLocation(Point_Light_Handle plh) {
+        public Vector3 GetLocation(PointLightHandle plh) {
             AssertValid(plh);
 
             return point_lights[plh.id].location;
         }
 
-        public float GetBrightness(Point_Light_Handle plh) {
+        public float GetBrightness(PointLightHandle plh) {
             AssertValid(plh);
 
             return point_lights[plh.id].brightness;
         }
 
-        public void SetLocation(Point_Light_Handle plh, Vector3 location) {
+        public void SetLocation(PointLightHandle plh, Vector3 location) {
             AssertValid(plh);
 
             point_lights[plh.id].location = location;
         }
 
-        public void SetBrightness(Point_Light_Handle plh, float brightness) {
+        public void SetBrightness(PointLightHandle plh, float brightness) {
             AssertValid(plh);
 
             point_lights[plh.id].brightness = brightness;
@@ -611,6 +807,171 @@ namespace LibRender {
 
 		public void SetSunBrightness(float brightness) {
 			sun.brightness = brightness;
+		}
+
+		//////////////////////////////
+		// Text Setters and Getters //
+		//////////////////////////////
+
+		public string GetText(TextHandle th) {
+			AssertValid(th);
+
+			return texts[th.id].text;
+		}
+
+		public Font GetFont(TextHandle th) {
+			AssertValid(th);
+
+			return texts[th.id].font;
+		}
+
+		public int GetFontSize(TextHandle th) {
+			AssertValid(th);
+
+			return texts[th.id].font_size;
+		}
+
+		public int GetMaxWidth(TextHandle th) {
+			AssertValid(th);
+
+			return texts[th.id].max_width;
+		}
+
+		public int GetDepth(TextHandle th) {
+			AssertValid(th);
+
+			return texts[th.id].depth;
+		}
+
+		public Pixel GetColor(TextHandle th) {
+			AssertValid(th);
+
+			Vector4 orig = texts[th.id].color;
+			return new Pixel { r = (byte) (orig.X * 255.0f), g = (byte) (orig.Y * 255.0f), b = (byte) (orig.Z * 255.0f), a = (byte) (orig.W * 255.0f) };
+		}
+
+		public Pixel GetBackgroundColor(TextHandle th) {
+			AssertValid(th);
+
+			Vector4 orig = texts[th.id].bg_color;
+			return new Pixel { r = (byte) (orig.X * 255.0f), g = (byte) (orig.Y * 255.0f), b = (byte) (orig.Z * 255.0f), a = (byte) (orig.W * 255.0f) };
+		}
+
+		public Vector2 GetLocation(TextHandle th) {
+			AssertValid(th);
+
+			return texts[th.id].origin;
+		}
+
+		public void SetText(TextHandle th, string text) {
+			AssertValid(th);
+
+			texts[th.id].text = text;
+			texts[th.id].texture_ready = false;
+			texts[th.id].uploaded = false;
+		}
+
+		public void SetFont(TextHandle th, Font font) {
+			AssertValid(th);
+
+			texts[th.id].font = font;
+			texts[th.id].texture_ready = false;
+			texts[th.id].uploaded = false;
+		}
+
+		public void SetFontSize(TextHandle th, int font_size) {
+			AssertValid(th);
+
+			texts[th.id].font_size = font_size;
+			texts[th.id].texture_ready = false;
+			texts[th.id].uploaded = false;
+		}
+
+		public void SetMaxWidth(TextHandle th, int max_width) {
+			AssertValid(th);
+
+			texts[th.id].max_width = max_width;
+			texts[th.id].texture_ready = false;
+			texts[th.id].uploaded = false;
+		}
+
+		public void SetDepth(TextHandle th, int depth) {
+			AssertValid(th);
+
+			texts[th.id].depth = depth;
+		}
+
+		public void SetColor(TextHandle th, Pixel color) {
+			AssertValid(th);
+
+			texts[th.id].color = new Vector4(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
+		}
+
+		public void SetBackgroundColor(TextHandle th, Pixel bg_color) {
+			AssertValid(th);
+
+			texts[th.id].bg_color = new Vector4(bg_color.r / 255.0f, bg_color.g / 255.0f, bg_color.b / 255.0f, bg_color.a / 255.0f);
+		}
+
+		public void SetLocation(TextHandle th, Vector2 location) {
+			AssertValid(th);
+
+			texts[th.id].origin = location;
+		}
+
+		///////////////////////////////////
+		// UIElement Setters and Getters //
+		///////////////////////////////////
+
+		public Vector2 GetLocation(UIElementHandle uieh) {
+			AssertValid(uieh);
+
+			return uielements[uieh.id].location;
+		}
+
+		public Vector2 GetScale(UIElementHandle uieh) {
+			AssertValid(uieh);
+
+			return uielements[uieh.id].scale;
+		}
+
+		public float GetRotation(UIElementHandle uieh) {
+			AssertValid(uieh);
+
+			return uielements[uieh.id].rotation;
+		}
+
+		public int GetDepth(UIElementHandle uieh) {
+			AssertValid(uieh);
+
+			return uielements[uieh.id].depth;
+		}
+
+		public void SetLocation(UIElementHandle uieh, Vector2 location) {
+			AssertValid(uieh);
+
+			uielements[uieh.id].location = location;
+			uielements[uieh.id].matrix_valid = false;
+		}
+
+		public void SetScale(UIElementHandle uieh, Vector2 scale) {
+			AssertValid(uieh);
+
+			uielements[uieh.id].scale = scale;
+			uielements[uieh.id].matrix_valid = false;
+		}
+
+		public void SetRotation(UIElementHandle uieh, float rotation) {
+			AssertValid(uieh);
+
+			uielements[uieh.id].rotation = rotation;
+			uielements[uieh.id].matrix_valid = false;
+		}
+
+		public void SetDepth(UIElementHandle uieh, int depth) {
+			AssertValid(uieh);
+
+			uielements[uieh.id].depth = depth;
 		}
 	}
 }
