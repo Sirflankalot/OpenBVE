@@ -61,13 +61,24 @@ namespace LibRender {
                 for (int i = 0; i < m.normals.Count; ++i) {
                     var n = m.normals[i];
                     n.Normalize();
-                    m.normals[i] = n;
+                    m.normals[i] = -n;
                 }
 
                 // Normals have been updated
                 m.updated_normals = true;
             }
         }
+
+		internal static void ClearObjectModelViewMatrices(List<Object> objects, int start, int end) {
+			// Check indices
+			if (!(0 <= start && 0 <= end && end <= objects.Count && (end == 0 ? start == end : start < end))) {
+				throw new System.ArgumentException("Range invalid");
+			}
+
+			for (int i = start; i < end; ++i) {
+				objects[i].inverse_model_view_valid = false;
+			}
+		}
 
         internal static void UpdateObjectMatrices(List<Object> objects, int start, int end) {
             // Check indices
@@ -92,6 +103,31 @@ namespace LibRender {
             }
         }
 
+		internal static void UpdateObjectModelViewMatrices(List<Object> objects, int start, int end, ref Matrix4 view_matrix) {
+			// Check indices
+			if (!(0 <= start && 0 <= end && end <= objects.Count && (end == 0 ? start == end : start < end))) {
+				throw new System.ArgumentException("Range invalid");
+			}
+
+			for (int i = start; i < end; ++i) {
+				// Reference to Object
+				Object o = objects[i];
+
+				if (o == null || o.inverse_model_view_valid) {
+					continue;
+				}
+
+				if (!o.matrix_valid) {
+					UpdateObjectMatrices(objects, i, i + 1);
+				}
+
+				var model_view_mat = o.transform * view_matrix;
+				model_view_mat.Invert();
+				model_view_mat.Transpose();
+				o.inverse_model_view_matrix = new Matrix3(model_view_mat);
+			}
+		}
+
         internal static void UpdateCameraMatrices(List<Camera> cameras, int start, int end, float ratio) {
             // Check indices
             if (!(0 <= start && 0 <= end && end <= cameras.Count && (end == 0 ? start == end : start < end))) {
@@ -106,16 +142,19 @@ namespace LibRender {
                     continue;
                 }
 
-				var projection_matrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(c.fov), ratio, 0.1f, 1000.0f);
+				var proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(c.fov), ratio, 0.1f, 1000.0f);
 
 				Vector3 cam_point = new Vector3(0, 0, c.distance);
-                cam_point = Vector3.TransformVector(cam_point, Matrix4.CreateRotationX(c.rotation.Y));
-                cam_point = Vector3.TransformVector(cam_point, Matrix4.CreateRotationY(c.rotation.X));
+                cam_point = Vector3.TransformVector(cam_point, Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-c.rotation.Y)));
+                cam_point = Vector3.TransformVector(cam_point, Matrix4.CreateRotationY(MathHelper.DegreesToRadians(c.rotation.X)));
                 cam_point += c.focal_point;
 
                 Matrix4 cam = Matrix4.LookAt(cam_point, c.focal_point, new Vector3(0, 1, 0));
 
-                c.transform = cam * projection_matrix;
+				c.view_matrix = cam;
+				c.proj_matrix = proj;
+                c.transform_matrix = cam * proj;
+				c.inverse_projection_matrix = proj.Inverted();
                 c.matrix_valid = true;
             }
         }
@@ -145,11 +184,15 @@ namespace LibRender {
 				return;
 			}
 
-			sun.direction = new Vector3((Matrix4.CreateRotationY(sun.location.X) * Matrix4.CreateRotationX(sun.location.Y)) * new Vector4(1, 0, 0, 1));
+			var hoz_rotate = Matrix3.CreateRotationY(MathHelper.DegreesToRadians(sun.location.X));
+			var vert_rotate = Matrix3.CreateRotationZ(MathHelper.DegreesToRadians(sun.location.Y));
+			sun.direction = new Vector3(1, 0, 0);
+			sun.direction = sun.direction * vert_rotate;
+			sun.direction = sun.direction * hoz_rotate;
 			sun.direction.Normalize();
-			sun.direction *= 500;
+			Vector3 sun_offset = sun.direction * 500;
 			Matrix4 proj = Matrix4.CreateOrthographic(100, 100, 0, 1000);
-			Matrix4 cam = Matrix4.LookAt(camera_position + sun.direction, camera_position, new Vector3(0, 1, 0));
+			Matrix4 cam = Matrix4.LookAt(camera_position + sun_offset, camera_position, new Vector3(0, 1, 0));
 
 			sun.shadow_matrix = cam * proj;
 			sun.matrix_valid = true;

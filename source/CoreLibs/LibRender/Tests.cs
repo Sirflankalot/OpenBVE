@@ -7,14 +7,14 @@ using OpenTK;
 namespace LibRender {
 	public static class Tests {
 		internal static Vertex[] mesh = new Vertex[] {
-			new Vertex() { position = new Vector3(  1, -1, -1 ), tex_pos = new Vector2(0, 0) }, // Bottom, Left, Front
-			new Vertex() { position = new Vector3(  1, -1,  1 ), tex_pos = new Vector2(1, 0) }, // Bottom, Right, Front
-			new Vertex() { position = new Vector3( -1, -1,  1 ), tex_pos = new Vector2(1, 1) }, // Top, Right, Front
-			new Vertex() { position = new Vector3( -1, -1, -1 ), tex_pos = new Vector2(0, 1) }, // Top, Left, Front
-			new Vertex() { position = new Vector3(  1,  1, -1 ), tex_pos = new Vector2(0, 0) }, // Bottom, Left, Back
-			new Vertex() { position = new Vector3(  1,  1,  1 ), tex_pos = new Vector2(1, 0) }, // Bottom, Right, Back
-			new Vertex() { position = new Vector3( -1,  1,  1 ), tex_pos = new Vector2(1, 1) }, // Top, Right, Back
-			new Vertex() { position = new Vector3( -1,  1, -1 ), tex_pos = new Vector2(0, 1) }  // Top, Left, Back
+			new Vertex() { position = new Vector3(  1, -1, -1 ), tex_pos = new Vector2(0, 0), normal = new Vector3(  0.5773f, -0.5773f, -0.5773f )}, // Bottom, Left, Front
+			new Vertex() { position = new Vector3(  1, -1,  1 ), tex_pos = new Vector2(1, 0), normal = new Vector3(  0.5773f, -0.5773f,  0.5773f ) }, // Bottom, Right, Front
+			new Vertex() { position = new Vector3( -1, -1,  1 ), tex_pos = new Vector2(1, 1), normal = new Vector3( -0.5773f, -0.5773f,  0.5773f ) }, // Top, Right, Front
+			new Vertex() { position = new Vector3( -1, -1, -1 ), tex_pos = new Vector2(0, 1), normal = new Vector3( -0.5773f, -0.5773f, -0.5773f ) }, // Top, Left, Front
+			new Vertex() { position = new Vector3(  1,  1, -1 ), tex_pos = new Vector2(0, 0), normal = new Vector3(  0.5773f,  0.5773f, -0.5773f ) }, // Bottom, Left, Back
+			new Vertex() { position = new Vector3(  1,  1,  1 ), tex_pos = new Vector2(1, 0), normal = new Vector3(  0.5773f,  0.5773f,  0.5773f ) }, // Bottom, Right, Back
+			new Vertex() { position = new Vector3( -1,  1,  1 ), tex_pos = new Vector2(1, 1), normal = new Vector3( -0.5773f,  0.5773f,  0.5773f ) }, // Top, Right, Back
+			new Vertex() { position = new Vector3( -1,  1, -1 ), tex_pos = new Vector2(0, 1), normal = new Vector3( -0.5773f,  0.5773f, -0.5773f ) }  // Top, Left, Back
 		};
 
 		internal static int[] indices = new int[] {
@@ -39,7 +39,7 @@ namespace LibRender {
 			new Pixel() { r=195, g=195, b=195, a=255 },
 			new Pixel() { r= 53, g= 53, b= 53, a=255 },
 			new Pixel() { r=169, g=169, b=169, a=255 },
-			new Pixel() { r=209, g=209, b=209, a=255 },
+			new Pixel() { r=209, g=209, b=209, a=155 },
 			new Pixel() { r=150, g=150, b=150, a=255 },
 			new Pixel() { r=186, g=186, b=186, a=255 },
 			new Pixel() { r=  0, g=  0, b=  0, a=255 },
@@ -141,15 +141,21 @@ namespace LibRender {
 					renderer.SetLocation(oh_list[i], new Vector3((i / 4) * 4 - 6, 0, (i % 4) * 4 - 6));
 				}
 
-				renderer.SetDistance(renderer.GetStartingCamera(), 10);
-				renderer.SetRotation(renderer.GetStartingCamera(), new Vector2(0, -40));
+				renderer.SetDistance(renderer.GetStartingCamera(), 20);
+				renderer.SetRotation(renderer.GetStartingCamera(), new Vector2(0, 45.0f));
+
+				renderer.SetSunLocation(new Vector2(0.0f, 45.0f));
 			}
 
 			public static void Render(Renderer renderer) {
 				var cam = renderer.GetStartingCamera();
 				var camrot = renderer.GetRotation(cam);
-				camrot.X += 0.01f;
+				camrot.X += 0.5f;
 				renderer.SetRotation(cam, camrot);
+
+				var sun = renderer.GetSunLocation();
+				sun.X += 1.0f;
+				renderer.SetSunLocation(sun);
 			}
 		}
 	}

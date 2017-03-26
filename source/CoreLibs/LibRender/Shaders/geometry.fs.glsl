@@ -10,9 +10,9 @@ uniform sampler2D tex;
 
 void main () {
 	vec4 texcolor = texture(tex, vTexCoord).rgba;
-	//if (texcolor.a < 0.9) {
-	//	discard;
-	//}
+	if (bool(texcolor.a < 1.0)) {
+		discard;
+	}
 	Normal = vNormal;
 	AlbedoSpec = vec4(texcolor.rgb, 1.0);
 }

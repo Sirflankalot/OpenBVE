@@ -37,19 +37,19 @@ namespace OpenBve
 				this.Icon = ico;
 
 //#if DEBUG
-                int[] ids = { 0 };
+                int[] ids = { 0 };  
                 Program.AppendToLogFile("DEBUG: Registering OpenGL Callback...");
                 GLFunc.Enable(GL.EnableCap.DebugOutputSynchronous);
                 GLFunc.DebugMessageCallback(Program.callback_ref, new IntPtr());
                 GLFunc.DebugMessageControl(GL.DebugSourceControl.DontCare, GL.DebugTypeControl.DontCare, GL.DebugSeverityControl.DontCare, 0, ids, true);
 //#endif
-                // Initalize the Renderer
-                Program.renderer.Initialize(width, height);
-                LibRender.Tests.InitializeTest(Program.renderer, 2);
             }
             catch
 			{
             }
+            // Initalize the Renderer
+            Program.renderer.Initialize(width, height);
+            LibRender.Tests.InitializeTest(Program.renderer, 2);
         }
 
 

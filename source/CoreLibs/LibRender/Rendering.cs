@@ -1,11 +1,12 @@
-﻿using GL = OpenTK.Graphics.OpenGL;
+﻿using OpenTK;
+using GL = OpenTK.Graphics.OpenGL;
 using GLFunc = OpenTK.Graphics.OpenGL.GL;
 
 namespace LibRender {
     public partial class Renderer {
 		internal int gBuffer, lBuffer;
-		internal int gNormal, gAlbedoSpec, glDepth;
-		internal int lColor;
+		internal int gNormal, gAlbedoSpec, gDepth;
+		internal int lColor, lDepth;
 
 		internal void InitializeFramebuffers() {
 			////////////////////////////
@@ -39,14 +40,14 @@ namespace LibRender {
             Error.CheckForOpenGlError("AlbedoSpec Color Buffer");
 
 			// - Depth Buffer
-			GLFunc.GenTextures(1, out glDepth);
-			GLFunc.BindTexture(GL.TextureTarget.Texture2D, glDepth);
+			GLFunc.GenTextures(1, out gDepth);
+			GLFunc.BindTexture(GL.TextureTarget.Texture2D, gDepth);
 			GLFunc.TexImage2D(GL.TextureTarget.Texture2D, 0, GL.PixelInternalFormat.Depth32fStencil8, width, height, 0, GL.PixelFormat.DepthStencil, GL.PixelType.Float32UnsignedInt248Rev, new System.IntPtr(0));
 			GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMinFilter, (int) GL.TextureMinFilter.Nearest);
 			GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMagFilter, (int) GL.TextureMagFilter.Nearest);
 			GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapS, (int) GL.TextureWrapMode.ClampToEdge);
 			GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapT, (int) GL.TextureWrapMode.ClampToEdge);
-			GLFunc.FramebufferTexture2D(GL.FramebufferTarget.Framebuffer, GL.FramebufferAttachment.DepthStencilAttachment, GL.TextureTarget.Texture2D, glDepth, 0);
+			GLFunc.FramebufferTexture2D(GL.FramebufferTarget.Framebuffer, GL.FramebufferAttachment.DepthStencilAttachment, GL.TextureTarget.Texture2D, gDepth, 0);
             Error.CheckForOpenGlError("Depth Buffer");
 
 			if (GLFunc.CheckFramebufferStatus(GL.FramebufferTarget.Framebuffer) != GL.FramebufferErrorCode.FramebufferComplete) {
@@ -71,9 +72,15 @@ namespace LibRender {
 			GLFunc.FramebufferTexture2D(GL.FramebufferTarget.Framebuffer, GL.FramebufferAttachment.ColorAttachment0, GL.TextureTarget.Texture2D, lColor, 0);
             Error.CheckForOpenGlError("Color Buffer");
 
-			// - Depth Buffer
-			GLFunc.BindTexture(GL.TextureTarget.Texture2D, glDepth);
-			GLFunc.FramebufferTexture2D(GL.FramebufferTarget.Framebuffer, GL.FramebufferAttachment.DepthStencilAttachment, GL.TextureTarget.Texture2D, glDepth, 0);
+            // - Depth Buffer
+            GLFunc.GenTextures(1, out lDepth);
+            GLFunc.BindTexture(GL.TextureTarget.Texture2D, lDepth);
+            GLFunc.TexImage2D(GL.TextureTarget.Texture2D, 0, GL.PixelInternalFormat.Depth32fStencil8, width, height, 0, GL.PixelFormat.DepthStencil, GL.PixelType.Float32UnsignedInt248Rev, new System.IntPtr(0));
+            GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMinFilter, (int) GL.TextureMinFilter.Nearest);
+            GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMagFilter, (int) GL.TextureMagFilter.Nearest);
+            GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapS, (int) GL.TextureWrapMode.ClampToEdge);
+            GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapT, (int) GL.TextureWrapMode.ClampToEdge);
+            GLFunc.FramebufferTexture2D(GL.FramebufferTarget.Framebuffer, GL.FramebufferAttachment.DepthStencilAttachment, GL.TextureTarget.Texture2D, lDepth, 0);
             Error.CheckForOpenGlError("Depth Buffer 2");
 
 			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, 0);
@@ -86,8 +93,9 @@ namespace LibRender {
 		internal void DeleteFramebuffers() {
 			GLFunc.DeleteTexture(gNormal);
 			GLFunc.DeleteTexture(gAlbedoSpec);
-			GLFunc.DeleteTexture(glDepth);
+			GLFunc.DeleteTexture(gDepth);
 			GLFunc.DeleteTexture(lColor);
+            GLFunc.DeleteTexture(lDepth);
 			GLFunc.DeleteFramebuffer(gBuffer);
 			GLFunc.DeleteFramebuffer(lBuffer);
 		}
@@ -155,7 +163,8 @@ namespace LibRender {
                 GLFunc.BindTexture(GL.TextureTarget.Texture2D, t.gl_id);
 
                 GLFunc.UniformMatrix4(geometry_prog.GetUniform("world_mat"), false, ref o.transform);
-                GLFunc.UniformMatrix4(geometry_prog.GetUniform("view_mat"), false, ref c.transform);
+                GLFunc.UniformMatrix4(geometry_prog.GetUniform("view_mat"), false, ref c.transform_matrix);
+				GLFunc.UniformMatrix3(geometry_prog.GetUniform("normal_mat"), false, ref o.inverse_model_view_matrix);
 
                 GLFunc.BindVertexArray(m.gl_vao_id);
 
@@ -164,23 +173,40 @@ namespace LibRender {
                 GLFunc.BindVertexArray(0);
             }
 
+            GLFunc.BindFramebuffer(GL.FramebufferTarget.ReadFramebuffer, gBuffer);
+            GLFunc.BindFramebuffer(GL.FramebufferTarget.DrawFramebuffer, lBuffer);
+
+            GLFunc.BlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL.ClearBufferMask.DepthBufferBit, GL.BlitFramebufferFilter.Nearest);
+
 			// Render to lightbuffer
 			lightpass_prog.Use();
 
 			GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
 			GLFunc.BindTexture(GL.TextureTarget.Texture2D, gNormal);
 			GLFunc.ActiveTexture(GL.TextureUnit.Texture1);
-			GLFunc.BindTexture(GL.TextureTarget.Texture2D, gAlbedoSpec);
+            GLFunc.BindTexture(GL.TextureTarget.Texture2D, gAlbedoSpec);
+            GLFunc.ActiveTexture(GL.TextureUnit.Texture2);
+            GLFunc.BindTexture(GL.TextureTarget.Texture2D, gDepth);
+
+			var sun_mat = new Matrix3(cameras[active_camera].view_matrix);
+			sun_mat.Transpose();
+			var sun_vec = sun_mat * sun.direction;
+			sun_vec.Normalize();
 
 			GLFunc.Uniform1(lightpass_prog.GetUniform("Normal"), 0);
-			GLFunc.Uniform1(lightpass_prog.GetUniform("AlbedoSpec"), 1);
+            GLFunc.Uniform1(lightpass_prog.GetUniform("AlbedoSpec"), 1);
+            GLFunc.Uniform1(lightpass_prog.GetUniform("Depth"), 2);
+			GLFunc.Uniform3(lightpass_prog.GetUniform("sunDir", true), sun_vec);
+            GLFunc.Uniform3(lightpass_prog.GetUniform("suncolor"), sun.color);
+            GLFunc.Uniform1(lightpass_prog.GetUniform("sunbrightness"), sun.brightness);
+			GLFunc.UniformMatrix4(lightpass_prog.GetUniform("projInverseMatrix"), false, ref cameras[active_camera].inverse_projection_matrix);
 
 			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, lBuffer);
 
 			GLFunc.DrawBuffers(1, attachments);
 			GLFunc.DepthFunc(GL.DepthFunction.Greater);
 
-			GLFunc.ClearColor(66f / 255f, 149f / 255f, 244f / 255f, 1.0f);
+			GLFunc.ClearColor(0.05112f, 0.3066f, 0.9075f, 1.0f); // SRGB 66, 149, 244, 255
 			GLFunc.Clear(GL.ClearBufferMask.ColorBufferBit);
 			RenderFullscreenQuad();
 

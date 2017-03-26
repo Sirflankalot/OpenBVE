@@ -110,14 +110,19 @@ namespace LibRender {
         internal Vector3 rotation;
         internal Vector3 scale = new Vector3(1, 1, 1);
         internal Matrix4 transform;
-        internal bool matrix_valid;
+		internal bool matrix_valid = false;
+		internal Matrix3 inverse_model_view_matrix;
+		internal bool inverse_model_view_valid = false;
     }
 
     internal class Camera {
         internal Vector3 focal_point;
         internal Vector2 rotation;
         internal float distance;
-        internal Matrix4 transform = new Matrix4();
+        internal Matrix4 transform_matrix = new Matrix4();
+		internal Matrix4 view_matrix = new Matrix4();
+		internal Matrix4 proj_matrix = new Matrix4();
+		internal Matrix4 inverse_projection_matrix = new Matrix4();
         internal bool matrix_valid = false;
         internal float fov;
     }
@@ -139,9 +144,9 @@ namespace LibRender {
     }
 
 	internal class Sun {
-		internal Vector3 color;
-		internal Vector2 location;
-		internal float brightness;
+		internal Vector3 color = new Vector3(1.0f, 0.8f, 0.8f);
+		internal Vector2 location = new Vector2(0.0f, 0.0f);
+		internal float brightness = 1.0f;
 		internal Vector3 direction;
 		internal Matrix4 shadow_matrix;
 		internal bool matrix_valid;
@@ -393,21 +398,24 @@ namespace LibRender {
             AssertValid(oh);
 
             objects[oh.id].position = pos;
-            objects[oh.id].matrix_valid = false;
-        }
+			objects[oh.id].matrix_valid = false;
+			objects[oh.id].inverse_model_view_valid = false;
+		}
 
         public void SetRotation(Object_Handle oh, Vector3 rot) {
             AssertValid(oh);
             objects[oh.id].rotation = rot;
             objects[oh.id].matrix_valid = false;
-        }
+			objects[oh.id].inverse_model_view_valid = false;
+		}
 
         public void SetScale(Object_Handle oh, Vector3 scale) {
             AssertValid(oh);
 
             objects[oh.id].scale = scale;
             objects[oh.id].matrix_valid = false;
-        }
+			objects[oh.id].inverse_model_view_valid = false;
+		}
 
         ////////////////////////////////
         // Camera Setters and Getters //
@@ -450,6 +458,7 @@ namespace LibRender {
 
             cameras[ch.id].focal_point = location;
             cameras[ch.id].matrix_valid = false;
+			Algorithms.ClearObjectModelViewMatrices(objects, 0, objects.Count);
         }
 
         public void SetRotation(Camera_Handle ch, Vector2 rotation) {
@@ -457,14 +466,16 @@ namespace LibRender {
 
             cameras[ch.id].rotation = rotation;
             cameras[ch.id].matrix_valid = false;
-        }
+			Algorithms.ClearObjectModelViewMatrices(objects, 0, objects.Count);
+		}
 
         public void SetDistance(Camera_Handle ch, float distance) {
             AssertValid(ch);
 
             cameras[ch.id].distance = distance;
             cameras[ch.id].matrix_valid = false;
-        }
+			Algorithms.ClearObjectModelViewMatrices(objects, 0, objects.Count);
+		}
 
         public void SetFOV(Camera_Handle ch, float fov) {
             AssertValid(ch);
@@ -478,7 +489,8 @@ namespace LibRender {
 
             active_camera = ch.id;
             cameras[ch.id].matrix_valid = false;
-        }
+			Algorithms.ClearObjectModelViewMatrices(objects, 0, objects.Count);
+		}
 
         ////////////////////////////////////
         // Cone Light Getters and Setters //
