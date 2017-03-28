@@ -1,6 +1,10 @@
 ﻿using OpenTK;
+using System;
+using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Linq;
 using System.Collections.Generic;
+using System.IO;
 using GL = OpenTK.Graphics.OpenGL;
 using GLFunc = OpenTK.Graphics.OpenGL.GL;
 
@@ -196,6 +200,93 @@ namespace LibRender {
 
 			sun.shadow_matrix = cam * proj;
 			sun.matrix_valid = true;
+		}
+
+		internal static void UpdateTextTextures(List<Text> texts, int start, int end) {
+			// Check indices
+			if (!(0 <= start && 0 <= end && end <= texts.Count && (end == 0 ? start == end : start < end))) {
+				throw new System.ArgumentException("Range invalid");
+			}
+
+			// Dummy bitmap with dummy graphics
+			using (Image dummy_img = new Bitmap(1, 1))
+			using (Graphics dummy_drawing = Graphics.FromImage(dummy_img))
+			// create brush for text
+			using (Brush text_brush = new SolidBrush(Color.FromArgb(255, 255, 255, 255)))
+			// Set string formatting
+			using (StringFormat sf = new StringFormat()) {
+				// sf.FormatFlags = StringFormatFlags.DirectionRightToLeft;
+				sf.Trimming = StringTrimming.Word;
+
+				for (int i = start; i < end; ++i) {
+					// Reference to text
+					Text t = texts[i];
+
+					if (t == null || t.texture_ready) {
+						continue;
+					}
+
+					SizeF text_size;
+					if (t.max_width == 0) {
+						text_size = dummy_drawing.MeasureString(t.text, t.font);
+					}
+					else {
+						text_size = dummy_drawing.MeasureString(t.text, t.font, t.max_width);
+					}
+					// create new image of right size
+					using (Bitmap img = new Bitmap((int) text_size.Width, (int) text_size.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
+					using (Graphics drawing = Graphics.FromImage(img)) {
+						// set text quality
+						// TODO: Options to change at runtime?
+						drawing.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+						drawing.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBilinear;
+						drawing.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+						drawing.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+						drawing.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+
+						// paint the background
+						drawing.Clear(Color.Transparent);
+
+						// Render the text and save it to image
+						drawing.DrawString(t.text, t.font, text_brush, new RectangleF(0, 0, text_size.Width, text_size.Height), sf);
+						drawing.Save();
+
+						// Create pre-allocated memory stream
+						int pixel_count = img.Width * img.Height;
+						Rectangle rect = new Rectangle(0, 0, img.Width, img.Height);
+						var img_data = img.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadOnly, img.PixelFormat);
+
+						// Address of first line
+						IntPtr ptr = img_data.Scan0;
+
+						// Create array with size of bitmap
+						int bytes = Math.Abs(img_data.Stride) * img.Height;
+						byte[] raw_img = new byte[bytes];
+
+						// Copy into array
+						Marshal.Copy(ptr, raw_img, 0, bytes);
+
+						// Allocate memory ahead of time
+						t.texture.Clear();
+						t.texture.Capacity = pixel_count;
+
+						// Place raw values into pixels
+						for (int j = 0; j < bytes; j += 4) {
+							Pixel cur = new Pixel();
+							cur.r = raw_img[j + 0];
+							cur.g = raw_img[j + 1];
+							cur.b = raw_img[j + 2];
+							cur.a = raw_img[j + 3];
+							t.texture.Add(cur);
+						}
+
+                        t.width = img.Width;
+                        t.height = img.Height;
+
+						t.texture_ready = true;
+					}
+				}
+			}
 		}
     }
 }

@@ -30,6 +30,10 @@ namespace LibRender {
 			Algorithms.UpdateObjectModelViewMatrices(objects, 0, objects.Count, ref cameras[active_camera].view_matrix);
 
 			Algorithms.UpdateSunMatrix(sun, cameras[active_camera].focal_point);
+
+            Algorithms.UpdateTextTextures(texts, 0, texts.Count);
+			GFXInterface.UpdateTextTextureObjects(texts, 0, texts.Count);
+			GFXInterface.UploadTextTextures(texts, 0, texts.Count);
         }
 
         public void RenderAll() {

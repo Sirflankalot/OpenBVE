@@ -109,5 +109,25 @@ namespace LibRender {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] text_fs {
+            get {
+                object obj = ResourceManager.GetObject("text_fs", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] text_vs {
+            get {
+                object obj = ResourceManager.GetObject("text_vs", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

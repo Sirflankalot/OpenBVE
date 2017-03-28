@@ -83,11 +83,11 @@ namespace LibRender {
             GLFunc.FramebufferTexture2D(GL.FramebufferTarget.Framebuffer, GL.FramebufferAttachment.DepthStencilAttachment, GL.TextureTarget.Texture2D, lDepth, 0);
             Error.CheckForOpenGlError("Depth Buffer 2");
 
-			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, 0);
-
 			if (GLFunc.CheckFramebufferStatus(GL.FramebufferTarget.Framebuffer) != GL.FramebufferErrorCode.FramebufferComplete) {
 				throw new System.Exception("lBuffer incomplete");
 			}
+
+			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, 0);
 		}
 
 		internal void DeleteFramebuffers() {
@@ -103,6 +103,7 @@ namespace LibRender {
 		internal ShaderProgram geometry_prog;
 		internal ShaderProgram lightpass_prog;
 		internal ShaderProgram hdrpass_prog;
+		internal ShaderProgram text_prog;
 
 		internal void InitializeShaders() {
 			var geometry_vertex = new Shader(GL.ShaderType.VertexShader, Shader_Sources.geometry_vs);
@@ -116,16 +117,24 @@ namespace LibRender {
 			var hdr_fragment = new Shader(GL.ShaderType.FragmentShader, Shader_Sources.hdrpass_fs);
 			hdrpass_prog = new ShaderProgram(onscreenquad_vertex, hdr_fragment);
 
+			var text_vertex = new Shader(GL.ShaderType.VertexShader, Shader_Sources.text_vs);
+			var text_fragment = new Shader(GL.ShaderType.FragmentShader, Shader_Sources.text_fs);
+			text_prog = new ShaderProgram(text_vertex, text_fragment);
+
 			geometry_vertex.Clear();
 			geometry_fragment.Clear();
 			onscreenquad_vertex.Clear();
 			hdr_fragment.Clear();
 			light_fragment.Clear();
+			text_vertex.Clear();
+			text_fragment.Clear();
 		}
 
 		internal void DeleteShaders() {
 			geometry_prog.Clear();
 			lightpass_prog.Clear();
+			hdrpass_prog.Clear();
+			text_prog.Clear();
 		}
 
         internal void RenderAllObjects() {
@@ -227,9 +236,32 @@ namespace LibRender {
 			GLFunc.Clear(GL.ClearBufferMask.ColorBufferBit | GL.ClearBufferMask.DepthBufferBit | GL.ClearBufferMask.StencilBufferBit);
 			RenderFullscreenQuad();
 
-			GLFunc.Enable(GL.EnableCap.DepthTest);
 			GLFunc.Enable(GL.EnableCap.Blend);
-        }
+
+			// Render text on screen
+
+			text_prog.Use();
+
+			GLFunc.Uniform1(text_prog.GetUniform("textTexture"), 0);
+
+			foreach (Text t in texts) {
+				if (t == null) {
+					continue;
+				}
+
+				GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
+				GLFunc.BindTexture(GL.TextureTarget.Texture2D, t.gl_tex_id);
+
+				GLFunc.Uniform2(text_prog.GetUniform("origin"), new Vector2(t.origin.X / width, (height - t.origin.Y - t.height) / height));
+				GLFunc.Uniform2(text_prog.GetUniform("size"), new Vector2((float) t.width / width, (float) t.height / height));
+
+				GLFunc.Uniform4(text_prog.GetUniform("color"), t.color);
+
+				RenderFullscreenQuad();
+			}
+
+			GLFunc.Enable(GL.EnableCap.DepthTest);
+		}
 
 		private int fullscreen_quad_vao = 0;
 		private int fullscreen_quad_vbo;

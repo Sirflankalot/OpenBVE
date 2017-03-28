@@ -50,6 +50,8 @@ namespace OpenBve
             // Initalize the Renderer
             Program.renderer.Initialize(width, height);
             LibRender.Tests.InitializeTest(Program.renderer, 2);
+
+            Program.renderer.PrepareForRender();
         }
 
 

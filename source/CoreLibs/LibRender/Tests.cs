@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -131,6 +132,8 @@ namespace LibRender {
 
 		public static class Test2 {
 			private static ObjectHandle[] oh_list = new ObjectHandle[16];
+			private static TextHandle one;
+			private static TextHandle two;
 
 			public static void Initialize(Renderer renderer) {
 				var m = renderer.AddMesh(mesh, indices);
@@ -145,8 +148,14 @@ namespace LibRender {
 				renderer.SetRotation(renderer.GetStartingCamera(), new Vector2(0, 45.0f));
 
 				renderer.SetSunLocation(new Vector2(0.0f, 45.0f));
+
+				Font f = new Font(FontFamily.GenericSansSerif, 50, FontStyle.Regular, GraphicsUnit.Pixel);
+
+				one = renderer.AddText("Good morning from the lovely state of New York!", f, new Pixel{ r=255, g=255, b=255, a=255}, new Vector2(0, 0), 0, renderer.width);
+				two = renderer.AddText("Frame: 0", f, new Pixel { r = 255, g = 255, b = 255, a = 255 }, new Vector2(0, renderer.GetDimentions(one).Y));
 			}
 
+			static int frames = 0;
 			public static void Render(Renderer renderer) {
 				var cam = renderer.GetStartingCamera();
 				var camrot = renderer.GetRotation(cam);
@@ -156,6 +165,9 @@ namespace LibRender {
 				var sun = renderer.GetSunLocation();
 				sun.X += 1.0f;
 				renderer.SetSunLocation(sun);
+
+				renderer.SetText(two, "Frame: " + (++frames).ToString());
+				renderer.SetColor(two, new Pixel { r = (byte) (frames % 255), g = (byte) ((frames + 128) % 255), b = 123, a = 255 });
 			}
 		}
 	}

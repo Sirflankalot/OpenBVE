@@ -157,5 +157,58 @@ namespace LibRender {
                 t.uploaded = true;
             }
         }
+
+		internal static void UpdateTextTextureObjects(List<Text> texts, int start, int end) {
+			// Check for valid indices
+			if (!(0 <= start && 0 <= end && end <= texts.Count && (end == 0 ? start == end : start < end))) {
+				throw new System.ArgumentException("Range invalid");
+			}
+
+			// Find all texts that need texture objects
+			List<int> idless_texts = new List<int>();
+			for (int i = start; i < end; ++i) {
+				if (texts[i] == null) {
+					continue;
+				}
+				if (texts[i].gl_tex_id == 0) {
+					idless_texts.Add(i);
+				}
+			}
+
+			// Create OpenGL Textures
+			int[] ids = new int[idless_texts.Count];
+			GLFunc.CreateTextures(GL.TextureTarget.Texture2D, idless_texts.Count, ids);
+
+			// Distribute Textures
+			for (int i = 0; i < idless_texts.Count; ++i) {
+				texts[idless_texts[i]].gl_tex_id = ids[i];
+			}
+		}
+
+		internal static void UploadTextTextures(List<Text> texts, int start, int end) {
+			// Check for valid indices
+			if (!(0 <= start && 0 <= end && end <= texts.Count && (end == 0 ? start == end : start < end))) {
+				throw new System.ArgumentException("Range invalid");
+			}
+
+			for (int i = start; i < end; ++i) {
+				// Reference to text
+				Text t = texts[i];
+
+				if (t == null || t.uploaded) {
+					continue;
+				}
+
+				GLFunc.BindTexture(GL.TextureTarget.Texture2D, t.gl_tex_id);
+				GLFunc.TexImage2D(GL.TextureTarget.Texture2D, 0, GL.PixelInternalFormat.Rgba8, t.width, t.height, 0, GL.PixelFormat.Rgba, GL.PixelType.UnsignedByte, t.texture.ToArray());
+				GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapS, (int) GL.TextureWrapMode.ClampToEdge);
+				GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapT, (int) GL.TextureWrapMode.ClampToEdge);
+				GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMinFilter, (int) GL.TextureMinFilter.Linear);
+				GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMagFilter, (int) GL.TextureMagFilter.Linear);
+				GLFunc.BindTexture(GL.TextureTarget.Texture2D, 0);
+
+				t.uploaded = true;
+			}
+		}
     }
 }

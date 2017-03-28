@@ -178,16 +178,16 @@ namespace LibRender {
 	internal class Text {
 		internal Font font;
 		internal string text;
-		internal int font_size;
 		internal int max_width;
 		internal int depth;
 
 		internal Vector4 color;
-		internal Vector4 bg_color;
 
 		internal Vector2 origin;
 
-		internal List<Pixel> texture;
+		internal List<Pixel> texture = new List<Pixel>();
+        internal int width = 0;
+        internal int height = 0;
 		internal bool texture_ready = false;
 
 		internal int gl_tex_id = 0;
@@ -196,9 +196,7 @@ namespace LibRender {
 		internal Text Copy() {
 			Text t = new Text();
 			t.font = font;
-			t.font_size = font_size;
 			t.color = color;
-			t.bg_color = bg_color;
 			t.origin = origin;
 			if (texture_ready) {
 				t.texture.AddRange(texture);
@@ -215,7 +213,7 @@ namespace LibRender {
 	}
 
 	internal class FlatMesh {
-		internal List<Vertex2D> vertices;
+		internal List<Vertex2D> vertices = new List<Vertex2D>();
 
 		internal int gl_vao_id = 0;
         internal int gl_vert_id = 0;
@@ -237,7 +235,7 @@ namespace LibRender {
 		internal Vector2 scale;
 		internal float rotation;
 		internal int depth;
-		internal Matrix2 transform;
+		internal Matrix2 transform = new Matrix2();
 		internal bool matrix_valid;
 	}
 
@@ -399,14 +397,12 @@ namespace LibRender {
             return new PointLightHandle(point_lights.Count - 1);
         }
 
-		public TextHandle AddText(string text, Font font, Pixel color, Pixel bg_color, Vector2 origin, int font_size, int depth = 0, int max_width = 0) {
+		public TextHandle AddText(string text, Font font, Pixel color, Vector2 origin, int depth = 0, int max_width = 0) {
 			Text t = new Text();
 			t.text = text;
 			t.font = font;
 			t.color = new Vector4(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
-			t.bg_color = new Vector4(bg_color.r / 255.0f, bg_color.g / 255.0f, bg_color.b / 255.0f, bg_color.a / 255.0f);
 			t.origin = origin;
-			t.font_size = font_size;
 			t.depth = depth;
 			t.max_width = max_width;
 			texts.Add(t);
@@ -825,12 +821,6 @@ namespace LibRender {
 			return texts[th.id].font;
 		}
 
-		public int GetFontSize(TextHandle th) {
-			AssertValid(th);
-
-			return texts[th.id].font_size;
-		}
-
 		public int GetMaxWidth(TextHandle th) {
 			AssertValid(th);
 
@@ -843,17 +833,20 @@ namespace LibRender {
 			return texts[th.id].depth;
 		}
 
+		public Vector2 GetDimentions(TextHandle th) {
+			AssertValid(th);
+
+			if (texts[th.id].texture_ready == false) {
+				Algorithms.UpdateTextTextures(texts, th.id, th.id + 1);
+			}
+
+			return new Vector2(texts[th.id].width, texts[th.id].height);
+		}
+
 		public Pixel GetColor(TextHandle th) {
 			AssertValid(th);
 
 			Vector4 orig = texts[th.id].color;
-			return new Pixel { r = (byte) (orig.X * 255.0f), g = (byte) (orig.Y * 255.0f), b = (byte) (orig.Z * 255.0f), a = (byte) (orig.W * 255.0f) };
-		}
-
-		public Pixel GetBackgroundColor(TextHandle th) {
-			AssertValid(th);
-
-			Vector4 orig = texts[th.id].bg_color;
 			return new Pixel { r = (byte) (orig.X * 255.0f), g = (byte) (orig.Y * 255.0f), b = (byte) (orig.Z * 255.0f), a = (byte) (orig.W * 255.0f) };
 		}
 
@@ -879,14 +872,6 @@ namespace LibRender {
 			texts[th.id].uploaded = false;
 		}
 
-		public void SetFontSize(TextHandle th, int font_size) {
-			AssertValid(th);
-
-			texts[th.id].font_size = font_size;
-			texts[th.id].texture_ready = false;
-			texts[th.id].uploaded = false;
-		}
-
 		public void SetMaxWidth(TextHandle th, int max_width) {
 			AssertValid(th);
 
@@ -905,12 +890,6 @@ namespace LibRender {
 			AssertValid(th);
 
 			texts[th.id].color = new Vector4(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
-		}
-
-		public void SetBackgroundColor(TextHandle th, Pixel bg_color) {
-			AssertValid(th);
-
-			texts[th.id].bg_color = new Vector4(bg_color.r / 255.0f, bg_color.g / 255.0f, bg_color.b / 255.0f, bg_color.a / 255.0f);
 		}
 
 		public void SetLocation(TextHandle th, Vector2 location) {

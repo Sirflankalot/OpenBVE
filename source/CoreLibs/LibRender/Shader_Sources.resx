@@ -133,4 +133,10 @@
   <data name="onscreenquad_vs" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Shaders/onscreenquad.vs.glsl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="text_fs" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>shaders/text.fs.glsl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="text_vs" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>shaders/text.vs.glsl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>
