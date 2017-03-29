@@ -12,5 +12,5 @@ void main() {
 	float avg = (mix_color.r + mix_color.g + mix_color.b) / 3.0;
 
 	//vec4 mixed = mix(backgroundColor, color, avg);
-	FragColor = vec4(color.rgb, mix_color.a);
+	FragColor = vec4(color.rgb, mix_color.r);
 }

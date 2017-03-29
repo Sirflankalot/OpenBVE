@@ -52,6 +52,31 @@ namespace LibRender {
 			new Pixel() { r=185, g=185, b=185, a=255 },
 		};
 
+		internal static Vertex2D[] ui_panel = new Vertex2D[] {
+			new Vertex2D() { position = new Vector2(-1, 1), texcoord = new Vector2(0, 0) },
+			new Vertex2D() { position = new Vector2( 0, 0.5f), texcoord = new Vector2(0.5f, 0.25f) },
+			new Vertex2D() { position = new Vector2( 1, 0.25f), texcoord = new Vector2(1, 0.375f) },
+			new Vertex2D() { position = new Vector2(-1, -1), texcoord = new Vector2(0,  1) },
+			new Vertex2D() { position = new Vector2( 1, -1), texcoord = new Vector2(1,  1) },
+		};
+
+		internal static int[] ui_panel_index = new int[] {
+			0, 1, 3,
+			1, 2, 3,
+			2, 3, 4
+		};
+
+		internal static Pixel[] ui_panel_tex = new Pixel[] {
+			new Pixel() { r=255, g=  0, b=  0, a=255},
+			new Pixel() { r=  0, g=255, b=  0, a=255},
+			new Pixel() { r=  0, g=  0, b=255, a=255},
+			new Pixel() { r=255, g=255, b=255, a=255},
+			new Pixel() { r=255, g=  0, b=  0, a=128},
+			new Pixel() { r=  0, g=255, b=  0, a=128},
+			new Pixel() { r=  0, g=  0, b=255, a=128},
+			new Pixel() { r=255, g=255, b=255, a=128}
+		};
+
 		private static int active_test;
 		private static Renderer active_renderer;
 
@@ -134,6 +159,7 @@ namespace LibRender {
 			private static ObjectHandle[] oh_list = new ObjectHandle[16];
 			private static TextHandle one;
 			private static TextHandle two;
+			private static UIElementHandle rainbows;
 
 			public static void Initialize(Renderer renderer) {
 				var m = renderer.AddMesh(mesh, indices);
@@ -152,22 +178,36 @@ namespace LibRender {
 				Font f = new Font(FontFamily.GenericSansSerif, 50, FontStyle.Regular, GraphicsUnit.Pixel);
 
 				one = renderer.AddText("Good morning from the lovely state of New York!", f, new Pixel{ r=255, g=255, b=255, a=255}, new Vector2(0, 0), 0, renderer.width);
-				two = renderer.AddText("Frame: 0", f, new Pixel { r = 255, g = 255, b = 255, a = 255 }, new Vector2(0, renderer.GetDimentions(one).Y));
+				two = renderer.AddText("Frame: 0", f, new Pixel { r = 255, g = 255, b = 255, a = 255 }, new Vector2(0, renderer.GetDimentions(one).Y), 0);
+
+				var fm = renderer.AddFlatMesh(ui_panel, ui_panel_index);
+				var uit = renderer.AddTexture(ui_panel_tex, 4, 2);
+				rainbows = renderer.AddUIElement(fm, uit, new Vector2(0, 0), new Vector2(75), 0, 1);
 			}
 
 			static int frames = 0;
 			public static void Render(Renderer renderer) {
+				++frames;
+
 				var cam = renderer.GetStartingCamera();
 				var camrot = renderer.GetRotation(cam);
-				camrot.X += 0.5f;
+				camrot.X += 0.05f;
 				renderer.SetRotation(cam, camrot);
 
 				var sun = renderer.GetSunLocation();
-				sun.X += 1.0f;
+				sun.X += 0.1f;
 				renderer.SetSunLocation(sun);
 
-				renderer.SetText(two, "Frame: " + (++frames).ToString());
-				renderer.SetColor(two, new Pixel { r = (byte) (frames % 255), g = (byte) ((frames + 128) % 255), b = 123, a = 255 });
+				renderer.SetText(two, "Frame: " + frames.ToString());
+				renderer.SetColor(two, new Pixel { r = (byte) (frames / 20 % 255), g = (byte) ((frames / 20 + 128) % 255), b = 123, a = 255 });
+
+				if (frames % 100 == 0) {
+					renderer.SetVisibility(rainbows, !renderer.GetVisibility(rainbows));
+				}
+
+				if (frames % 512 == 0) {
+					renderer.SetVisibility(two, !renderer.GetVisibility(two));
+				}
 			}
 		}
 	}

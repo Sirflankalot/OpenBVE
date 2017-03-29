@@ -29,7 +29,7 @@ RESGEN := resgen
 
 # Standard Arguments
 DEBUG_ARGS   := /noconfig /debug:Full /debug+ /optimize- /warnaserror- /unsafe+ /define:"DEBUG;TRACE" /platform:x86 /warn:4 /pkg:dotnet
-RELEASE_ARGS := /noconfig /debug- /optimize+ /unsafe+ /checked- /define:"TRACE" /platform:x86 /warn:4 /pkg:dotnet
+RELEASE_ARGS := /noconfig /debug:Full /optimize+ /unsafe+ /checked- /define:"TRACE" /platform:x86 /warn:4 /pkg:dotnet
 
 # Directories
 DEBUG_DIR   := bin_debug

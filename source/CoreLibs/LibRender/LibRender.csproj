@@ -55,10 +55,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rendering.cs" />
     <Compile Include="Shader.cs" />
-    <Compile Include="Shader_Sources.Designer.cs">
+    <Compile Include="ShaderSources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Shader_Sources.resx</DependentUpon>
+      <DependentUpon>ShaderSources.resx</DependentUpon>
     </Compile>
     <Compile Include="RenderAPI.cs" />
     <Compile Include="Tests.cs" />
@@ -66,9 +66,9 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <EmbeddedResource Include="Shader_Sources.resx">
+    <EmbeddedResource Include="ShaderSources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Shader_Sources.Designer.cs</LastGenOutput>
+      <LastGenOutput>ShaderSources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -79,6 +79,8 @@
     <None Include="Shaders\onscreenquad.vs.glsl" />
     <None Include="Shaders\text.fs.glsl" />
     <None Include="Shaders\text.vs.glsl" />
+    <None Include="Shaders\uielement.fs.glsl" />
+    <None Include="Shaders\uielement.vs.glsl" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

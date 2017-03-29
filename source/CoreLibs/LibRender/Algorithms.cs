@@ -288,5 +288,26 @@ namespace LibRender {
 				}
 			}
 		}
+
+		internal static void UpdateUIElementMatrices(List<UIElement> uielements, int start, int end) {
+			// Check indices
+			if (!(0 <= start && 0 <= end && end <= uielements.Count && (end == 0 ? start == end : start < end))) {
+				throw new System.ArgumentException("Range invalid");
+			}
+
+			for (int i = start; i < end; ++i) {
+				// Reference to uielement
+				UIElement uie = uielements[i];
+
+				if (uie == null || uie.matrix_valid) {
+					continue;
+				}
+				
+				Matrix2 rot = Matrix2.CreateRotation(MathHelper.DegreesToRadians(uie.rotation));
+
+				uie.transform = rot;
+				uie.matrix_valid = true;
+			}
+		}
     }
 }

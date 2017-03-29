@@ -1,4 +1,6 @@
 ﻿using OpenTK;
+using System.Linq;
+using System.Collections.Generic;
 using GL = OpenTK.Graphics.OpenGL;
 using GLFunc = OpenTK.Graphics.OpenGL.GL;
 
@@ -104,22 +106,27 @@ namespace LibRender {
 		internal ShaderProgram lightpass_prog;
 		internal ShaderProgram hdrpass_prog;
 		internal ShaderProgram text_prog;
+		internal ShaderProgram ui_prog;
 
 		internal void InitializeShaders() {
-			var geometry_vertex = new Shader(GL.ShaderType.VertexShader, Shader_Sources.geometry_vs);
-			var geometry_fragment = new Shader(GL.ShaderType.FragmentShader, Shader_Sources.geometry_fs);
+			var geometry_vertex = new Shader(GL.ShaderType.VertexShader, ShaderSources.geometry_vs);
+			var geometry_fragment = new Shader(GL.ShaderType.FragmentShader, ShaderSources.geometry_fs);
 			geometry_prog = new ShaderProgram(geometry_vertex, geometry_fragment);
 
-			var onscreenquad_vertex = new Shader(GL.ShaderType.VertexShader, Shader_Sources.onscreenquad_vs);
-			var light_fragment = new Shader(GL.ShaderType.FragmentShader, Shader_Sources.lightpass_fs);
+			var onscreenquad_vertex = new Shader(GL.ShaderType.VertexShader, ShaderSources.onscreenquad_vs);
+			var light_fragment = new Shader(GL.ShaderType.FragmentShader, ShaderSources.lightpass_fs);
 			lightpass_prog = new ShaderProgram(onscreenquad_vertex, light_fragment);
 
-			var hdr_fragment = new Shader(GL.ShaderType.FragmentShader, Shader_Sources.hdrpass_fs);
+			var hdr_fragment = new Shader(GL.ShaderType.FragmentShader, ShaderSources.hdrpass_fs);
 			hdrpass_prog = new ShaderProgram(onscreenquad_vertex, hdr_fragment);
 
-			var text_vertex = new Shader(GL.ShaderType.VertexShader, Shader_Sources.text_vs);
-			var text_fragment = new Shader(GL.ShaderType.FragmentShader, Shader_Sources.text_fs);
+			var text_vertex = new Shader(GL.ShaderType.VertexShader, ShaderSources.text_vs);
+			var text_fragment = new Shader(GL.ShaderType.FragmentShader, ShaderSources.text_fs);
 			text_prog = new ShaderProgram(text_vertex, text_fragment);
+
+			var ui_vertex = new Shader(GL.ShaderType.VertexShader, ShaderSources.uielement_vs);
+			var ui_fragment = new Shader(GL.ShaderType.FragmentShader, ShaderSources.uielement_fs);
+			ui_prog = new ShaderProgram(ui_vertex, ui_fragment);
 
 			geometry_vertex.Clear();
 			geometry_fragment.Clear();
@@ -128,6 +135,8 @@ namespace LibRender {
 			light_fragment.Clear();
 			text_vertex.Clear();
 			text_fragment.Clear();
+			ui_vertex.Clear();
+			ui_fragment.Clear();
 		}
 
 		internal void DeleteShaders() {
@@ -135,20 +144,32 @@ namespace LibRender {
 			lightpass_prog.Clear();
 			hdrpass_prog.Clear();
 			text_prog.Clear();
+			ui_prog.Clear();
 		}
 
-        internal void RenderAllObjects() {
+		private struct UIInfo {
+			internal enum Type {
+				text,
+				uielement
+			};
+
+			internal Type type;
+			internal int index;
+			internal int depth;
+		}
+
+		internal void RenderAllObjects() {
 			GLFunc.Disable(GL.EnableCap.Blend);
-            GLFunc.CullFace(GL.CullFaceMode.Back);
+			GLFunc.CullFace(GL.CullFaceMode.Back);
 			GLFunc.Enable(GL.EnableCap.CullFace);
 			GLFunc.FrontFace(GL.FrontFaceDirection.Ccw);
 
 			GLFunc.Enable(GL.EnableCap.DepthTest);
 
-            geometry_prog.Use();
-			
-            GLFunc.Uniform1(geometry_prog.GetUniform("tex"), 0);
-            GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
+			geometry_prog.Use();
+
+			GLFunc.Uniform1(geometry_prog.GetUniform("tex"), 0);
+			GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
 
 			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, gBuffer);
 
@@ -158,34 +179,34 @@ namespace LibRender {
 
 			GLFunc.ClearColor(0.5f, 0.5f, 0.5f, 1);
 			GLFunc.Clear(GL.ClearBufferMask.ColorBufferBit | GL.ClearBufferMask.DepthBufferBit | GL.ClearBufferMask.StencilBufferBit);
-            
-            foreach (Object o in objects) {
-                if (o == null || !o.visible || meshes[o.mesh_id] == null || textures[o.tex_id] == null) {
-                    continue;
-                }
 
-                // Reference to subobjects
-                Mesh m = meshes[o.mesh_id];
-                Texture t = textures[o.tex_id];
-                Camera c = cameras[active_camera];
+			foreach (Object o in objects) {
+				// Reference to subobjects
+				Mesh m = meshes[o.mesh_id];
+				Texture t = textures[o.tex_id];
+				Camera c = cameras[active_camera];
 
-                GLFunc.BindTexture(GL.TextureTarget.Texture2D, t.gl_id);
+				if (o == null || !o.visible || m == null || t == null) {
+					continue;
+				}
 
-                GLFunc.UniformMatrix4(geometry_prog.GetUniform("world_mat"), false, ref o.transform);
-                GLFunc.UniformMatrix4(geometry_prog.GetUniform("view_mat"), false, ref c.transform_matrix);
+				GLFunc.BindTexture(GL.TextureTarget.Texture2D, t.gl_id);
+
+				GLFunc.UniformMatrix4(geometry_prog.GetUniform("world_mat"), false, ref o.transform);
+				GLFunc.UniformMatrix4(geometry_prog.GetUniform("view_mat"), false, ref c.transform_matrix);
 				GLFunc.UniformMatrix3(geometry_prog.GetUniform("normal_mat"), false, ref o.inverse_model_view_matrix);
 
-                GLFunc.BindVertexArray(m.gl_vao_id);
+				GLFunc.BindVertexArray(m.gl_vao_id);
 
-                GLFunc.DrawElements(GL.BeginMode.Triangles, m.indices.Count, GL.DrawElementsType.UnsignedInt, 0);
+				GLFunc.DrawElements(GL.BeginMode.Triangles, m.indices.Count, GL.DrawElementsType.UnsignedInt, 0);
 
-                GLFunc.BindVertexArray(0);
-            }
+				GLFunc.BindVertexArray(0);
+			}
 
-            GLFunc.BindFramebuffer(GL.FramebufferTarget.ReadFramebuffer, gBuffer);
-            GLFunc.BindFramebuffer(GL.FramebufferTarget.DrawFramebuffer, lBuffer);
+			GLFunc.BindFramebuffer(GL.FramebufferTarget.ReadFramebuffer, gBuffer);
+			GLFunc.BindFramebuffer(GL.FramebufferTarget.DrawFramebuffer, lBuffer);
 
-            GLFunc.BlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL.ClearBufferMask.DepthBufferBit, GL.BlitFramebufferFilter.Nearest);
+			GLFunc.BlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL.ClearBufferMask.DepthBufferBit, GL.BlitFramebufferFilter.Nearest);
 
 			// Render to lightbuffer
 			lightpass_prog.Use();
@@ -193,9 +214,9 @@ namespace LibRender {
 			GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
 			GLFunc.BindTexture(GL.TextureTarget.Texture2D, gNormal);
 			GLFunc.ActiveTexture(GL.TextureUnit.Texture1);
-            GLFunc.BindTexture(GL.TextureTarget.Texture2D, gAlbedoSpec);
-            GLFunc.ActiveTexture(GL.TextureUnit.Texture2);
-            GLFunc.BindTexture(GL.TextureTarget.Texture2D, gDepth);
+			GLFunc.BindTexture(GL.TextureTarget.Texture2D, gAlbedoSpec);
+			GLFunc.ActiveTexture(GL.TextureUnit.Texture2);
+			GLFunc.BindTexture(GL.TextureTarget.Texture2D, gDepth);
 
 			var sun_mat = new Matrix3(cameras[active_camera].view_matrix);
 			sun_mat.Transpose();
@@ -203,11 +224,11 @@ namespace LibRender {
 			sun_vec.Normalize();
 
 			GLFunc.Uniform1(lightpass_prog.GetUniform("Normal"), 0);
-            GLFunc.Uniform1(lightpass_prog.GetUniform("AlbedoSpec"), 1);
-            GLFunc.Uniform1(lightpass_prog.GetUniform("Depth"), 2);
+			GLFunc.Uniform1(lightpass_prog.GetUniform("AlbedoSpec"), 1);
+			GLFunc.Uniform1(lightpass_prog.GetUniform("Depth"), 2);
 			GLFunc.Uniform3(lightpass_prog.GetUniform("sunDir", true), sun_vec);
-            GLFunc.Uniform3(lightpass_prog.GetUniform("suncolor"), sun.color);
-            GLFunc.Uniform1(lightpass_prog.GetUniform("sunbrightness"), sun.brightness);
+			GLFunc.Uniform3(lightpass_prog.GetUniform("suncolor"), sun.color);
+			GLFunc.Uniform1(lightpass_prog.GetUniform("sunbrightness"), sun.brightness);
 			GLFunc.UniformMatrix4(lightpass_prog.GetUniform("projInverseMatrix"), false, ref cameras[active_camera].inverse_projection_matrix);
 
 			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, lBuffer);
@@ -237,30 +258,102 @@ namespace LibRender {
 			RenderFullscreenQuad();
 
 			GLFunc.Enable(GL.EnableCap.Blend);
+			GLFunc.Disable(GL.EnableCap.CullFace);
 
-			// Render text on screen
+			List<UIInfo> uiinfos = new List<UIInfo>();
+			for (int i = 0; i < texts.Count; ++i) {
+				Text t = texts[i];
 
+				if (t == null || !t.visible) {
+					continue;
+				}
+				uiinfos.Add(new UIInfo() { type = UIInfo.Type.text, index = i, depth = t.depth });
+			}
+			for (int i = 0; i < uielements.Count; ++i) {
+				UIElement uie = uielements[i];
+
+				if (uie == null || !uie.visible || textures[uie.tex_id] == null || flat_meshes[uie.flatmesh_id] == null) {
+					continue;
+				}
+				uiinfos.Add(new UIInfo() { type = UIInfo.Type.uielement, index = i, depth = uie.depth });
+			}
+
+			uiinfos.Sort((lhs, rhs) => {
+				if (lhs.depth < rhs.depth) {
+					return -1;
+				}
+				if (lhs.depth > rhs.depth) {
+					return 1;
+				}
+				if (lhs.depth == rhs.depth) {
+					if (lhs.type == UIInfo.Type.uielement && rhs.type == UIInfo.Type.text) {
+						return -1;
+					}
+					if (lhs.type == UIInfo.Type.text && rhs.type == UIInfo.Type.uielement) {
+						return 1;
+					}
+				}
+				return 0;
+			});
+
+			// Render UI and Text on screen
 			text_prog.Use();
 
 			GLFunc.Uniform1(text_prog.GetUniform("textTexture"), 0);
 
-			foreach (Text t in texts) {
-				if (t == null) {
-					continue;
+			ui_prog.Use();
+
+			GLFunc.Uniform1(ui_prog.GetUniform("uiTexture"), 0);
+			GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
+
+			UIInfo.Type last_shader = UIInfo.Type.uielement;
+			foreach (UIInfo info in uiinfos) {
+				if (info.type == UIInfo.Type.uielement) {
+					if (last_shader != UIInfo.Type.uielement) {
+						ui_prog.Use();
+						last_shader = UIInfo.Type.uielement;
+					}
+
+					UIElement uie = uielements[info.index];
+
+					// References to subobjects
+					Texture t = textures[uie.tex_id];
+					FlatMesh fm = flat_meshes[uie.flatmesh_id];
+
+					GLFunc.BindTexture(GL.TextureTarget.Texture2D, t.gl_id);
+
+					GLFunc.UniformMatrix2(ui_prog.GetUniform("rotation"), false, ref uie.transform);
+					GLFunc.Uniform2(ui_prog.GetUniform("scale"), new Vector2(uie.scale.X * t.width / width, uie.scale.Y * t.height / height));
+					GLFunc.Uniform2(ui_prog.GetUniform("translate"), new Vector2(((2 * uie.location.X) + t.width * uie.scale.X) / width, -((2 * uie.location.Y) + t.height * uie.scale.Y) / height));
+
+					GLFunc.BindVertexArray(fm.gl_vao_id);
+
+					GLFunc.DrawElements(GL.BeginMode.Triangles, fm.indices.Count, GL.DrawElementsType.UnsignedInt, 0);
+
+					GLFunc.BindVertexArray(0);
 				}
+				else if (info.type == UIInfo.Type.text) {
+					if (last_shader != UIInfo.Type.text) {
+						text_prog.Use();
+						last_shader = UIInfo.Type.text;
+					}
 
-				GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
-				GLFunc.BindTexture(GL.TextureTarget.Texture2D, t.gl_tex_id);
+					Text t = texts[info.index];
 
-				GLFunc.Uniform2(text_prog.GetUniform("origin"), new Vector2(t.origin.X / width, (height - t.origin.Y - t.height) / height));
-				GLFunc.Uniform2(text_prog.GetUniform("size"), new Vector2((float) t.width / width, (float) t.height / height));
+					GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
+					GLFunc.BindTexture(GL.TextureTarget.Texture2D, t.gl_tex_id);
 
-				GLFunc.Uniform4(text_prog.GetUniform("color"), t.color);
+					GLFunc.Uniform2(text_prog.GetUniform("origin"), new Vector2(t.origin.X / width, (height - t.origin.Y - t.height) / height));
+					GLFunc.Uniform2(text_prog.GetUniform("size"), new Vector2((float) t.width / width, (float) t.height / height));
 
-				RenderFullscreenQuad();
+					GLFunc.Uniform4(text_prog.GetUniform("color"), t.color);
+
+					RenderFullscreenQuad();
+				}
 			}
 
 			GLFunc.Enable(GL.EnableCap.DepthTest);
+			GLFunc.Enable(GL.EnableCap.CullFace);
 		}
 
 		private int fullscreen_quad_vao = 0;

@@ -193,6 +193,8 @@ namespace LibRender {
 		internal int gl_tex_id = 0;
 		internal bool uploaded = false;
 
+		internal bool visible = true;
+
 		internal Text Copy() {
 			Text t = new Text();
 			t.font = font;
@@ -202,6 +204,7 @@ namespace LibRender {
 				t.texture.AddRange(texture);
 			}
 			t.texture_ready = texture_ready;
+			t.visible = visible;
 			return t;
 		}
 	}
@@ -214,15 +217,18 @@ namespace LibRender {
 
 	internal class FlatMesh {
 		internal List<Vertex2D> vertices = new List<Vertex2D>();
+		internal List<int> indices = new List<int>();
 
 		internal int gl_vao_id = 0;
         internal int gl_vert_id = 0;
+		internal int gl_indices_id = 0;
 
 		internal bool uploaded = false;
 
 		internal FlatMesh Copy() {
 			FlatMesh fm = new FlatMesh();
 			fm.vertices.AddRange(vertices);
+			fm.indices.AddRange(indices);
 
 			return fm;
 		}
@@ -237,6 +243,7 @@ namespace LibRender {
 		internal int depth;
 		internal Matrix2 transform = new Matrix2();
 		internal bool matrix_valid;
+		internal bool visible = true; 
 	}
 
     public partial class Renderer {
@@ -409,14 +416,15 @@ namespace LibRender {
 			return new TextHandle(texts.Count - 1);
 		}
 
-		public FlatMeshHandle AddFlatMesh(Vertex2D[] mesh) {
+		public FlatMeshHandle AddFlatMesh(Vertex2D[] mesh, int[] indices) {
 			FlatMesh fm = new FlatMesh();
 			fm.vertices.AddRange(mesh);
+			fm.indices.AddRange(indices);
 			flat_meshes.Add(fm);
 			return new FlatMeshHandle(flat_meshes.Count - 1);
 		}
 
-		public UIElementHandle AddUIElement(FlatMeshHandle fmh, TextureHandle th, Vector2 location, Vector2 scale, float rotation, int depth = 0) {
+		public UIElementHandle AddUIElement(FlatMeshHandle fmh, TextureHandle th, Vector2 location, Vector2 scale, float rotation = 0, int depth = 0) {
 			AssertValid(fmh);
 			AssertValid(th);
 
@@ -461,11 +469,13 @@ namespace LibRender {
             objects[oh.id].tex_id = th.id;
         }
 
-		public void Update(FlatMeshHandle fmh, Vertex2D[] mesh) {
+		public void Update(FlatMeshHandle fmh, Vertex2D[] mesh, int[] indices) {
 			AssertValid(fmh);
 
 			flat_meshes[fmh.id].vertices.Clear();
 			flat_meshes[fmh.id].vertices.AddRange(mesh);
+			flat_meshes[fmh.id].indices.Clear();
+			flat_meshes[fmh.id].indices.AddRange(indices);
 			flat_meshes[fmh.id].uploaded = false;
 		}
 
@@ -542,6 +552,7 @@ namespace LibRender {
 
 			GLFunc.DeleteVertexArray(flat_meshes[fmh.id].gl_vao_id);
 			GLFunc.DeleteBuffer(flat_meshes[fmh.id].gl_vert_id);
+			GLFunc.DeleteBuffer(flat_meshes[fmh.id].gl_indices_id);
 
 			flat_meshes[fmh.id] = null;
 		}
@@ -580,7 +591,7 @@ namespace LibRender {
             return objects[oh.id].scale;
         }
 
-        public void SeVisibility(ObjectHandle oh, bool visible) {
+        public void SetVisibility(ObjectHandle oh, bool visible) {
             AssertValid(oh);
 
             objects[oh.id].visible = visible;
@@ -856,6 +867,12 @@ namespace LibRender {
 			return texts[th.id].origin;
 		}
 
+		public bool GetVisibility(TextHandle th) {
+			AssertValid(th);
+
+			return texts[th.id].visible;
+		}
+
 		public void SetText(TextHandle th, string text) {
 			AssertValid(th);
 
@@ -898,6 +915,12 @@ namespace LibRender {
 			texts[th.id].origin = location;
 		}
 
+		public void SetVisibility(TextHandle th, bool visible) {
+			AssertValid(th);
+
+			texts[th.id].visible = visible;
+		}
+
 		///////////////////////////////////
 		// UIElement Setters and Getters //
 		///////////////////////////////////
@@ -926,18 +949,22 @@ namespace LibRender {
 			return uielements[uieh.id].depth;
 		}
 
+		public bool GetVisibility(UIElementHandle uieh) {
+			AssertValid(uieh);
+
+			return uielements[uieh.id].visible;
+		}
+
 		public void SetLocation(UIElementHandle uieh, Vector2 location) {
 			AssertValid(uieh);
 
 			uielements[uieh.id].location = location;
-			uielements[uieh.id].matrix_valid = false;
 		}
 
 		public void SetScale(UIElementHandle uieh, Vector2 scale) {
 			AssertValid(uieh);
 
 			uielements[uieh.id].scale = scale;
-			uielements[uieh.id].matrix_valid = false;
 		}
 
 		public void SetRotation(UIElementHandle uieh, float rotation) {
@@ -951,6 +978,12 @@ namespace LibRender {
 			AssertValid(uieh);
 
 			uielements[uieh.id].depth = depth;
+		}
+
+		public void SetVisibility(UIElementHandle uieh, bool visible) {
+			AssertValid(uieh);
+
+			uielements[uieh.id].visible = visible;
 		}
 	}
 }

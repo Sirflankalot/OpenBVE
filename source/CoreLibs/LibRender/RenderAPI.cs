@@ -34,6 +34,11 @@ namespace LibRender {
             Algorithms.UpdateTextTextures(texts, 0, texts.Count);
 			GFXInterface.UpdateTextTextureObjects(texts, 0, texts.Count);
 			GFXInterface.UploadTextTextures(texts, 0, texts.Count);
+
+			GFXInterface.UpdateFlatMeshVAOVBO(flat_meshes, 0, flat_meshes.Count);
+			GFXInterface.UploadFlatMeshMeshes(flat_meshes, 0, flat_meshes.Count);
+
+			Algorithms.UpdateUIElementMatrices(uielements, 0, uielements.Count);
         }
 
         public void RenderAll() {
