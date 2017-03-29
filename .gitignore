@@ -40,3 +40,6 @@ source/*.xml
 
 #InnoSetup Output Folder
 [Oo]utput/
+
+#Mono profiling files
+*.mlpd
