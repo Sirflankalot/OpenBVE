@@ -23,6 +23,7 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -79,6 +80,7 @@
     <None Include="Shaders\onscreenquad.vs.glsl" />
     <None Include="Shaders\text.fs.glsl" />
     <None Include="Shaders\text.vs.glsl" />
+    <None Include="Shaders\textcopy.fs.glsl" />
     <None Include="Shaders\uielement.fs.glsl" />
     <None Include="Shaders\uielement.vs.glsl" />
   </ItemGroup>

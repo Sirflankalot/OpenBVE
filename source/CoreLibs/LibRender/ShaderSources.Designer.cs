@@ -133,6 +133,16 @@ namespace LibRender {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] textcopy_fs {
+            get {
+                object obj = ResourceManager.GetObject("textcopy_fs", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] uielement_fs {
             get {
                 object obj = ResourceManager.GetObject("uielement_fs", resourceCulture);

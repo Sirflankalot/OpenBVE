@@ -10,9 +10,9 @@ uniform vec2 scale;
 uniform vec2 translate;
 
 void main () {
-	vec2 rot = rotation * position;
-	vec2 scl = scale * rot;
-	vec2 tran = scl + translate - vec2(1, -1);
+	vec2 scl = scale * position;
+	vec2 rot = rotation * scl;
+	vec2 tran = rot + translate - vec2(1, -1);
 
 	gl_Position = vec4(tran, 0.0, 1.0);
 	vTexCoord = vec2(texcoord.x, 1 - texcoord.y);

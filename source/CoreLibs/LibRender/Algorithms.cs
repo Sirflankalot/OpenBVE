@@ -272,11 +272,12 @@ namespace LibRender {
 
 						// Place raw values into pixels
 						for (int j = 0; j < bytes; j += 4) {
-							Pixel cur = new Pixel();
-							cur.r = raw_img[j + 0];
-							cur.g = raw_img[j + 1];
-							cur.b = raw_img[j + 2];
-							cur.a = raw_img[j + 3];
+							Pixel cur = new Pixel() {
+								r = raw_img[j + 0],
+								g = raw_img[j + 1],
+								b = raw_img[j + 2],
+								a = raw_img[j + 3]
+							};
 							t.texture.Add(cur);
 						}
 

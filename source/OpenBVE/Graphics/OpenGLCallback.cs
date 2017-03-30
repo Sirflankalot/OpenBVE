@@ -10,7 +10,7 @@ namespace OpenBve
         private static int error_count = 0;
         private static int message_count = 0;
 
-        public static void callback(GL.DebugSource ds, GL.DebugType dt, int id, GL.DebugSeverity severity, int length, IntPtr message, IntPtr userParam) {
+        public static void Callback(GL.DebugSource ds, GL.DebugType dt, int id, GL.DebugSeverity severity, int length, IntPtr message, IntPtr userParam) {
             System.Text.StringBuilder error = new System.Text.StringBuilder();
 
             if (severity == GL.DebugSeverity.DebugSeverityNotification) {

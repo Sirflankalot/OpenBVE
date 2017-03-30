@@ -63,7 +63,7 @@ namespace LibRender {
 
         private Dictionary<string, int> uniform_cache = new Dictionary<string, int>();
         public int GetUniform(string name, bool required = false) {
-            int id;
+			int id;
             if (uniform_cache.TryGetValue(name, out id)) {
                 return id;
             } 

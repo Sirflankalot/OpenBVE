@@ -47,7 +47,7 @@ namespace OpenBve {
 
         public static LibRender.Renderer renderer = new LibRender.Renderer();
 
-        public static readonly OpenTK.Graphics.OpenGL.DebugProc callback_ref = OpenGLCallback.callback;
+        public static readonly OpenTK.Graphics.OpenGL.DebugProc callback_ref = OpenGLCallback.Callback;
 		
 		// --- functions ---
 		

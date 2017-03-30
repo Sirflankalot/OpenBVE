@@ -1,18 +1,22 @@
 ﻿using OpenTK;
-using System.Linq;
 using System.Collections.Generic;
 using GL = OpenTK.Graphics.OpenGL;
 using GLFunc = OpenTK.Graphics.OpenGL.GL;
 
 namespace LibRender {
-    public partial class Renderer {
+	public partial class Renderer {
 		internal int gBuffer, lBuffer;
 		internal int gNormal, gAlbedoSpec, gDepth;
 		internal int lColor, lDepth;
+		internal int uiBuffer, uiColor;
 
 		internal void InitializeFramebuffers() {
+			if (width == 0 || height == 0) {
+				return;
+			}
+
 			////////////////////////////
-			// Initialize the GBuffer //
+			// Initialize the gBuffer //
 			////////////////////////////
 
             GLFunc.GetError();
@@ -57,7 +61,7 @@ namespace LibRender {
 			}
 
 			////////////////////////////
-			// Initialize the LBuffer //
+			// Initialize the lBuffer //
 			////////////////////////////
 
 			GLFunc.GenFramebuffers(1, out lBuffer);
@@ -89,6 +93,24 @@ namespace LibRender {
 				throw new System.Exception("lBuffer incomplete");
 			}
 
+			/////////////////////////////
+			// Initialize the uiBuffer //
+			/////////////////////////////
+			
+			GLFunc.GenFramebuffers(1, out uiBuffer);
+			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, uiBuffer);
+
+			// Color Buffer
+			GLFunc.GenTextures(1, out uiColor);
+			GLFunc.BindTexture(GL.TextureTarget.Texture2DMultisample, uiColor);
+			GLFunc.TexImage2DMultisample(GL.TextureTargetMultisample.Texture2DMultisample, 4, GL.PixelInternalFormat.Rgba, width, height, true);
+			GLFunc.FramebufferTexture2D(GL.FramebufferTarget.Framebuffer, GL.FramebufferAttachment.ColorAttachment0, GL.TextureTarget.Texture2DMultisample, uiColor, 0);
+			Error.CheckForOpenGlError("Multisampled Color Buffer");
+
+			if (GLFunc.CheckFramebufferStatus(GL.FramebufferTarget.Framebuffer) != GL.FramebufferErrorCode.FramebufferComplete) {
+				throw new System.Exception("lBuffer incomplete");
+			}
+
 			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, 0);
 		}
 
@@ -98,14 +120,17 @@ namespace LibRender {
 			GLFunc.DeleteTexture(gDepth);
 			GLFunc.DeleteTexture(lColor);
             GLFunc.DeleteTexture(lDepth);
+			GLFunc.DeleteTexture(uiColor);
 			GLFunc.DeleteFramebuffer(gBuffer);
 			GLFunc.DeleteFramebuffer(lBuffer);
+			GLFunc.DeleteFramebuffer(uiColor);
 		}
 		
 		internal ShaderProgram geometry_prog;
 		internal ShaderProgram lightpass_prog;
 		internal ShaderProgram hdrpass_prog;
 		internal ShaderProgram text_prog;
+		internal ShaderProgram textcopy_prog;
 		internal ShaderProgram ui_prog;
 
 		internal void InitializeShaders() {
@@ -124,6 +149,9 @@ namespace LibRender {
 			var text_fragment = new Shader(GL.ShaderType.FragmentShader, ShaderSources.text_fs);
 			text_prog = new ShaderProgram(text_vertex, text_fragment);
 
+			var textcopy_fragment = new Shader(GL.ShaderType.FragmentShader, ShaderSources.textcopy_fs);
+			textcopy_prog = new ShaderProgram(onscreenquad_vertex, textcopy_fragment);
+
 			var ui_vertex = new Shader(GL.ShaderType.VertexShader, ShaderSources.uielement_vs);
 			var ui_fragment = new Shader(GL.ShaderType.FragmentShader, ShaderSources.uielement_fs);
 			ui_prog = new ShaderProgram(ui_vertex, ui_fragment);
@@ -135,6 +163,7 @@ namespace LibRender {
 			light_fragment.Clear();
 			text_vertex.Clear();
 			text_fragment.Clear();
+			textcopy_fragment.Clear();
 			ui_vertex.Clear();
 			ui_fragment.Clear();
 		}
@@ -144,6 +173,7 @@ namespace LibRender {
 			lightpass_prog.Clear();
 			hdrpass_prog.Clear();
 			text_prog.Clear();
+			textcopy_prog.Clear();
 			ui_prog.Clear();
 		}
 
@@ -159,6 +189,10 @@ namespace LibRender {
 		}
 
 		internal void RenderAllObjects() {
+			if (width == 0 || height == 0) {
+				return;
+			}
+
 			GLFunc.Disable(GL.EnableCap.Blend);
 			GLFunc.CullFace(GL.CullFaceMode.Back);
 			GLFunc.Enable(GL.EnableCap.CullFace);
@@ -296,6 +330,10 @@ namespace LibRender {
 				return 0;
 			});
 
+			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, uiBuffer);
+			GLFunc.ClearColor(0, 0, 0, 0);
+			GLFunc.Clear(GL.ClearBufferMask.ColorBufferBit);
+
 			// Render UI and Text on screen
 			text_prog.Use();
 
@@ -351,6 +389,18 @@ namespace LibRender {
 					RenderFullscreenQuad();
 				}
 			}
+
+			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, 0);
+
+			// Copy text from multisampled buffer to regular buffer
+			textcopy_prog.Use();
+
+			GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
+			GLFunc.BindTexture(GL.TextureTarget.Texture2DMultisample, uiColor);
+
+			GLFunc.Uniform1(textcopy_prog.GetUniform("texture"), 0);
+
+			RenderFullscreenQuad();
 
 			GLFunc.Enable(GL.EnableCap.DepthTest);
 			GLFunc.Enable(GL.EnableCap.CullFace);
