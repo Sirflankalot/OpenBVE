@@ -201,11 +201,9 @@ namespace LibRender {
 				renderer.SetText(two, "Frame: " + frames.ToString());
 				renderer.SetColor(two, new Pixel { r = (byte) (frames / 20 % 255), g = (byte) ((frames / 20 + 128) % 255), b = 123, a = 255 });
 
-				renderer.SetRotation(rainbows, renderer.GetRotation(rainbows) + 0.1f);
-
-				if (frames % 100 == 0) {
-					renderer.SetVisibility(rainbows, !renderer.GetVisibility(rainbows));
-				}
+				//if (frames % 100 == 0) {
+				//	renderer.SetVisibility(rainbows, !renderer.GetVisibility(rainbows));
+				//}
 
 				if (frames % 512 == 0) {
 					renderer.SetVisibility(two, !renderer.GetVisibility(two));

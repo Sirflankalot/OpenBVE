@@ -53,6 +53,7 @@
     <Compile Include="GFXInterface.cs" />
     <Compile Include="ObjectAPI.cs" />
     <Compile Include="Algorithms.cs" />
+    <Compile Include="Position.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rendering.cs" />
     <Compile Include="Shader.cs" />

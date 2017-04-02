@@ -342,6 +342,7 @@ namespace LibRender {
 			ui_prog.Use();
 
 			GLFunc.Uniform1(ui_prog.GetUniform("uiTexture"), 0);
+			GLFunc.Uniform1(ui_prog.GetUniform("ratio"), (float) width / height);
 			GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
 
 			UIInfo.Type last_shader = UIInfo.Type.uielement;

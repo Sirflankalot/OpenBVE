@@ -115,11 +115,14 @@ namespace LibRender {
         internal int gl_id = 0;
         internal bool uploaded = false;
 
+        internal bool has_transparancy = false;
+
         public Texture Copy() {
             Texture t = new Texture();
             t.pixels.AddRange(pixels);
             t.width = width;
             t.height = height;
+            t.has_transparancy = has_transparancy;
             return t;
         }
     }
@@ -359,6 +362,13 @@ namespace LibRender {
             t.pixels.AddRange(pixels);
             t.width = width;
             t.height = height;
+            // Find transparency
+            foreach (Pixel p in t.pixels) {
+                if (p.a < 255) {
+                    t.has_transparancy = true;
+                    break;
+                }
+            }
             textures.Add(t);
             return new TextureHandle(textures.Count - 1);
         }
@@ -457,6 +467,13 @@ namespace LibRender {
             textures[th.id].pixels.AddRange(pixels);
             textures[th.id].width = width;
             textures[th.id].height = height;
+            // Find transparency
+            foreach (Pixel p in textures[th.id].pixels) {
+                if (p.a < 255) {
+                    textures[th.id].has_transparancy = true;
+                    break;
+                }
+            }
             textures[th.id].uploaded = false;
         }
 
