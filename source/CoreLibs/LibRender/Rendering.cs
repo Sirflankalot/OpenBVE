@@ -363,7 +363,8 @@ namespace LibRender {
 
 					GLFunc.UniformMatrix2(ui_prog.GetUniform("rotation"), false, ref uie.transform);
 					GLFunc.Uniform2(ui_prog.GetUniform("scale"), new Vector2(uie.scale.X * t.width / width, uie.scale.Y * t.height / height));
-					GLFunc.Uniform2(ui_prog.GetUniform("translate"), new Vector2(((2 * uie.location.X) + t.width * uie.scale.X) / width, -((2 * uie.location.Y) + t.height * uie.scale.Y) / height));
+					var adjusted_location = uie.location.Translated(WindowOrigin.TopLeft, ObjectOrigin.TopLeft, width, height, uie.scale * new Vector2(t.width, t.height));
+					GLFunc.Uniform2(ui_prog.GetUniform("translate"), new Vector2(((2 * adjusted_location.position.X) + t.width * uie.scale.X) / width, -((2 * adjusted_location.position.Y) + t.height * uie.scale.Y) / height));
 
 					GLFunc.BindVertexArray(fm.gl_vao_id);
 
@@ -382,7 +383,8 @@ namespace LibRender {
 					GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
 					GLFunc.BindTexture(GL.TextureTarget.Texture2D, t.gl_tex_id);
 
-					GLFunc.Uniform2(text_prog.GetUniform("origin"), new Vector2(t.origin.X / width, (height - t.origin.Y - t.height) / height));
+					var adjusted_location = t.location.Translated(WindowOrigin.TopLeft, ObjectOrigin.TopLeft, width, height, new Vector2(t.width, t.height));
+					GLFunc.Uniform2(text_prog.GetUniform("origin"), new Vector2(adjusted_location.position.X / width, (height - adjusted_location.position.Y - t.height) / height));
 					GLFunc.Uniform2(text_prog.GetUniform("size"), new Vector2((float) t.width / width, (float) t.height / height));
 
 					GLFunc.Uniform4(text_prog.GetUniform("color"), t.color);

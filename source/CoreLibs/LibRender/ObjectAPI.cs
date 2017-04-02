@@ -186,7 +186,7 @@ namespace LibRender {
 
 		internal Vector4 color;
 
-		internal Vector2 origin;
+		internal Position location;
 
 		internal List<Pixel> texture = new List<Pixel>();
         internal int width = 0;
@@ -202,7 +202,7 @@ namespace LibRender {
 			Text t = new Text();
 			t.font = font;
 			t.color = color;
-			t.origin = origin;
+			t.location = location;
 			if (texture_ready) {
 				t.texture.AddRange(texture);
 			}
@@ -240,7 +240,7 @@ namespace LibRender {
 	internal class UIElement {
 		internal int flatmesh_id;
 		internal int tex_id;
-		internal Vector2 location;
+		internal Position location;
 		internal Vector2 scale;
 		internal float rotation;
 		internal int depth;
@@ -414,12 +414,12 @@ namespace LibRender {
             return new PointLightHandle(point_lights.Count - 1);
         }
 
-		public TextHandle AddText(string text, Font font, Pixel color, Vector2 origin, int depth = 0, int max_width = 0) {
+		public TextHandle AddText(string text, Font font, Pixel color, Position location, int depth = 0, int max_width = 0) {
 			Text t = new Text();
 			t.text = text;
 			t.font = font;
 			t.color = new Vector4(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
-			t.origin = origin;
+			t.location = location;
 			t.depth = depth;
 			t.max_width = max_width;
 			texts.Add(t);
@@ -434,7 +434,7 @@ namespace LibRender {
 			return new FlatMeshHandle(flat_meshes.Count - 1);
 		}
 
-		public UIElementHandle AddUIElement(FlatMeshHandle fmh, TextureHandle th, Vector2 location, Vector2 scale, float rotation = 0, int depth = 0) {
+		public UIElementHandle AddUIElement(FlatMeshHandle fmh, TextureHandle th, Position location, Vector2 scale, float rotation = 0, int depth = 0) {
 			AssertValid(fmh);
 			AssertValid(th);
 
@@ -878,10 +878,10 @@ namespace LibRender {
 			return new Pixel { r = (byte) (orig.X * 255.0f), g = (byte) (orig.Y * 255.0f), b = (byte) (orig.Z * 255.0f), a = (byte) (orig.W * 255.0f) };
 		}
 
-		public Vector2 GetLocation(TextHandle th) {
+		public Position GetLocation(TextHandle th) {
 			AssertValid(th);
 
-			return texts[th.id].origin;
+			return texts[th.id].location;
 		}
 
 		public bool GetVisibility(TextHandle th) {
@@ -926,10 +926,10 @@ namespace LibRender {
 			texts[th.id].color = new Vector4(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
 		}
 
-		public void SetLocation(TextHandle th, Vector2 location) {
+		public void SetLocation(TextHandle th, Position location) {
 			AssertValid(th);
 
-			texts[th.id].origin = location;
+			texts[th.id].location = location;
 		}
 
 		public void SetVisibility(TextHandle th, bool visible) {
@@ -942,7 +942,7 @@ namespace LibRender {
 		// UIElement Setters and Getters //
 		///////////////////////////////////
 
-		public Vector2 GetLocation(UIElementHandle uieh) {
+		public Position GetLocation(UIElementHandle uieh) {
 			AssertValid(uieh);
 
 			return uielements[uieh.id].location;
@@ -972,7 +972,7 @@ namespace LibRender {
 			return uielements[uieh.id].visible;
 		}
 
-		public void SetLocation(UIElementHandle uieh, Vector2 location) {
+		public void SetLocation(UIElementHandle uieh, Position location) {
 			AssertValid(uieh);
 
 			uielements[uieh.id].location = location;

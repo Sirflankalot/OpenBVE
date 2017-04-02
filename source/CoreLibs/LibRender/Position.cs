@@ -42,7 +42,7 @@ namespace LibRender {
 			this.position = position;
 		}
 
-		public Position(WindowOrigin window_origin, ObjectOrigin object_origin, int pos_x, int pos_y) {
+		public Position(WindowOrigin window_origin, ObjectOrigin object_origin, float pos_x, float pos_y) {
 			this.window_origin = window_origin;
 			this.object_origin = object_origin;
 			position = new Vector2(pos_x, pos_y);

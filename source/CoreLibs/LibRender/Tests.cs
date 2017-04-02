@@ -177,12 +177,12 @@ namespace LibRender {
 
 				Font f = new Font(FontFamily.GenericSansSerif, 50, FontStyle.Regular, GraphicsUnit.Pixel);
 
-				one = renderer.AddText("Good morning from the lovely state of New York!", f, new Pixel{ r=255, g=255, b=255, a=255}, new Vector2(0, 0), 0, renderer.width);
-				two = renderer.AddText("Frame: 0", f, new Pixel { r = 255, g = 255, b = 255, a = 255 }, new Vector2(0, renderer.GetDimentions(one).Y), 0);
+				one = renderer.AddText("Good morning from the lovely state of New York!", f, new Pixel{ r=255, g=255, b=255, a=255}, new Position(WindowOrigin.TopLeft, ObjectOrigin.TopLeft, 0, 0), 0, renderer.width);
+				two = renderer.AddText("Frame: 0", f, new Pixel { r = 255, g = 255, b = 255, a = 255 }, new Position(WindowOrigin.TopLeft, ObjectOrigin.TopLeft, 0, renderer.GetDimentions(one).Y), 0);
 
 				var fm = renderer.AddFlatMesh(ui_panel, ui_panel_index);
 				var uit = renderer.AddTexture(ui_panel_tex, 4, 2);
-				rainbows = renderer.AddUIElement(fm, uit, new Vector2(0, 0), new Vector2(75), 0, 1);
+				rainbows = renderer.AddUIElement(fm, uit, new Position(WindowOrigin.BottomRight, ObjectOrigin.BottomRight, 0, 0), new Vector2(75), 0, 1);
 			}
 
 			static int frames = 0;
