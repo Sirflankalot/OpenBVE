@@ -74,6 +74,7 @@
     <Compile Include="RenderAPI.cs" />
     <Compile Include="Tests.cs" />
     <Compile Include="Error.cs" />
+    <Compile Include="Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\OpenBveApi\OpenBveApi.csproj">

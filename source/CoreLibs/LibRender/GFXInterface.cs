@@ -9,10 +9,7 @@ using OpenBveApi;
 namespace LibRender {
     internal static class GFXInterface {
         internal static void UpdateVAOVBO(List<Mesh> meshes, int start, int end) {
-            // Check for valid indices
-            if (!(0 <= start && 0 <= end && end <= meshes.Count && (end == 0 ? start == end : start < end))) {
-                throw new System.ArgumentException("Range invalid");
-            }
+			Utilities.AssertValidIndicies(meshes, start, end);
 
             // List of meshes that need buffers created
             List<int> vaoless_meshes = new List<int>();
@@ -62,10 +59,7 @@ namespace LibRender {
         }
 
         internal static void UploadMeshes(List<Mesh> meshes, int start, int end) {
-            // Check for valid indices
-            if (!(0 <= start && 0 <= end && end <= meshes.Count && (end == 0 ? start == end : start < end))) {
-                throw new System.ArgumentException("Range invalid");
-            }
+			Utilities.AssertValidIndicies(meshes, start, end);
 
             for (int i = start; i < end; ++i) {
                 // Reference to mesh
@@ -106,10 +100,7 @@ namespace LibRender {
         }
 
         internal static void UpdateTextureObjects(List<Texture> textures, int start, int end) {
-            // Check for valid indices
-            if (!(0 <= start && 0 <= end && end <= textures.Count && (end == 0 ? start == end : start < end))) {
-                throw new System.ArgumentException("Range invalid");
-            }
+			Utilities.AssertValidIndicies(textures, start, end);
 
             // Find textures that need OpenGL ids
             List<int> idless_textures = new List<int>();
@@ -133,10 +124,7 @@ namespace LibRender {
         }
 
         internal static void UploadTextures(List<Texture> textures, int start, int end) {
-            // Check for valid indices
-            if (!(0 <= start && 0 <= end && end <= textures.Count && (end == 0 ? start == end : start < end))) {
-                throw new System.ArgumentException("Range invalid");
-            }
+			Utilities.AssertValidIndicies(textures, start, end);
 
             for (int i = start; i < end; ++i) {
                 // Reference to object
@@ -160,10 +148,7 @@ namespace LibRender {
         }
 
 		internal static void UpdateTextTextureObjects(List<Text> texts, int start, int end) {
-			// Check for valid indices
-			if (!(0 <= start && 0 <= end && end <= texts.Count && (end == 0 ? start == end : start < end))) {
-				throw new System.ArgumentException("Range invalid");
-			}
+			Utilities.AssertValidIndicies(texts, start, end);
 
 			// Find all texts that need texture objects
 			List<int> idless_texts = new List<int>();
@@ -187,10 +172,7 @@ namespace LibRender {
 		}
 
 		internal static void UploadTextTextures(List<Text> texts, int start, int end) {
-			// Check for valid indices
-			if (!(0 <= start && 0 <= end && end <= texts.Count && (end == 0 ? start == end : start < end))) {
-				throw new System.ArgumentException("Range invalid");
-			}
+			Utilities.AssertValidIndicies(texts, start, end);
 
 			for (int i = start; i < end; ++i) {
 				// Reference to text
@@ -213,10 +195,7 @@ namespace LibRender {
 		}
 
         internal static void UpdateFlatMeshVAOVBO(List<FlatMesh> flat_meshes, int start, int end) {
-            // Check for valid indices
-            if (!(0 <= start && 0 <= end && end <= flat_meshes.Count && (end == 0 ? start == end : start < end))) {
-                throw new System.ArgumentException("Range invalid");
-            }
+			Utilities.AssertValidIndicies(flat_meshes, start, end);
 
             List<int> vaoless_flat_meshes = new List<int>();
             List<int> vboless_flat_meshes = new List<int>();
@@ -260,10 +239,7 @@ namespace LibRender {
         }
 
 		internal static void UploadFlatMeshMeshes(List<FlatMesh> flat_meshes, int start, int end) {
-			// Check for valid indices
-			if (!(0 <= start && 0 <= end && end <= flat_meshes.Count && (end == 0 ? start == end : start < end))) {
-				throw new System.ArgumentException("Range invalid");
-			}
+			Utilities.AssertValidIndicies(flat_meshes, start, end);
 
 			for (int i = start; i < end; ++i) {
 				// Reference to FlatMesh

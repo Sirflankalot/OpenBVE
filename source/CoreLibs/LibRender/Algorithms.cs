@@ -12,10 +12,7 @@ using OpenBveApi;
 namespace LibRender {
     internal static class Algorithms {
         internal static void UpdateMeshNormals(List<Mesh> meshes, int start, int end) {
-            // Check indices
-            if (!(0 <= start && 0 <= end && end <= meshes.Count && (end == 0 ? start == end : start < end))) {
-                throw new System.ArgumentException("Range invalid");
-            }
+			Utilities.AssertValidIndicies(meshes, start, end);
 
             for (int mesh_it = start; mesh_it < end; ++mesh_it) {
                 // Reference to working mesh
@@ -75,10 +72,7 @@ namespace LibRender {
         }
 
 		internal static void ClearObjectModelViewMatrices(List<Object> objects, int start, int end) {
-			// Check indices
-			if (!(0 <= start && 0 <= end && end <= objects.Count && (end == 0 ? start == end : start < end))) {
-				throw new System.ArgumentException("Range invalid");
-			}
+			Utilities.AssertValidIndicies(objects, start, end);
 
 			for (int i = start; i < end; ++i) {
 				objects[i].inverse_model_view_valid = false;
@@ -86,10 +80,7 @@ namespace LibRender {
 		}
 
         internal static void UpdateObjectMatrices(List<Object> objects, int start, int end) {
-            // Check indices
-            if (!(0 <= start && 0 <= end && end <= objects.Count && (end == 0 ? start == end : start < end))) {
-                throw new System.ArgumentException("Range invalid");
-            }
+			Utilities.AssertValidIndicies(objects, start, end);
 
             for (int i = start; i < end; ++i) {
                 // Reference to Object
@@ -109,10 +100,7 @@ namespace LibRender {
         }
 
 		internal static void UpdateObjectModelViewMatrices(List<Object> objects, int start, int end, ref Matrix4 view_matrix) {
-			// Check indices
-			if (!(0 <= start && 0 <= end && end <= objects.Count && (end == 0 ? start == end : start < end))) {
-				throw new System.ArgumentException("Range invalid");
-			}
+			Utilities.AssertValidIndicies(objects, start, end);
 
 			for (int i = start; i < end; ++i) {
 				// Reference to Object
@@ -134,10 +122,7 @@ namespace LibRender {
 		}
 
         internal static void UpdateCameraMatrices(List<Camera> cameras, int start, int end, float ratio) {
-            // Check indices
-            if (!(0 <= start && 0 <= end && end <= cameras.Count && (end == 0 ? start == end : start < end))) {
-                throw new System.ArgumentException("Range invalid");
-            }
+			Utilities.AssertValidIndicies(cameras, start, end);
 
             for (int i = start; i < end; ++i) {
                 // Reference to Camera
@@ -165,10 +150,7 @@ namespace LibRender {
         }
 
         internal static void UpdateConeLightMatrices(List<Cone_Light> cone_lights, int start, int end) {
-            // Check indices
-            if (!(0 <= start && 0 <= end && end <= cone_lights.Count && (end == 0 ? start == end : start < end))) {
-                throw new System.ArgumentException("Range invalid");
-            }
+			Utilities.AssertValidIndicies(cone_lights, start, end);
 
             for (int i = start; i < end; ++i) {
                 // Reference to Cone Light
@@ -204,10 +186,7 @@ namespace LibRender {
 		}
 
 		internal static void UpdateTextTextures(List<Text> texts, int start, int end) {
-			// Check indices
-			if (!(0 <= start && 0 <= end && end <= texts.Count && (end == 0 ? start == end : start < end))) {
-				throw new System.ArgumentException("Range invalid");
-			}
+			Utilities.AssertValidIndicies(texts, start, end);
 
 			// Dummy bitmap with dummy graphics
 			using (Image dummy_img = new Bitmap(1, 1))
@@ -292,10 +271,7 @@ namespace LibRender {
 		}
 
 		internal static void UpdateUIElementMatrices(List<UIElement> uielements, int start, int end) {
-			// Check indices
-			if (!(0 <= start && 0 <= end && end <= uielements.Count && (end == 0 ? start == end : start < end))) {
-				throw new System.ArgumentException("Range invalid");
-			}
+			Utilities.AssertValidIndicies(uielements, start, end);
 
 			for (int i = start; i < end; ++i) {
 				// Reference to uielement
