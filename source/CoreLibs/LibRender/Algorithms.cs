@@ -139,6 +139,7 @@ namespace LibRender {
                 cam_point = Vector3.TransformVector(cam_point, Matrix4.CreateRotationY(MathHelper.DegreesToRadians(c.rotation.X)));
                 cam_point += c.focal_point;
 
+				c.position = cam_point;
                 Matrix4 cam = Matrix4.LookAt(cam_point, c.focal_point, new Vector3(0, 1, 0));
 
 				c.view_matrix = cam;

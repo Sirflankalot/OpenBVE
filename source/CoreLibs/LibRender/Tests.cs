@@ -41,7 +41,7 @@ namespace LibRender {
 			new Pixel() { r=195, g=195, b=195, a=255 },
 			new Pixel() { r= 53, g= 53, b= 53, a=255 },
 			new Pixel() { r=169, g=169, b=169, a=255 },
-			new Pixel() { r=209, g=209, b=209, a=155 },
+			new Pixel() { r=209, g=209, b=209, a=  0 },
 			new Pixel() { r=150, g=150, b=150, a=255 },
 			new Pixel() { r=186, g=186, b=186, a=255 },
 			new Pixel() { r=  0, g=  0, b=  0, a=255 },

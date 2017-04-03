@@ -63,9 +63,9 @@ namespace LibRender {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] geometry_fs {
+        internal static byte[] deferred_geometry_fs {
             get {
-                object obj = ResourceManager.GetObject("geometry_fs", resourceCulture);
+                object obj = ResourceManager.GetObject("deferred_geometry_fs", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -73,9 +73,29 @@ namespace LibRender {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] geometry_vs {
+        internal static byte[] deferred_geometry_vs {
             get {
-                object obj = ResourceManager.GetObject("geometry_vs", resourceCulture);
+                object obj = ResourceManager.GetObject("deferred_geometry_vs", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] forward_geometry_fs {
+            get {
+                object obj = ResourceManager.GetObject("forward_geometry_fs", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] forward_geometry_vs {
+            get {
+                object obj = ResourceManager.GetObject("forward_geometry_vs", resourceCulture);
                 return ((byte[])(obj));
             }
         }

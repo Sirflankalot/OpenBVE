@@ -1,4 +1,5 @@
 ﻿using OpenTK;
+using System.Linq;
 using System.Collections.Generic;
 using GL = OpenTK.Graphics.OpenGL;
 using GLFunc = OpenTK.Graphics.OpenGL.GL;
@@ -126,7 +127,8 @@ namespace LibRender {
 			GLFunc.DeleteFramebuffer(uiColor);
 		}
 		
-		internal ShaderProgram geometry_prog;
+		internal ShaderProgram deferred_geometry_prog;
+		internal ShaderProgram forward_geometry_prog;
 		internal ShaderProgram lightpass_prog;
 		internal ShaderProgram hdrpass_prog;
 		internal ShaderProgram text_prog;
@@ -134,9 +136,13 @@ namespace LibRender {
 		internal ShaderProgram ui_prog;
 
 		internal void InitializeShaders() {
-			var geometry_vertex = new Shader(GL.ShaderType.VertexShader, ShaderSources.geometry_vs);
-			var geometry_fragment = new Shader(GL.ShaderType.FragmentShader, ShaderSources.geometry_fs);
-			geometry_prog = new ShaderProgram(geometry_vertex, geometry_fragment);
+			var deferred_geometry_vertex = new Shader(GL.ShaderType.VertexShader, ShaderSources.deferred_geometry_vs);
+			var deferred_geometry_fragment = new Shader(GL.ShaderType.FragmentShader, ShaderSources.deferred_geometry_fs);
+			deferred_geometry_prog = new ShaderProgram(deferred_geometry_vertex, deferred_geometry_fragment);
+
+			var forward_geometry_vertex = new Shader(GL.ShaderType.VertexShader, ShaderSources.forward_geometry_vs);
+			var forward_geometry_fragment = new Shader(GL.ShaderType.FragmentShader, ShaderSources.forward_geometry_fs);
+			forward_geometry_prog = new ShaderProgram(forward_geometry_vertex, forward_geometry_fragment);
 
 			var onscreenquad_vertex = new Shader(GL.ShaderType.VertexShader, ShaderSources.onscreenquad_vs);
 			var light_fragment = new Shader(GL.ShaderType.FragmentShader, ShaderSources.lightpass_fs);
@@ -156,8 +162,8 @@ namespace LibRender {
 			var ui_fragment = new Shader(GL.ShaderType.FragmentShader, ShaderSources.uielement_fs);
 			ui_prog = new ShaderProgram(ui_vertex, ui_fragment);
 
-			geometry_vertex.Clear();
-			geometry_fragment.Clear();
+			deferred_geometry_vertex.Clear();
+			deferred_geometry_fragment.Clear();
 			onscreenquad_vertex.Clear();
 			hdr_fragment.Clear();
 			light_fragment.Clear();
@@ -169,7 +175,7 @@ namespace LibRender {
 		}
 
 		internal void DeleteShaders() {
-			geometry_prog.Clear();
+			deferred_geometry_prog.Clear();
 			lightpass_prog.Clear();
 			hdrpass_prog.Clear();
 			text_prog.Clear();
@@ -200,10 +206,12 @@ namespace LibRender {
 
 			GLFunc.Enable(GL.EnableCap.DepthTest);
 
-			geometry_prog.Use();
+			deferred_geometry_prog.Use();
 
-			GLFunc.Uniform1(geometry_prog.GetUniform("tex"), 0);
+			GLFunc.Uniform1(deferred_geometry_prog.GetUniform("tex"), 0);
 			GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
+
+			GLFunc.UniformMatrix4(deferred_geometry_prog.GetUniform("viewproj_mat"), false, ref cameras[active_camera].transform_matrix);
 
 			GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, gBuffer);
 
@@ -214,7 +222,12 @@ namespace LibRender {
 			GLFunc.ClearColor(0.5f, 0.5f, 0.5f, 1);
 			GLFunc.Clear(GL.ClearBufferMask.ColorBufferBit | GL.ClearBufferMask.DepthBufferBit | GL.ClearBufferMask.StencilBufferBit);
 
-			foreach (Object o in objects) {
+			List<Object> sorted_objects =
+						   objects.Where((o) => o != null)
+								  .OrderBy((o) => (o.position - cameras[active_camera].position).LengthSquared)
+								  .ToList();
+
+			foreach (Object o in sorted_objects) {
 				// Reference to subobjects
 				Mesh m = meshes[o.mesh_id];
 				Texture t = textures[o.tex_id];
@@ -226,9 +239,8 @@ namespace LibRender {
 
 				GLFunc.BindTexture(GL.TextureTarget.Texture2D, t.gl_id);
 
-				GLFunc.UniformMatrix4(geometry_prog.GetUniform("world_mat"), false, ref o.transform);
-				GLFunc.UniformMatrix4(geometry_prog.GetUniform("view_mat"), false, ref c.transform_matrix);
-				GLFunc.UniformMatrix3(geometry_prog.GetUniform("normal_mat"), false, ref o.inverse_model_view_matrix);
+				GLFunc.UniformMatrix4(deferred_geometry_prog.GetUniform("world_mat"), false, ref o.transform);
+				GLFunc.UniformMatrix3(deferred_geometry_prog.GetUniform("normal_mat"), false, ref o.inverse_model_view_matrix);
 
 				GLFunc.BindVertexArray(m.gl_vao_id);
 
@@ -269,12 +281,59 @@ namespace LibRender {
 
 			GLFunc.DrawBuffers(1, attachments);
 			GLFunc.DepthFunc(GL.DepthFunction.Greater);
+			GLFunc.DepthMask(false);
 
 			GLFunc.ClearColor(0.05112f, 0.3066f, 0.9075f, 1.0f); // SRGB 66, 149, 244, 255
 			GLFunc.Clear(GL.ClearBufferMask.ColorBufferBit);
 			RenderFullscreenQuad();
 
 			GLFunc.DepthFunc(GL.DepthFunction.Less);
+
+			// Render the transparent parts of the transparent objects
+
+			// Sort all transparent objects by distance from the camera
+			GLFunc.Enable(GL.EnableCap.Blend);
+
+			List<Object> transparent =
+						   objects.Where((o) => o != null ? textures[o.tex_id].has_transparancy : false)
+								  .OrderByDescending((o) => (o.position - cameras[active_camera].position).LengthSquared)
+								  .ToList();
+
+			forward_geometry_prog.Use();
+
+			GLFunc.Uniform1(lightpass_prog.GetUniform("model_tex"), 0);
+			GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
+
+			GLFunc.UniformMatrix4(forward_geometry_prog.GetUniform("proj_mat"), false, ref cameras[active_camera].proj_matrix);
+			GLFunc.Uniform3(forward_geometry_prog.GetUniform("sunDir", true), sun_vec);
+			GLFunc.Uniform3(forward_geometry_prog.GetUniform("suncolor"), sun.color);
+			GLFunc.Uniform1(forward_geometry_prog.GetUniform("sunbrightness"), sun.brightness);
+			
+			foreach (Object o in transparent) {
+				// Reference to subobjects
+				Mesh m = meshes[o.mesh_id];
+				Texture t = textures[o.tex_id];
+				Camera c = cameras[active_camera];
+
+				if (o == null || !o.visible || m == null || t == null) {
+					continue;
+				}
+
+				GLFunc.BindTexture(GL.TextureTarget.Texture2D, t.gl_id);
+
+				GLFunc.UniformMatrix4(forward_geometry_prog.GetUniform("world_mat"), false, ref o.transform);
+				GLFunc.UniformMatrix4(forward_geometry_prog.GetUniform("view_mat"), false, ref c.view_matrix);
+				GLFunc.UniformMatrix3(forward_geometry_prog.GetUniform("normal_mat"), false, ref o.inverse_model_view_matrix);
+
+				GLFunc.BindVertexArray(m.gl_vao_id);
+
+				GLFunc.DrawElements(GL.BeginMode.Triangles, m.indices.Count, GL.DrawElementsType.UnsignedInt, 0);
+
+				GLFunc.BindVertexArray(0);
+			}
+
+			GLFunc.Disable(GL.EnableCap.Blend);
+			GLFunc.DepthMask(true);
 
 			// Render to Backbuffer
 			hdrpass_prog.Use();

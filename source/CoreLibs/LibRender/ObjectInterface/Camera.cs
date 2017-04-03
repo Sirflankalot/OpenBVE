@@ -11,6 +11,7 @@ namespace LibRender {
 
 	internal class Camera {
 		internal Vector3 focal_point;
+		internal Vector3 position;
 		internal Vector2 rotation;
 		internal float distance;
 		internal Matrix4 transform_matrix = new Matrix4();
@@ -35,10 +36,11 @@ namespace LibRender {
 		}
 
 		public CameraHandle AddCamera(Vector3 location, Vector2 rotation, float fov, bool active = true) {
-			Camera c = new Camera();
-			c.focal_point = location;
-			c.rotation = rotation;
-			c.fov = fov;
+			Camera c = new Camera() {
+				focal_point = location,
+				rotation = rotation,
+				fov = fov
+			};
 			cameras.Add(c);
 			var index = cameras.Count - 1;
 			if (active) {

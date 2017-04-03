@@ -82,5 +82,13 @@ namespace LibRender {
 
 			textures[th.id] = null;
 		}
+
+		///////////////////////////////
+		// Texture Utility Functions //
+		///////////////////////////////
+
+		public TextureHandle AddTextureFromColor(Pixel color) {
+			return AddTexture(new Pixel[] { color }, 1, 1);
+		}
 	}
 }

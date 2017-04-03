@@ -118,12 +118,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="geometry_fs" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Shaders/geometry.fs.glsl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="geometry_vs" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Shaders/geometry.vs.glsl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="hdrpass_fs" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Shaders/hdrpass.fs.glsl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -147,5 +141,17 @@
   </data>
   <data name="uielement_vs" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Shaders/uielement.vs.glsl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="deferred_geometry_fs" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Shaders/deferred_geometry.fs.glsl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="deferred_geometry_vs" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Shaders/deferred_geometry.vs.glsl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="forward_geometry_fs" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Shaders/forward_geometry.fs.glsl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="forward_geometry_vs" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Shaders/forward_geometry.vs.glsl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>

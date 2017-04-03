@@ -89,8 +89,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\geometry.fs.glsl" />
-    <None Include="Shaders\geometry.vs.glsl" />
+    <None Include="Shaders\deferred_geometry.fs.glsl" />
+    <None Include="Shaders\forward_geometry.vs.glsl" />
+    <None Include="Shaders\deferred_geometry.vs.glsl" />
+    <None Include="Shaders\forward_geometry.fs.glsl" />
     <None Include="Shaders\hdrpass.fs.glsl" />
     <None Include="Shaders\lightpass.fs.glsl" />
     <None Include="Shaders\onscreenquad.vs.glsl" />
