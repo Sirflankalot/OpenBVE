@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using OpenTK;
+using OpenBveApi;
 
 namespace LibRender {
 	public static class Tests {

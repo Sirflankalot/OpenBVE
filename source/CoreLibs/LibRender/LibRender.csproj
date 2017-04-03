@@ -51,8 +51,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GFXInterface.cs" />
-    <Compile Include="ObjectAPI.cs" />
     <Compile Include="Algorithms.cs" />
+    <Compile Include="ObjectInterface\Camera.cs" />
+    <Compile Include="ObjectInterface\ConeLight.cs" />
+    <Compile Include="ObjectInterface\FlatMesh.cs" />
+    <Compile Include="ObjectInterface\Text.cs" />
+    <Compile Include="ObjectInterface\Sun.cs" />
+    <Compile Include="ObjectInterface\PointLight.cs" />
+    <Compile Include="ObjectInterface\Object.cs" />
+    <Compile Include="ObjectInterface\Texture.cs" />
+    <Compile Include="ObjectInterface\Mesh.cs" />
+    <Compile Include="ObjectInterface\UIElement.cs" />
     <Compile Include="Position.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rendering.cs" />
@@ -66,7 +75,12 @@
     <Compile Include="Tests.cs" />
     <Compile Include="Error.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\OpenBveApi\OpenBveApi.csproj">
+      <Project>{27134980-4415-4375-a564-40a9014dfa5f}</Project>
+      <Name>OpenBveApi</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ShaderSources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

@@ -346,6 +346,7 @@ $(DEBUG_DIR)/$(OPEN_BVE_API_FILE) $(RELEASE_DIR)/$(OPEN_BVE_API_FILE): $(OPEN_BV
 	@echo $(COLOR_MAGENTA)Building $(COLOR_CYAN)$(OPEN_BVE_API_OUT)$(COLOR_END)
 	@$(CSC) /out:$(OPEN_BVE_API_OUT) /target:library $(OPEN_BVE_API_SRC) $(ARGS) $(OPEN_BVE_API_DOC) \
 	/reference:$(OUTPUT_DIR)/CSScriptLibrary.dll /reference:$(OUTPUT_DIR)/NUniversalCharDet.dll /reference:$(OUTPUT_DIR)/SharpCompress.Unsigned.dll \
+	/reference:$(OUTPUT_DIR)/OpenTK.dll \
 	/reference:System.Core.dll /reference:System.dll \
 	$(addprefix /resource:, $(OPEN_BVE_API_RESOURCE))
 
@@ -354,7 +355,7 @@ $(DEBUG_DIR)/$(OPEN_BVE_API_FILE) $(RELEASE_DIR)/$(OPEN_BVE_API_FILE): $(OPEN_BV
 # LibRender #
 #############
 
-LIB_RENDER_FOLDERS  := . Properties
+LIB_RENDER_FOLDERS  := . Properties ObjectInterface
 LIB_RENDER_FOLDERS  := $(addprefix $(LIB_RENDER_ROOT)/, $(LIB_RENDER_FOLDERS))
 LIB_RENDER_SRC      := $(foreach sdir, $(LIB_RENDER_FOLDERS), $(wildcard $(sdir)/*.cs))
 LIB_RENDER_DOC      := $(addprefix /doc:, $(foreach sdir, $(LIB_RENDER_FOLDERS), $(wildcard $(sdir)/*.xml)))
@@ -365,13 +366,15 @@ LIB_RENDER_OUT       = $(OUTPUT_DIR)/$(LIB_RENDER_FILE)
 $(call create_resource, $(LIB_RENDER_RESOURCE), $(LIB_RENDER_RESX))
 
 $(DEBUG_DIR)/$(LIB_RENDER_FILE): $(DEBUG_DEPEND)
+$(DEBUG_DIR)/$(LIB_RENDER_FILE): $(DEBUG_DIR)/$(OPEN_BVE_API_FILE)
 $(RELEASE_DIR)/$(LIB_RENDER_FILE): $(RELEASE_DEPEND)
+$(RELEASE_DIR)/$(LIB_RENDER_FILE): $(RELEASE_DIR)/$(OPEN_BVE_API_FILE)
 
 $(DEBUG_DIR)/$(LIB_RENDER_FILE) $(RELEASE_DIR)/$(LIB_RENDER_FILE): $(LIB_RENDER_SRC) $(LIB_RENDER_RESOURCE)
 	@echo $(COLOR_MAGENTA)Building $(COLOR_CYAN)$(LIB_RENDER_OUT)$(COLOR_END)
 	@$(CSC) /out:$(LIB_RENDER_OUT) /target:library $(LIB_RENDER_SRC) $(ARGS) $(LIB_RENDER_DOC) \
 	/reference:$(OUTPUT_DIR)/OpenTK.dll \
-	/reference:System.Core.dll /reference:System.dll \
+	/reference:System.Core.dll /reference:System.dll /reference:$(OPEN_BVE_API_OUT) \
 	$(addprefix /resource:, $(LIB_RENDER_RESOURCE))
 
 

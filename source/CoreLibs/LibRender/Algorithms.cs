@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using GL = OpenTK.Graphics.OpenGL;
 using GLFunc = OpenTK.Graphics.OpenGL.GL;
+using OpenBveApi;
 
 namespace LibRender {
     internal static class Algorithms {
