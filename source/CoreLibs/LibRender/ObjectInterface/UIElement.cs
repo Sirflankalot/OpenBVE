@@ -3,15 +3,15 @@ using System.Collections.Generic;
 
 namespace LibRender {
 	public struct UIElementHandle {
-		internal int id;
-		internal UIElementHandle(int id) {
+		internal long id;
+		internal UIElementHandle(long id) {
 			this.id = id;
 		}
 	}
 
 	internal class UIElement {
-		internal int flatmesh_id;
-		internal int tex_id;
+		internal FlatMeshHandle flatmesh;
+		internal TextureHandle texture;
 		internal Position location;
 		internal Vector2 scale;
 		internal float rotation;
@@ -19,49 +19,65 @@ namespace LibRender {
 		internal Matrix2 transform = new Matrix2();
 		internal bool matrix_valid;
 		internal bool visible = true;
+
+		internal UIElementHandle handle;
 	}
 
 	public partial class Renderer {
+		internal long uielements_id = 0;
+		internal Dictionary<long, int> uielements_translation = new Dictionary<long, int>();
 		internal List<UIElement> uielements = new List<UIElement>();
 
-		internal void AssertValid(UIElementHandle uieh) {
-			if (uielements.Count <= uieh.id) {
+		internal int AssertValid(UIElementHandle uieh) {
+			int real;
+			if (!uielements_translation.TryGetValue(uieh.id, out real)) {
+				throw new System.ArgumentException("Invalid UIElementHandle, no possible translation" + uieh.id.ToString());
+			}
+			if (uielements.Count <= real) {
 				throw new System.ArgumentException("UI Element Handle ID larger than array: " + uieh.id.ToString());
 			}
 
-			if (uielements[uieh.id] == null) {
+			if (uielements[real] == null) {
 				throw new System.ArgumentNullException("Accessing a deleted uielement: " + uieh.id.ToString());
 			}
+			return real;
 		}
 
 		public UIElementHandle AddUIElement(FlatMeshHandle fmh, TextureHandle th, Position location, Vector2 scale, float rotation = 0, int depth = 0) {
 			AssertValid(fmh);
 			AssertValid(th);
 
-			UIElement uie = new UIElement();
-			uie.flatmesh_id = fmh.id;
-			uie.tex_id = th.id;
-			uie.location = location;
-			uie.scale = scale;
-			uie.rotation = rotation;
-			uie.depth = depth;
+			UIElement uie = new UIElement() {
+				flatmesh = fmh,
+				texture = th,
+				location = location,
+				scale = scale,
+				rotation = rotation,
+				depth = depth
+			};
+
+			long id = uielements_id++;
+			uie.handle = new UIElementHandle(id);
+
+			uielements_translation.Add(id, uielements.Count);
 			uielements.Add(uie);
-			return new UIElementHandle(uielements.Count - 1);
+			return uie.handle;
 		}
 
 		public void Update(UIElementHandle uieh, FlatMeshHandle fmh, TextureHandle th) {
-			AssertValid(uieh);
+			int id = AssertValid(uieh);
 			AssertValid(fmh);
 			AssertValid(th);
 
-			uielements[uieh.id].flatmesh_id = fmh.id;
-			uielements[uieh.id].tex_id = th.id;
+			uielements[id].flatmesh = fmh;
+			uielements[id].texture = th;
 		}
 
 		public void Delete(UIElementHandle uieh) {
-			AssertValid(uieh);
+			int id = AssertValid(uieh);
 
-			uielements[uieh.id] = null;
+			uielements_translation.Remove(uieh.id);
+			uielements[id] = null;
 		}
 
 		///////////////////////////////////
@@ -69,64 +85,64 @@ namespace LibRender {
 		///////////////////////////////////
 
 		public Position GetLocation(UIElementHandle uieh) {
-			AssertValid(uieh);
+			int id = AssertValid(uieh);
 
-			return uielements[uieh.id].location;
+			return uielements[id].location;
 		}
 
 		public Vector2 GetScale(UIElementHandle uieh) {
-			AssertValid(uieh);
+			int id = AssertValid(uieh);
 
-			return uielements[uieh.id].scale;
+			return uielements[id].scale;
 		}
 
 		public float GetRotation(UIElementHandle uieh) {
-			AssertValid(uieh);
+			int id = AssertValid(uieh);
 
-			return uielements[uieh.id].rotation;
+			return uielements[id].rotation;
 		}
 
 		public int GetDepth(UIElementHandle uieh) {
-			AssertValid(uieh);
+			int id = AssertValid(uieh);
 
-			return uielements[uieh.id].depth;
+			return uielements[id].depth;
 		}
 
 		public bool GetVisibility(UIElementHandle uieh) {
-			AssertValid(uieh);
+			int id = AssertValid(uieh);
 
-			return uielements[uieh.id].visible;
+			return uielements[id].visible;
 		}
 
 		public void SetLocation(UIElementHandle uieh, Position location) {
-			AssertValid(uieh);
+			int id = AssertValid(uieh);
 
-			uielements[uieh.id].location = location;
+			uielements[id].location = location;
 		}
 
 		public void SetScale(UIElementHandle uieh, Vector2 scale) {
-			AssertValid(uieh);
+			int id = AssertValid(uieh);
 
-			uielements[uieh.id].scale = scale;
+			uielements[id].scale = scale;
 		}
 
 		public void SetRotation(UIElementHandle uieh, float rotation) {
-			AssertValid(uieh);
+			int id = AssertValid(uieh);
 
-			uielements[uieh.id].rotation = rotation;
-			uielements[uieh.id].matrix_valid = false;
+			uielements[id].rotation = rotation;
+			uielements[id].matrix_valid = false;
 		}
 
 		public void SetDepth(UIElementHandle uieh, int depth) {
-			AssertValid(uieh);
+			int id = AssertValid(uieh);
 
-			uielements[uieh.id].depth = depth;
+			uielements[id].depth = depth;
 		}
 
 		public void SetVisibility(UIElementHandle uieh, bool visible) {
-			AssertValid(uieh);
+			int id = AssertValid(uieh);
 
-			uielements[uieh.id].visible = visible;
+			uielements[id].visible = visible;
 		}
 	}
 }

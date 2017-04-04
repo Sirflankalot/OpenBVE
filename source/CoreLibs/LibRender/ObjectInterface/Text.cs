@@ -6,8 +6,8 @@ using OpenBveApi;
 
 namespace LibRender {
 	public struct TextHandle {
-		internal int id;
-		internal TextHandle(int id) {
+		internal long id;
+		internal TextHandle(long id) {
 			this.id = id;
 		}
 	}
@@ -32,50 +32,67 @@ namespace LibRender {
 
 		internal bool visible = true;
 
+		internal TextHandle handle;
+
 		internal Text Copy() {
-			Text t = new Text();
-			t.font = font;
-			t.color = color;
-			t.location = location;
+			Text t = new Text() {
+				font = font,
+				color = color,
+				location = location,
+				texture_ready = texture_ready,
+				visible = visible
+			};
 			if (texture_ready) {
 				t.texture.AddRange(texture);
 			}
-			t.texture_ready = texture_ready;
-			t.visible = visible;
 			return t;
 		}
 	}
 
 	public partial class Renderer {
+		internal long texts_id = 0;
+		internal Dictionary<long, int> texts_translation = new Dictionary<long, int>();
 		internal List<Text> texts = new List<Text>();
 
-		internal void AssertValid(TextHandle th) {
-			if (texts.Count <= th.id) {
+		internal int AssertValid(TextHandle th) {
+			int real;
+			if (!texts_translation.TryGetValue(th.id, out real)) {
+				throw new System.ArgumentException("Invalid TextHandle, no possible translation" + th.id.ToString());
+			}
+			if (texts.Count <= real) {
 				throw new System.ArgumentException("Text Handle ID larger than array: " + th.id.ToString());
 			}
-			if (texts[th.id] == null) {
+			if (texts[real] == null) {
 				throw new System.ArgumentNullException("Accessing a deleted text: " + th.id.ToString());
 			}
+			return real;
 		}
 
 		public TextHandle AddText(string text, Font font, Pixel color, Position location, int depth = 0, int max_width = 0) {
-			Text t = new Text();
-			t.text = text;
-			t.font = font;
-			t.color = new Vector4(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
-			t.location = location;
-			t.depth = depth;
-			t.max_width = max_width;
+			Text t = new Text() {
+				text = text,
+				font = font,
+				color = new Vector4(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f),
+				location = location,
+				depth = depth,
+				max_width = max_width
+			};
+
+			long id = texts_id++;
+			t.handle = new TextHandle(id);
+
+			texts_translation.Add(id, texts.Count);
 			texts.Add(t);
-			return new TextHandle(texts.Count - 1);
+			return t.handle;
 		}
 
 		public void Delete(TextHandle th) {
-			AssertValid(th);
+			int id = AssertValid(th);
 
-			GLFunc.DeleteTexture(texts[th.id].gl_tex_id);
+			GLFunc.DeleteTexture(texts[id].gl_tex_id);
 
-			texts[th.id] = null;
+			texts_translation.Remove(th.id);
+			texts[id] = null;
 		}
 
 		//////////////////////////////
@@ -83,104 +100,104 @@ namespace LibRender {
 		//////////////////////////////
 
 		public string GetText(TextHandle th) {
-			AssertValid(th);
+			int id = AssertValid(th);
 
-			return texts[th.id].text;
+			return texts[id].text;
 		}
 
 		public Font GetFont(TextHandle th) {
-			AssertValid(th);
+			int id = AssertValid(th);
 
-			return texts[th.id].font;
+			return texts[id].font;
 		}
 
 		public int GetMaxWidth(TextHandle th) {
-			AssertValid(th);
+			int id = AssertValid(th);
 
-			return texts[th.id].max_width;
+			return texts[id].max_width;
 		}
 
 		public int GetDepth(TextHandle th) {
-			AssertValid(th);
+			int id = AssertValid(th);
 
-			return texts[th.id].depth;
+			return texts[id].depth;
 		}
 
 		public Vector2 GetDimentions(TextHandle th) {
-			AssertValid(th);
+			int id = AssertValid(th);
 
-			if (texts[th.id].texture_ready == false) {
-				Algorithms.UpdateTextTextures(texts, th.id, th.id + 1);
+			if (texts[id].texture_ready == false) {
+				Algorithms.UpdateTextTextures(texts, id, id + 1);
 			}
 
-			return new Vector2(texts[th.id].width, texts[th.id].height);
+			return new Vector2(texts[id].width, texts[id].height);
 		}
 
 		public Pixel GetColor(TextHandle th) {
-			AssertValid(th);
+			int id = AssertValid(th);
 
-			Vector4 orig = texts[th.id].color;
+			Vector4 orig = texts[id].color;
 			return new Pixel { r = (byte) (orig.X * 255.0f), g = (byte) (orig.Y * 255.0f), b = (byte) (orig.Z * 255.0f), a = (byte) (orig.W * 255.0f) };
 		}
 
 		public Position GetLocation(TextHandle th) {
-			AssertValid(th);
+			int id = AssertValid(th);
 
-			return texts[th.id].location;
+			return texts[id].location;
 		}
 
 		public bool GetVisibility(TextHandle th) {
-			AssertValid(th);
+			int id = AssertValid(th);
 
-			return texts[th.id].visible;
+			return texts[id].visible;
 		}
 
 		public void SetText(TextHandle th, string text) {
-			AssertValid(th);
+			int id = AssertValid(th);
 
-			texts[th.id].text = text;
-			texts[th.id].texture_ready = false;
-			texts[th.id].uploaded = false;
+			texts[id].text = text;
+			texts[id].texture_ready = false;
+			texts[id].uploaded = false;
 		}
 
 		public void SetFont(TextHandle th, Font font) {
-			AssertValid(th);
+			int id = AssertValid(th);
 
-			texts[th.id].font = font;
-			texts[th.id].texture_ready = false;
-			texts[th.id].uploaded = false;
+			texts[id].font = font;
+			texts[id].texture_ready = false;
+			texts[id].uploaded = false;
 		}
 
 		public void SetMaxWidth(TextHandle th, int max_width) {
-			AssertValid(th);
+			int id = AssertValid(th);
 
-			texts[th.id].max_width = max_width;
-			texts[th.id].texture_ready = false;
-			texts[th.id].uploaded = false;
+			texts[id].max_width = max_width;
+			texts[id].texture_ready = false;
+			texts[id].uploaded = false;
 		}
 
 		public void SetDepth(TextHandle th, int depth) {
-			AssertValid(th);
+			int id = AssertValid(th);
 
-			texts[th.id].depth = depth;
+			texts[id].depth = depth;
 		}
 
 		public void SetColor(TextHandle th, Pixel color) {
-			AssertValid(th);
+			int id = AssertValid(th);
 
-			texts[th.id].color = new Vector4(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
+			texts[id].color = new Vector4(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
 		}
 
 		public void SetLocation(TextHandle th, Position location) {
-			AssertValid(th);
+			int id = AssertValid(th);
 
-			texts[th.id].location = location;
+			texts[id].location = location;
 		}
 
 		public void SetVisibility(TextHandle th, bool visible) {
-			AssertValid(th);
+			int id = AssertValid(th);
 
-			texts[th.id].visible = visible;
+			texts[id].visible = visible;
 		}
 	}
 }

@@ -229,8 +229,8 @@ namespace LibRender {
 
 			foreach (Object o in sorted_objects) {
 				// Reference to subobjects
-				Mesh m = meshes[o.mesh_id];
-				Texture t = textures[o.tex_id];
+				Mesh m = meshes[AssertValid(o.mesh)];
+				Texture t = textures[AssertValid(o.texture)];
 				Camera c = cameras[active_camera];
 
 				if (o == null || !o.visible || m == null || t == null) {
@@ -295,7 +295,7 @@ namespace LibRender {
 			GLFunc.Enable(GL.EnableCap.Blend);
 
 			List<Object> transparent =
-						   objects.Where((o) => o != null ? textures[o.tex_id].has_transparancy : false)
+						   objects.Where((o) => o != null ? textures[AssertValid(o.texture)].has_transparancy : false)
 								  .OrderByDescending((o) => (o.position - cameras[active_camera].position).LengthSquared)
 								  .ToList();
 
@@ -311,8 +311,8 @@ namespace LibRender {
 			
 			foreach (Object o in transparent) {
 				// Reference to subobjects
-				Mesh m = meshes[o.mesh_id];
-				Texture t = textures[o.tex_id];
+				Mesh m = meshes[AssertValid(o.mesh)];
+				Texture t = textures[AssertValid(o.texture)];
 				Camera c = cameras[active_camera];
 
 				if (o == null || !o.visible || m == null || t == null) {
@@ -365,7 +365,7 @@ namespace LibRender {
 			for (int i = 0; i < uielements.Count; ++i) {
 				UIElement uie = uielements[i];
 
-				if (uie == null || !uie.visible || textures[uie.tex_id] == null || flat_meshes[uie.flatmesh_id] == null) {
+				if (uie == null || !uie.visible || textures[AssertValid(uie.texture)] == null || flat_meshes[AssertValid(uie.flatmesh)] == null) {
 					continue;
 				}
 				uiinfos.Add(new UIInfo() { type = UIInfo.Type.uielement, index = i, depth = uie.depth });
@@ -415,8 +415,8 @@ namespace LibRender {
 					UIElement uie = uielements[info.index];
 
 					// References to subobjects
-					Texture t = textures[uie.tex_id];
-					FlatMesh fm = flat_meshes[uie.flatmesh_id];
+					Texture t = textures[AssertValid(uie.texture)];
+					FlatMesh fm = flat_meshes[AssertValid(uie.flatmesh)];
 
 					GLFunc.BindTexture(GL.TextureTarget.Texture2D, t.gl_id);
 

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 namespace LibRender {
 	public struct PointLightHandle {
-		internal int id;
-		internal PointLightHandle(int id) {
+		internal long id;
+		internal PointLightHandle(long id) {
 			this.id = id;
 		}
 	}
@@ -12,32 +12,47 @@ namespace LibRender {
 	internal class Point_Light {
 		internal Vector3 location;
 		internal float brightness;
+
+		internal PointLightHandle handle;
 	}
 
 	public partial class Renderer {
+		internal long point_lights_id = 0;
+		internal Dictionary<long, int> point_lights_translation = new Dictionary<long, int>();
 		internal List<Point_Light> point_lights = new List<Point_Light>();
 
-		internal void AssertValid(PointLightHandle plh) {
-			if (point_lights.Count <= plh.id) {
+		internal int AssertValid(PointLightHandle plh) {
+			int real;
+			if (!point_lights_translation.TryGetValue(plh.id, out real)) {
+				throw new System.ArgumentException("Invalid PointLightHandle, no possible translation" + plh.id.ToString());
+			}
+			if (point_lights.Count <= real) {
 				throw new System.ArgumentException("Point Light Handle ID larger than array: " + plh.id.ToString());
 			}
-			if (point_lights[plh.id] == null) {
+			if (point_lights[real] == null) {
 				throw new System.ArgumentNullException("Accessing a deleted point light: " + plh.id.ToString());
 			}
+			return real;
 		}
 
 		public PointLightHandle AddPointLight(Vector3 location, float brightness) {
 			Point_Light pl = new Point_Light();
 			pl.location = location;
 			pl.brightness = brightness;
+
+			long id = point_lights_id++;
+			pl.handle = new PointLightHandle(id);
+
+			point_lights_translation.Add(id, point_lights.Count);
 			point_lights.Add(pl);
-			return new PointLightHandle(point_lights.Count - 1);
+			return pl.handle;
 		}
 
 		public void Delete(PointLightHandle plh) {
-			AssertValid(plh);
+			int id = AssertValid(plh);
 
-			point_lights[plh.id] = null;
+			point_lights_translation.Remove(plh.id);
+			point_lights[id] = null;
 		}
 
 		/////////////////////////////////////
@@ -45,27 +60,27 @@ namespace LibRender {
 		/////////////////////////////////////
 
 		public Vector3 GetLocation(PointLightHandle plh) {
-			AssertValid(plh);
+			int id = AssertValid(plh);
 
-			return point_lights[plh.id].location;
+			return point_lights[id].location;
 		}
 
 		public float GetBrightness(PointLightHandle plh) {
-			AssertValid(plh);
+			int id = AssertValid(plh);
 
-			return point_lights[plh.id].brightness;
+			return point_lights[id].brightness;
 		}
 
 		public void SetLocation(PointLightHandle plh, Vector3 location) {
-			AssertValid(plh);
+			int id = AssertValid(plh);
 
-			point_lights[plh.id].location = location;
+			point_lights[id].location = location;
 		}
 
 		public void SetBrightness(PointLightHandle plh, float brightness) {
-			AssertValid(plh);
+			int id = AssertValid(plh);
 
-			point_lights[plh.id].brightness = brightness;
+			point_lights[id].brightness = brightness;
 		}
 	}
 }

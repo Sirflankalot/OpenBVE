@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 namespace LibRender {
 	public struct CameraHandle {
-		internal int id;
-		internal CameraHandle(int id) {
+		internal long id;
+		internal CameraHandle(long id) {
 			this.id = id;
 		}
 	}
@@ -20,19 +20,28 @@ namespace LibRender {
 		internal Matrix4 inverse_projection_matrix = new Matrix4();
 		internal bool matrix_valid = false;
 		internal float fov;
+
+		internal CameraHandle handle;
 	}
 
 	public partial class Renderer {
-		internal List<Camera> cameras = new List<Camera>() { new Camera() { focal_point = new Vector3(0), rotation = new Vector2(0), distance = -10, fov = 50 } };
+		internal long camera_current_id = 0;
+		internal Dictionary<long, int> camera_translation = new Dictionary<long, int>() { { 0, 0 } };
+		internal List<Camera> cameras = new List<Camera>() { new Camera() { focal_point = new Vector3(0), rotation = new Vector2(0), distance = -10, fov = 50, handle = new CameraHandle(0) } };
 		internal int active_camera;
 
-		internal void AssertValid(CameraHandle ch) {
-			if (cameras.Count <= ch.id) {
+		internal int AssertValid(CameraHandle ch) {
+			int real;
+			if(!camera_translation.TryGetValue(ch.id, out real)) {
+				throw new System.ArgumentException("Invalid CameraHandle, no possible translation" + ch.id.ToString());
+			}
+			if (cameras.Count <= real) {
 				throw new System.ArgumentException("Camera Handle ID larger than array: " + ch.id.ToString());
 			}
-			if (cameras[ch.id] == null) {
+			if (cameras[real] == null) {
 				throw new System.ArgumentNullException("Accessing a deleted camera: " + ch.id.ToString());
 			}
+			return real;
 		}
 
 		public CameraHandle AddCamera(Vector3 location, Vector2 rotation, float fov, bool active = true) {
@@ -41,23 +50,29 @@ namespace LibRender {
 				rotation = rotation,
 				fov = fov
 			};
+
+			long id = camera_current_id++;
+			c.handle = new CameraHandle(id);
+
+			int index_active = cameras.Count;
+			camera_translation.Add(id, index_active);
 			cameras.Add(c);
-			var index = cameras.Count - 1;
 			if (active) {
-				active_camera = index;
+				active_camera = index_active;
 			}
-			return new CameraHandle(index);
+			return c.handle;
 		}
 
 		public void Delete(CameraHandle ch) {
-			AssertValid(ch);
+			int id = AssertValid(ch);
 
 			// TODO: Log deleting default camera
-			if (ch.id == 0) {
+			if (id == 0) {
 				return;
 			}
 
-			cameras[ch.id] = null;
+			camera_translation.Remove(ch.id);
+			cameras[id] = null;
 		}
 
 		////////////////////////////////
@@ -65,27 +80,27 @@ namespace LibRender {
 		////////////////////////////////
 
 		public Vector3 GetLocation(CameraHandle ch) {
-			AssertValid(ch);
+			int id = AssertValid(ch);
 
-			return cameras[ch.id].focal_point;
+			return cameras[id].focal_point;
 		}
 
 		public Vector2 GetRotation(CameraHandle ch) {
-			AssertValid(ch);
+			int id = AssertValid(ch);
 
-			return cameras[ch.id].rotation;
+			return cameras[id].rotation;
 		}
 
 		public float GetDistance(CameraHandle ch) {
-			AssertValid(ch);
+			int id = AssertValid(ch);
 
-			return cameras[ch.id].distance;
+			return cameras[id].distance;
 		}
 
 		public float GetFOV(CameraHandle ch) {
-			AssertValid(ch);
+			int id = AssertValid(ch);
 
-			return cameras[ch.id].fov;
+			return cameras[id].fov;
 		}
 
 		public CameraHandle GetActiveCamera() {
@@ -97,41 +112,41 @@ namespace LibRender {
 		}
 
 		public void SetLocation(CameraHandle ch, Vector3 location) {
-			AssertValid(ch);
+			int id = AssertValid(ch);
 
-			cameras[ch.id].focal_point = location;
-			cameras[ch.id].matrix_valid = false;
+			cameras[id].focal_point = location;
+			cameras[id].matrix_valid = false;
 			Algorithms.ClearObjectModelViewMatrices(objects, 0, objects.Count);
 		}
 
 		public void SetRotation(CameraHandle ch, Vector2 rotation) {
-			AssertValid(ch);
+			int id = AssertValid(ch);
 
-			cameras[ch.id].rotation = rotation;
-			cameras[ch.id].matrix_valid = false;
+			cameras[id].rotation = rotation;
+			cameras[id].matrix_valid = false;
 			Algorithms.ClearObjectModelViewMatrices(objects, 0, objects.Count);
 		}
 
 		public void SetDistance(CameraHandle ch, float distance) {
-			AssertValid(ch);
+			int id = AssertValid(ch);
 
-			cameras[ch.id].distance = distance;
-			cameras[ch.id].matrix_valid = false;
+			cameras[id].distance = distance;
+			cameras[id].matrix_valid = false;
 			Algorithms.ClearObjectModelViewMatrices(objects, 0, objects.Count);
 		}
 
 		public void SetFOV(CameraHandle ch, float fov) {
-			AssertValid(ch);
+			int id = AssertValid(ch);
 
-			cameras[ch.id].fov = fov;
-			cameras[ch.id].matrix_valid = false;
+			cameras[id].fov = fov;
+			cameras[id].matrix_valid = false;
 		}
 
 		public void SetActiveCamera(CameraHandle ch) {
-			AssertValid(ch);
+			int id = AssertValid(ch);
 
-			active_camera = ch.id;
-			cameras[ch.id].matrix_valid = false;
+			active_camera = id;
+			cameras[id].matrix_valid = false;
 			Algorithms.ClearObjectModelViewMatrices(objects, 0, objects.Count);
 		}
 	}

@@ -4,8 +4,8 @@ using OpenBveApi;
 
 namespace LibRender {
 	public struct FlatMeshHandle {
-		internal int id;
-		internal FlatMeshHandle(int id) {
+		internal long id;
+		internal FlatMeshHandle(long id) {
 			this.id = id;
 		}
 	}
@@ -20,6 +20,8 @@ namespace LibRender {
 
 		internal bool uploaded = false;
 
+		internal FlatMeshHandle handle;
+
 		internal FlatMesh Copy() {
 			FlatMesh fm = new FlatMesh();
 			fm.vertices.AddRange(vertices);
@@ -30,44 +32,57 @@ namespace LibRender {
 	}
 
 	public partial class Renderer {
+		internal long flat_meshes_id = 0;
+		internal Dictionary<long, int> flat_meshes_translation = new Dictionary<long, int>();
 		internal List<FlatMesh> flat_meshes = new List<FlatMesh>();
 
-		internal void AssertValid(FlatMeshHandle fmh) {
-			if (flat_meshes.Count <= fmh.id) {
+		internal int AssertValid(FlatMeshHandle fmh) {
+			int real;
+			if (!flat_meshes_translation.TryGetValue(fmh.id, out real)) {
+				throw new System.ArgumentException("Invalid FlatMeshHandle, no possible translation" + fmh.id.ToString());
+			}
+			if (flat_meshes.Count <= real) {
 				throw new System.ArgumentException("Flat Mesh Handle ID larger than array: " + fmh.id.ToString());
 			}
 
-			if (flat_meshes[fmh.id] == null) {
+			if (flat_meshes[real] == null) {
 				throw new System.ArgumentNullException("Accessing a deleted flat mesh: " + fmh.id.ToString());
 			}
+			return real;
 		}
 
 		public FlatMeshHandle AddFlatMesh(Vertex2D[] mesh, int[] indices) {
 			FlatMesh fm = new FlatMesh();
 			fm.vertices.AddRange(mesh);
 			fm.indices.AddRange(indices);
+
+			long id = flat_meshes_id++;
+			fm.handle = new FlatMeshHandle(id);
+
+			flat_meshes_translation.Add(id, flat_meshes.Count);
 			flat_meshes.Add(fm);
-			return new FlatMeshHandle(flat_meshes.Count - 1);
+			return fm.handle;
 		}
 
 		public void Update(FlatMeshHandle fmh, Vertex2D[] mesh, int[] indices) {
-			AssertValid(fmh);
+			int id = AssertValid(fmh);
 
-			flat_meshes[fmh.id].vertices.Clear();
-			flat_meshes[fmh.id].vertices.AddRange(mesh);
-			flat_meshes[fmh.id].indices.Clear();
-			flat_meshes[fmh.id].indices.AddRange(indices);
-			flat_meshes[fmh.id].uploaded = false;
+			flat_meshes[id].vertices.Clear();
+			flat_meshes[id].vertices.AddRange(mesh);
+			flat_meshes[id].indices.Clear();
+			flat_meshes[id].indices.AddRange(indices);
+			flat_meshes[id].uploaded = false;
 		}
 
 		public void Delete(FlatMeshHandle fmh) {
-			AssertValid(fmh);
+			int id = AssertValid(fmh);
 
-			GLFunc.DeleteVertexArray(flat_meshes[fmh.id].gl_vao_id);
-			GLFunc.DeleteBuffer(flat_meshes[fmh.id].gl_vert_id);
-			GLFunc.DeleteBuffer(flat_meshes[fmh.id].gl_indices_id);
+			GLFunc.DeleteVertexArray(flat_meshes[id].gl_vao_id);
+			GLFunc.DeleteBuffer(flat_meshes[id].gl_vert_id);
+			GLFunc.DeleteBuffer(flat_meshes[id].gl_indices_id);
 
-			flat_meshes[fmh.id] = null;
+			flat_meshes_translation.Remove(fmh.id);
+			flat_meshes[id] = null;
 		}
 	}
 }

@@ -4,8 +4,8 @@ using OpenBveApi;
 
 namespace LibRender {
 	public struct TextureHandle {
-		internal int id;
-		internal TextureHandle(int id) {
+		internal long id;
+		internal TextureHandle(long id) {
 			this.id = id;
 		}
 	}
@@ -20,6 +20,8 @@ namespace LibRender {
 
 		internal bool has_transparancy = false;
 
+		internal TextureHandle handle;
+
 		public Texture Copy() {
 			Texture t = new Texture();
 			t.pixels.AddRange(pixels);
@@ -31,15 +33,22 @@ namespace LibRender {
 	}
 
 	public partial class Renderer {
+		internal long textures_id = 0;
+		internal Dictionary<long, int> textures_translation = new Dictionary<long, int>();
 		internal List<Texture> textures = new List<Texture>();
 
-		internal void AssertValid(TextureHandle th) {
-			if (textures.Count <= th.id) {
+		internal int AssertValid(TextureHandle th) {
+			int real;
+			if (!textures_translation.TryGetValue(th.id, out real)) {
+				throw new System.ArgumentException("Invalid TextureHandle, no possible translation" + th.id.ToString());
+			}
+			if (textures.Count <= real) {
 				throw new System.ArgumentException("Texture Handle ID larger than array: " + th.id.ToString());
 			}
-			if (textures[th.id] == null) {
+			if (textures[real] == null) {
 				throw new System.ArgumentNullException("Accessing a deleted texture: " + th.id.ToString());
 			}
+			return real;
 		}
 
 		public TextureHandle AddTexture(Pixel[] pixels, int width, int height) {
@@ -54,33 +63,39 @@ namespace LibRender {
 					break;
 				}
 			}
+
+			long id = textures_id++;
+			t.handle = new TextureHandle(id);
+
+			textures_translation.Add(id, textures.Count);
 			textures.Add(t);
-			return new TextureHandle(textures.Count - 1);
+			return t.handle;
 		}
 
 		public void Update(TextureHandle th, Pixel[] pixels, int width, int height) {
-			AssertValid(th);
+			int id = AssertValid(th);
 
-			textures[th.id].pixels.Clear();
-			textures[th.id].pixels.AddRange(pixels);
-			textures[th.id].width = width;
-			textures[th.id].height = height;
+			textures[id].pixels.Clear();
+			textures[id].pixels.AddRange(pixels);
+			textures[id].width = width;
+			textures[id].height = height;
 			// Find transparency
-			foreach (Pixel p in textures[th.id].pixels) {
+			foreach (Pixel p in textures[id].pixels) {
 				if (p.a < 255) {
-					textures[th.id].has_transparancy = true;
+					textures[id].has_transparancy = true;
 					break;
 				}
 			}
-			textures[th.id].uploaded = false;
+			textures[id].uploaded = false;
 		}
 
 		public void Delete(TextureHandle th) {
-			AssertValid(th);
+			int id = AssertValid(th);
 
-			GLFunc.DeleteTexture(textures[th.id].gl_id);
+			GLFunc.DeleteTexture(textures[id].gl_id);
 
-			textures[th.id] = null;
+			textures_translation.Remove(th.id);
+			textures[id] = null;
 		}
 
 		///////////////////////////////

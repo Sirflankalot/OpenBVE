@@ -24,9 +24,9 @@ namespace OpenBve
 		private double RenderTimeElapsed;
 		private double RenderRealTimeElapsed;
 		//We need to explicitly specify the default constructor
-		public OpenBVEGame(int width, int height, GraphicsMode currentGraphicsMode, GameWindowFlags @default): base(width, height, currentGraphicsMode, Interface.GetInterfaceString("program_title"), GameWindowFlags.Default, DisplayDevice.Default, 2, 1,
+		public OpenBVEGame(int width, int height, GraphicsMode currentGraphicsMode, GameWindowFlags @default): base(width, height, currentGraphicsMode, Interface.GetInterfaceString("program_title"), GameWindowFlags.Default, DisplayDevice.Default, 3, 3,
 //#if DEBUG
-                           GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug
+                           GraphicsContextFlags.ForwardCompatible
 //#endif
                            )
         {
