@@ -34,14 +34,14 @@ namespace LibRender {
 			0,3,7
 		};
 
-		internal static Pixel[] pixels = new Pixel[16] {
+		internal static Pixel[] opaque_pixels = new Pixel[16] {
 			new Pixel() { r= 68, g= 68, b= 68, a=255 },
 			new Pixel() { r=232, g=232, b=232, a=255 },
 			new Pixel() { r= 48, g= 48, b= 48, a=255 },
 			new Pixel() { r=195, g=195, b=195, a=255 },
 			new Pixel() { r= 53, g= 53, b= 53, a=255 },
 			new Pixel() { r=169, g=169, b=169, a=255 },
-			new Pixel() { r=209, g=209, b=209, a=  0 },
+			new Pixel() { r=209, g=209, b=209, a=255 },
 			new Pixel() { r=150, g=150, b=150, a=255 },
 			new Pixel() { r=186, g=186, b=186, a=255 },
 			new Pixel() { r=  0, g=  0, b=  0, a=255 },
@@ -51,6 +51,25 @@ namespace LibRender {
 			new Pixel() { r=230, g=230, b=230, a=255 },
 			new Pixel() { r= 70, g= 70, b= 70, a=255 },
 			new Pixel() { r=185, g=185, b=185, a=255 },
+		};
+
+		internal static Pixel[] transparent_pixels = new Pixel[16] {
+			new Pixel() { r= 68, g= 68, b= 68, a=255 },
+			new Pixel() { r=232, g=232, b=232, a=163 },
+			new Pixel() { r= 48, g= 48, b= 48, a=122 },
+			new Pixel() { r=195, g=195, b=195, a= 32 },
+			new Pixel() { r= 53, g= 53, b= 53, a= 65 },
+			new Pixel() { r=169, g=169, b=169, a=128 },
+			new Pixel() { r=209, g=209, b=209, a=  0 },
+			new Pixel() { r=150, g=150, b=150, a= 98 },
+			new Pixel() { r=186, g=186, b=186, a=230 },
+			new Pixel() { r=  0, g=  0, b=  0, a=160 },
+			new Pixel() { r=173, g=173, b=173, a=111 },
+			new Pixel() { r= 25, g= 25, b= 25, a=109 },
+			new Pixel() { r= 60, g= 60, b= 60, a=159 },
+			new Pixel() { r=230, g=230, b=230, a=192 },
+			new Pixel() { r= 70, g= 70, b= 70, a= 22 },
+			new Pixel() { r=185, g=185, b=185, a= 23 },
 		};
 
 		internal static Vertex2D[] ui_panel = new Vertex2D[] {
@@ -119,7 +138,7 @@ namespace LibRender {
 
 			public static void Initialize(Renderer renderer) {
 				var m = renderer.AddMesh(mesh, indices);
-				var t = renderer.AddTexture(pixels, 4, 4);
+				var t = renderer.AddTexture(opaque_pixels, 4, 4);
 				oh = renderer.AddObject(m, t);
 				renderer.SetLocation(oh, new Vector3(0, 0, 0));
 			}
@@ -143,7 +162,7 @@ namespace LibRender {
 
 			public static void Initialize(Renderer renderer) {
 				var m = renderer.AddMesh(mesh, indices);
-				var t = renderer.AddTexture(pixels, 4, 4);
+				var t = renderer.AddTexture(opaque_pixels, 4, 4);
 				oh = renderer.AddObject(m, t);
 				renderer.SetLocation(oh, new Vector3(0, 0, 0));
 			}
@@ -164,10 +183,16 @@ namespace LibRender {
 
 			public static void Initialize(Renderer renderer) {
 				var m = renderer.AddMesh(mesh, indices);
-				var t = renderer.AddTexture(pixels, 4, 4);
+				var to = renderer.AddTexture(opaque_pixels, 4, 4);
+				var tt = renderer.AddTexture(transparent_pixels, 4, 4);
 
 				for (int i = 0; i < 16; ++i) {
-					oh_list[i] = renderer.AddObject(m, t);
+					if (i % 3 == 0) {
+						oh_list[i] = renderer.AddObject(m, to);
+					}
+					else {
+						oh_list[i] = renderer.AddObject(m, tt);
+					}
 					renderer.SetLocation(oh_list[i], new Vector3((i / 4) * 4 - 6, 0, (i % 4) * 4 - 6));
 				}
 
