@@ -75,6 +75,10 @@ namespace LibRender {
 			Utilities.AssertValidIndicies(objects, start, end);
 
 			for (int i = start; i < end; ++i) {
+				if (objects[i] == null) {
+					continue;
+				}
+
 				objects[i].inverse_model_view_valid = false;
 			}
 		}
@@ -286,6 +290,290 @@ namespace LibRender {
 
 				uie.transform = rot;
 				uie.matrix_valid = true;
+			}
+		}
+
+		internal static void GarbageCollectUnused(Renderer renderer) {
+			const float clear_ratio = 0.5f;
+			const float padding = 1.33f;
+			int kickback_num = -1;
+
+			///////////////////
+			// Clear Cameras //
+			///////////////////
+
+			if (renderer.camera_translation.Count / (float)renderer.cameras.Count <= clear_ratio) {
+				// Find first null
+				for (int i = 0; i < renderer.cameras.Count; ++i) {
+					if (renderer.cameras[i] == null) {
+						kickback_num = i;
+						break;
+					}
+				}
+
+				// From first null compact everything
+				if (kickback_num != -1) {
+					for (int i = kickback_num + 1; i < renderer.cameras.Count; ++i) {
+						if (renderer.cameras[i] == null) {
+							continue;
+						}
+
+						renderer.cameras[kickback_num] = renderer.cameras[i];
+						renderer.cameras[i] = null;
+						renderer.camera_translation[renderer.cameras[kickback_num].handle.id] = kickback_num;
+						kickback_num += 1;
+					}
+					renderer.cameras.RemoveRange(kickback_num, renderer.cameras.Count - kickback_num);
+					renderer.cameras.Capacity = (int)(renderer.cameras.Count * padding);
+				}
+			}
+
+			//////////////////////
+			// Clear ConeLights //
+			//////////////////////
+
+			if (renderer.cone_lights_translation.Count / (float) renderer.cone_lights.Count <= clear_ratio) {
+				kickback_num = -1;
+				// Find first null
+				for (int i = 0; i < renderer.cone_lights.Count; ++i) {
+					if (renderer.cone_lights[i] == null) {
+						kickback_num = i;
+						break;
+					}
+				}
+
+				// From first null compact everything
+				if (kickback_num != -1) {
+					for (int i = kickback_num + 1; i < renderer.cone_lights.Count; ++i) {
+						if (renderer.cone_lights[i] == null) {
+							continue;
+						}
+
+						renderer.cone_lights[kickback_num] = renderer.cone_lights[i];
+						renderer.cone_lights[i] = null;
+						renderer.cone_lights_translation[renderer.cone_lights[kickback_num].handle.id] = kickback_num;
+						kickback_num += 1;
+					}
+					renderer.cone_lights.RemoveRange(kickback_num, renderer.cone_lights.Count - kickback_num);
+					renderer.cone_lights.Capacity = (int) (renderer.cone_lights.Count * padding);
+				}
+			}
+
+			//////////////////////
+			// Clear FlatMeshes //
+			//////////////////////
+
+			if (renderer.flat_meshes_translation.Count / (float) renderer.flat_meshes.Count <= clear_ratio) {
+				kickback_num = -1;
+				// Find first null
+				for (int i = 0; i < renderer.flat_meshes.Count; ++i) {
+					if (renderer.flat_meshes[i] == null) {
+						kickback_num = i;
+						break;
+					}
+				}
+
+				// From first null compact everything
+				if (kickback_num != -1) {
+					for (int i = kickback_num + 1; i < renderer.flat_meshes.Count; ++i) {
+						if (renderer.flat_meshes[i] == null) {
+							continue;
+						}
+
+						renderer.flat_meshes[kickback_num] = renderer.flat_meshes[i];
+						renderer.flat_meshes[i] = null;
+						renderer.flat_meshes_translation[renderer.flat_meshes[kickback_num].handle.id] = kickback_num;
+						kickback_num += 1;
+					}
+					renderer.flat_meshes.RemoveRange(kickback_num, renderer.flat_meshes.Count - kickback_num);
+					renderer.flat_meshes.Capacity = (int) (renderer.flat_meshes.Count * padding);
+				}
+			}
+
+			//////////////////
+			// Clear Meshes //
+			//////////////////
+
+			if (renderer.meshes_translation.Count / (float) renderer.meshes.Count <= clear_ratio) {
+				kickback_num = -1;
+				// Find first null
+				for (int i = 0; i < renderer.meshes.Count; ++i) {
+					if (renderer.meshes[i] == null) {
+						kickback_num = i;
+						break;
+					}
+				}
+
+				// From first null compact everything
+				if (kickback_num != -1) {
+					for (int i = kickback_num + 1; i < renderer.meshes.Count; ++i) {
+						if (renderer.meshes[i] == null) {
+							continue;
+						}
+
+						renderer.meshes[kickback_num] = renderer.meshes[i];
+						renderer.meshes[i] = null;
+						renderer.meshes_translation[renderer.meshes[kickback_num].handle.id] = kickback_num;
+						kickback_num += 1;
+					}
+					renderer.meshes.RemoveRange(kickback_num, renderer.meshes.Count - kickback_num);
+					renderer.meshes.Capacity = (int) (renderer.meshes.Count * padding);
+				}
+			}
+
+			///////////////////
+			// Clear Objects //
+			///////////////////
+
+			if (renderer.object_translation.Count / (float) renderer.objects.Count <= clear_ratio) {
+				kickback_num = -1;
+				// Find first null
+				for (int i = 0; i < renderer.objects.Count; ++i) {
+					if (renderer.objects[i] == null) {
+						kickback_num = i;
+						break;
+					}
+				}
+
+				// From first null compact everything
+				if (kickback_num != -1) {
+					for (int i = kickback_num + 1; i < renderer.objects.Count; ++i) {
+						if (renderer.objects[i] == null) {
+							continue;
+						}
+
+						renderer.objects[kickback_num] = renderer.objects[i];
+						renderer.objects[i] = null;
+						renderer.object_translation[renderer.objects[kickback_num].handle.id] = kickback_num;
+						kickback_num += 1;
+					}
+					renderer.objects.RemoveRange(kickback_num, renderer.objects.Count - kickback_num);
+					renderer.objects.Capacity = (int) (renderer.objects.Count * padding);
+				}
+			}
+
+			///////////////////////
+			// Clear PointLights //
+			///////////////////////
+
+			if (renderer.point_lights_translation.Count / (float) renderer.point_lights.Count <= clear_ratio) {
+				kickback_num = -1;
+				// Find first null
+				for (int i = 0; i < renderer.point_lights.Count; ++i) {
+					if (renderer.point_lights[i] == null) {
+						kickback_num = i;
+						break;
+					}
+				}
+
+				// From first null compact everything
+				if (kickback_num != -1) {
+					for (int i = kickback_num + 1; i < renderer.point_lights.Count; ++i) {
+						if (renderer.point_lights[i] == null) {
+							continue;
+						}
+
+						renderer.point_lights[kickback_num] = renderer.point_lights[i];
+						renderer.point_lights[i] = null;
+						renderer.point_lights_translation[renderer.point_lights[kickback_num].handle.id] = kickback_num;
+						kickback_num += 1;
+					}
+					renderer.point_lights.RemoveRange(kickback_num, renderer.point_lights.Count - kickback_num);
+					renderer.point_lights.Capacity = (int) (renderer.point_lights.Count * padding);
+				}
+			}
+
+			////////////////
+			// Clear Text //
+			////////////////
+
+			if (renderer.texts_translation.Count / (float) renderer.texts.Count <= clear_ratio) {
+				kickback_num = -1;
+				// Find first null
+				for (int i = 0; i < renderer.texts.Count; ++i) {
+					if (renderer.texts[i] == null) {
+						kickback_num = i;
+						break;
+					}
+				}
+
+				// From first null compact everything
+				if (kickback_num != -1) {
+					for (int i = kickback_num + 1; i < renderer.texts.Count; ++i) {
+						if (renderer.texts[i] == null) {
+							continue;
+						}
+
+						renderer.texts[kickback_num] = renderer.texts[i];
+						renderer.texts[i] = null;
+						renderer.texts_translation[renderer.texts[kickback_num].handle.id] = kickback_num;
+						kickback_num += 1;
+					}
+					renderer.texts.RemoveRange(kickback_num, renderer.texts.Count - kickback_num);
+					renderer.texts.Capacity = (int) (renderer.texts.Count * padding);
+				}
+			}
+
+			////////////////////
+			// Clear Textures //
+			////////////////////
+
+			if (renderer.textures_translation.Count / (float) renderer.textures.Count <= clear_ratio) {
+				kickback_num = -1;
+				// Find first null
+				for (int i = 0; i < renderer.textures.Count; ++i) {
+					if (renderer.textures[i] == null) {
+						kickback_num = i;
+						break;
+					}
+				}
+
+				// From first null compact everything
+				if (kickback_num != -1) {
+					for (int i = kickback_num + 1; i < renderer.textures.Count; ++i) {
+						if (renderer.textures[i] == null) {
+							continue;
+						}
+
+						renderer.textures[kickback_num] = renderer.textures[i];
+						renderer.textures[i] = null;
+						renderer.textures_translation[renderer.textures[kickback_num].handle.id] = kickback_num;
+						kickback_num += 1;
+					}
+					renderer.textures.RemoveRange(kickback_num, renderer.textures.Count - kickback_num);
+					renderer.textures.Capacity = (int) (renderer.textures.Count * padding);
+				}
+			}
+
+			//////////////////////
+			// Clear UIElements //
+			//////////////////////
+
+			if (renderer.uielements_translation.Count / (float) renderer.uielements.Count <= clear_ratio) {
+				kickback_num = -1;
+				// Find first null
+				for (int i = 0; i < renderer.uielements.Count; ++i) {
+					if (renderer.uielements[i] == null) {
+						kickback_num = i;
+						break;
+					}
+				}
+
+				// From first null compact everything
+				if (kickback_num != -1) {
+					for (int i = kickback_num + 1; i < renderer.uielements.Count; ++i) {
+						if (renderer.uielements[i] == null) {
+							continue;
+						}
+
+						renderer.uielements[kickback_num] = renderer.uielements[i];
+						renderer.uielements[i] = null;
+						renderer.uielements_translation[renderer.uielements[kickback_num].handle.id] = kickback_num;
+						kickback_num += 1;
+					}
+					renderer.uielements.RemoveRange(kickback_num, renderer.uielements.Count - kickback_num);
+					renderer.uielements.Capacity = (int) (renderer.uielements.Count * padding);
+				}
 			}
 		}
     }

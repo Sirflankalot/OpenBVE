@@ -176,25 +176,18 @@ namespace LibRender {
 		}
 
 		public static class Test2 {
-			private static ObjectHandle[] oh_list = new ObjectHandle[16];
 			private static TextHandle one;
 			private static TextHandle two;
 			private static UIElementHandle rainbows;
+			private static MeshHandle m;
+			private static TextureHandle to;
+			private static TextureHandle tt;
+			private static ObjectHandle[] oh_list = new ObjectHandle[16];
 
 			public static void Initialize(Renderer renderer) {
-				var m = renderer.AddMesh(mesh, indices);
-				var to = renderer.AddTexture(opaque_pixels, 4, 4);
-				var tt = renderer.AddTexture(transparent_pixels, 4, 4);
-
-				for (int i = 0; i < 16; ++i) {
-					if (i % 3 == 0) {
-						oh_list[i] = renderer.AddObject(m, to);
-					}
-					else {
-						oh_list[i] = renderer.AddObject(m, tt);
-					}
-					renderer.SetLocation(oh_list[i], new Vector3((i / 4) * 4 - 6, 0, (i % 4) * 4 - 6));
-				}
+				m = renderer.AddMesh(mesh, indices);
+				to = renderer.AddTexture(opaque_pixels, 4, 4);
+				tt = renderer.AddTexture(transparent_pixels, 4, 4);
 
 				renderer.SetDistance(renderer.GetStartingCamera(), 20);
 				renderer.SetRotation(renderer.GetStartingCamera(), new Vector2(0, 45.0f));
@@ -213,6 +206,22 @@ namespace LibRender {
 
 			static int frames = 0;
 			public static void Render(Renderer renderer) {
+				if (frames != 0) {
+					foreach (ObjectHandle oh in oh_list) {
+						renderer.Delete(oh);
+					}
+				}
+
+				for (int i = 0; i < 16; ++i) {
+					if (i % 3 == 0) {
+						oh_list[i] = renderer.AddObject(m, to);
+					}
+					else {
+						oh_list[i] = renderer.AddObject(m, tt);
+					}
+					renderer.SetLocation(oh_list[i], new Vector3((i / 4) * 4 - 6, 0, (i % 4) * 4 - 6));
+				}
+
 				++frames;
 
 				var cam = renderer.GetStartingCamera();

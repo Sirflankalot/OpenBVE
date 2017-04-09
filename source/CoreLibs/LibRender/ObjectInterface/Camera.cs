@@ -25,7 +25,7 @@ namespace LibRender {
 	}
 
 	public partial class Renderer {
-		internal long camera_current_id = 0;
+		internal long camera_current_id = 1;
 		internal Dictionary<long, int> camera_translation = new Dictionary<long, int>() { { 0, 0 } };
 		internal List<Camera> cameras = new List<Camera>() { new Camera() { focal_point = new Vector3(0), rotation = new Vector2(0), distance = -10, fov = 50, handle = new CameraHandle(0) } };
 		internal int active_camera;

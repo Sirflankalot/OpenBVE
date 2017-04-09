@@ -17,6 +17,8 @@ namespace LibRender {
 
 
         public void PrepareForRender() {
+			Algorithms.GarbageCollectUnused(this);
+
             Algorithms.UpdateMeshNormals(meshes, 0, meshes.Count);
             Algorithms.UpdateObjectMatrices(objects, 0, objects.Count);
 
