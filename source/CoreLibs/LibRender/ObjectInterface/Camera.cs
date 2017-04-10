@@ -65,8 +65,7 @@ namespace LibRender {
 
 		public void Delete(CameraHandle ch) {
 			int id = AssertValid(ch);
-
-			// TODO: Log deleting default camera
+			
 			if (id == 0) {
 				return;
 			}
