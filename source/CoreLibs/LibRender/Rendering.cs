@@ -446,6 +446,7 @@ namespace LibRender {
 				}
 				uiinfos.Add(new UIInfo() { type = UIInfo.Type.text, index = i, depth = t.depth });
 			}
+            int text_count = uiinfos.Count;
 			for (int i = 0; i < uielements.Count; ++i) {
 				UIElement uie = uielements[i];
 
@@ -454,6 +455,9 @@ namespace LibRender {
 				}
 				uiinfos.Add(new UIInfo() { type = UIInfo.Type.uielement, index = i, depth = uie.depth });
 			}
+            int uie_count = uiinfos.Count - text_count;
+            statistics.val_texts.rendered = text_count;
+            statistics.val_uielements.rendered = uie_count;
 
 			uiinfos.Sort((lhs, rhs) => {
 				if (lhs.depth < rhs.depth) {
