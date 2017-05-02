@@ -192,17 +192,21 @@ namespace LibRender {
 
 				Font f = new Font(FontFamily.GenericSansSerif, 50, FontStyle.Regular, GraphicsUnit.Pixel);
 
-				one = renderer.AddText("Good morning from the lovely state of New York!", f, new Pixel{ r=255, g=255, b=255, a=255}, new Position(WindowOrigin.TopLeft, ObjectOrigin.TopLeft, 0, 0), 0, renderer.width);
+				one = renderer.AddText("Good morning from the lovely state of New York!", f, new Pixel{ r=255, g=255, b=255, a=255}, new Position(WindowOrigin.TopLeft, ObjectOrigin.TopLeft, 0, 0), 0, renderer.display_width);
 				two = renderer.AddText("Frame: 0", f, new Pixel { r = 255, g = 255, b = 255, a = 255 }, new Position(WindowOrigin.TopLeft, ObjectOrigin.TopLeft, 0, renderer.GetDimentions(one).Y), 0);
 
 				var fm = renderer.AddFlatMesh(ui_panel, ui_panel_index);
 				var uit = renderer.AddTexture(ui_panel_tex, 4, 2);
 				rainbows = renderer.AddUIElement(fm, uit, new Position(WindowOrigin.BottomRight, ObjectOrigin.BottomRight, 0, 0), new Vector2(75), 0, 1);
-			}
 
-			static int frames = 0;
+				renderer.SetSetting(Settings.TextureFiltering.Anisotropic16);
+                renderer.SetSetting(Settings.RendererType.Deferred);
+			}
+            
 			public static void Render(Renderer renderer) {
-				if (frames != 0) {
+                var a = renderer.GetStatistics();
+                var frames = a.FrameCount;
+                if (frames != 0) {
 					foreach (ObjectHandle oh in oh_list) {
 						renderer.Delete(oh);
 					}
@@ -217,8 +221,6 @@ namespace LibRender {
 					}
 					renderer.SetLocation(oh_list[i], new Vector3((i / 4) * 4 - 6, 0, (i % 4) * 4 - 6));
 				}
-
-				++frames;
 
 				var cam = renderer.GetStartingCamera();
 				var camrot = renderer.GetRotation(cam);
@@ -235,6 +237,12 @@ namespace LibRender {
 				//if (frames % 100 == 0) {
 				//	renderer.SetVisibility(rainbows, !renderer.GetVisibility(rainbows));
 				//}
+				if (frames % 100 == 0) {
+					renderer.SetSetting(Settings.TextureFiltering.Anisotropic16);
+				}
+				else if (frames % 100 == 50) {
+					renderer.SetSetting(Settings.TextureFiltering.None);
+				}
 
 				if (frames % 512 == 0) {
 					renderer.SetVisibility(two, !renderer.GetVisibility(two));

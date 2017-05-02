@@ -123,11 +123,11 @@ namespace LibRender {
             }
         }
 
-        internal static void UploadTextures(List<Texture> textures, int start, int end) {
+        internal static void UploadTextures(List<Texture> textures, int start, int end, GL.TextureMinFilter min, GL.TextureMagFilter mag, int aniso) {
 			Utilities.AssertValidIndicies(textures, start, end);
 
             for (int i = start; i < end; ++i) {
-                // Reference to object
+                // Reference to texture
                 Texture t = textures[i];
 
                 if (t == null || t.uploaded) {
@@ -139,13 +139,29 @@ namespace LibRender {
                 GLFunc.GenerateMipmap(GL.GenerateMipmapTarget.Texture2D);
                 GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapS, (int) GL.TextureWrapMode.ClampToEdge);
                 GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapT, (int) GL.TextureWrapMode.ClampToEdge);
-                GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMinFilter, (int) GL.TextureMinFilter.LinearMipmapLinear);
-                GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMagFilter, (int) GL.TextureMagFilter.Linear);
-                GLFunc.BindTexture(GL.TextureTarget.Texture2D, 0);
+				GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMinFilter, (int) min);
+				GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMagFilter, (int) mag);
+				if (aniso != 0) {
+					GLFunc.TexParameter(GL.TextureTarget.Texture2D, (GL.TextureParameterName) GL.ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt, aniso);
+				}
+				GLFunc.BindTexture(GL.TextureTarget.Texture2D, 0);
 
                 t.uploaded = true;
             }
-        }
+		}
+
+		internal static void UpdateTextureFiltering(List<Texture> textures, GL.TextureMinFilter min, GL.TextureMagFilter mag, int aniso) {
+			foreach (Texture t in textures) {
+				if (t == null || !t.uploaded) {
+					continue;
+				}
+
+				GLFunc.BindTexture(GL.TextureTarget.Texture2D, t.gl_id);
+				GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMinFilter, (int) min);
+				GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMagFilter, (int) mag);
+				GLFunc.TexParameter(GL.TextureTarget.Texture2D, (GL.TextureParameterName) GL.ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt, aniso);
+			}
+		}
 
 		internal static void UpdateTextTextureObjects(List<Text> texts, int start, int end) {
 			Utilities.AssertValidIndicies(texts, start, end);

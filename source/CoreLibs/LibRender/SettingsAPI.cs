@@ -1,8 +1,8 @@
-﻿using System.IO;
+﻿using GL = OpenTK.Graphics.OpenGL;
+using System.IO;
 
 namespace LibRender {
 	public struct Settings {
-		// TODO: Honor ViewDistance Setting
 		public enum ViewDistance {
 			Set
 		}
@@ -11,8 +11,7 @@ namespace LibRender {
 		public enum LogFileLocation {
 			Set
 		}
-
-		// TODO: Honor TextureFiltering Setting
+		
 		public enum TextureFiltering {
 			None,
 			Bilinear,
@@ -22,44 +21,46 @@ namespace LibRender {
 			Anisotropic8,
 			Anisotropic16
 		}
-
-		// TODO: Honor RendererType Setting
+		
 		public enum RendererType {
 			Forward,
 			Deferred
 		}
-
-		// TODO: Honor ForwardAntialiasing Setting
+		
 		public enum ForwardAntialiasing {
-			None,
-			MSAA2,
-			MSAA4,
-			MSAA8,
-			SSAA2,
-			SSAA4
+			None = 1,
+			MSAA2 = 2,
+			MSAA4 = 4,
+			MSAA8 = 8,
+			SSAA2 = 32,
+			SSAA4 = 64,
 		}
-
-		// TODO: Honor DeferredAntialiasing Setting
+		
 		public enum DeferredAntialiasing {
-			None,
-			SSAA2,
-			SSAA4
+			None = 1,
+			SSAA2 = 2,
+			SSAA4 = 4
 		}
-
-		// TODO: Honor UIAntialiasing Setting
+		
 		public enum UIAntialiasing {
-			None,
-			MSAA2,
-			MSAA4,
-			MSAA8
+			None = 1,
+			MSAA2 = 2,
+			MSAA4 = 4,
+			MSAA8 = 8
 		}
-
-		// TODO: Honor TextRenderingQuality Setting
+		
 		public enum TextRenderingQuality {
 			Low,
 			Medium,
 			High,
 			Ultra
+		}
+
+		public enum Verbosity {
+			Level0 = 0,
+			Level1 = 1,
+			Level2 = 2,
+			Level3 = 3
 		}
 
 		public float view_distance;
@@ -70,10 +71,11 @@ namespace LibRender {
 		public DeferredAntialiasing deferred_aa;
 		public UIAntialiasing ui_aa;
 		public TextRenderingQuality text_rendering_quality;
+		public Verbosity vebosity;
 	}
 
 	public partial class Renderer {
-		Settings settings = new Settings {
+		internal Settings settings = new Settings {
 			view_distance          = 1000.0f,
 			log_file_location      = null,
 			texture_filtering      = Settings.TextureFiltering.None,
@@ -82,6 +84,7 @@ namespace LibRender {
 			deferred_aa            = Settings.DeferredAntialiasing.None,
 			ui_aa                  = Settings.UIAntialiasing.None,
 			text_rendering_quality = Settings.TextRenderingQuality.Low,
+			vebosity               = Settings.Verbosity.Level1
 		};
 
 		public Settings GetSettings() {
@@ -89,7 +92,15 @@ namespace LibRender {
 		}
 
 		public void SetSetting(Settings set) {
-			settings = set;
+			SetSetting(Settings.ViewDistance.Set, set.view_distance);
+			SetSetting(Settings.LogFileLocation.Set, set.log_file_location);
+			SetSetting(set.texture_filtering);
+			SetSetting(set.renderer_type);
+			SetSetting(set.forward_aa);
+			SetSetting(set.deferred_aa);
+			SetSetting(set.ui_aa);
+			SetSetting(set.text_rendering_quality);
+			SetSetting(set.vebosity);
 		}
 
 		public void SetSetting(Settings.ViewDistance ignore, float distance) {
@@ -97,6 +108,7 @@ namespace LibRender {
 				throw new System.ArgumentException(distance.ToString() + " is not a valid distance");
 			}
 			settings.view_distance = distance;
+			Algorithms.UpdateCameraMatrices(cameras, 0, cameras.Count, (float) display_width / display_height, settings.view_distance, true);
 		}
 
 		public void SetSetting(Settings.LogFileLocation ignore, string location) {
@@ -106,16 +118,50 @@ namespace LibRender {
 				if (!exists) {
 					throw new System.ArgumentException(location + " is not a valid path");
 				}
+				log_file = File.Open(location, FileMode.OpenOrCreate);
+				log_file.SetLength(0);
+				log_file.Flush();
 			}
 			settings.log_file_location = location;
 		}
 
 		public void SetSetting(Settings.TextureFiltering filtering) {
 			settings.texture_filtering = filtering;
+
+			switch (filtering) {
+				default:
+				case Settings.TextureFiltering.None:
+					tex_filt_min = GL.TextureMinFilter.Nearest;
+					tex_filt_mag = GL.TextureMagFilter.Nearest;
+					break;
+				case Settings.TextureFiltering.Bilinear:
+					tex_filt_min = GL.TextureMinFilter.Linear;
+					tex_filt_mag = GL.TextureMagFilter.Linear;
+					break;
+				case Settings.TextureFiltering.Trilinear:
+					tex_filt_min = GL.TextureMinFilter.LinearMipmapLinear;
+					tex_filt_mag = GL.TextureMagFilter.Linear;
+					break;
+				case Settings.TextureFiltering.Anisotropic2:
+					tex_filt_aniso = 2;
+					goto case Settings.TextureFiltering.Trilinear;
+				case Settings.TextureFiltering.Anisotropic4:
+					tex_filt_aniso = 4;
+					goto case Settings.TextureFiltering.Trilinear;
+				case Settings.TextureFiltering.Anisotropic8:
+					tex_filt_aniso = 8;
+					goto case Settings.TextureFiltering.Trilinear;
+				case Settings.TextureFiltering.Anisotropic16:
+					tex_filt_aniso = 16;
+					goto case Settings.TextureFiltering.Trilinear;
+			}
+
+			GFXInterface.UpdateTextureFiltering(textures, tex_filt_min, tex_filt_mag, tex_filt_aniso);
 		}
 
 		public void SetSetting(Settings.RendererType type) {
 			settings.renderer_type = type;
+			Resize(display_width, display_height);
 		}
 
 		public void SetSetting(Settings.ForwardAntialiasing type) {
@@ -124,6 +170,7 @@ namespace LibRender {
 
 		public void SetSetting(Settings.DeferredAntialiasing type) {
 			settings.deferred_aa = type;
+			Resize(display_width, display_height);
 		}
 
 		public void SetSetting(Settings.UIAntialiasing type) {
@@ -132,6 +179,10 @@ namespace LibRender {
 
 		public void SetSetting(Settings.TextRenderingQuality quality) {
 			settings.text_rendering_quality = quality;
+		}
+
+		public void SetSetting(Settings.Verbosity verbosity) {
+			settings.vebosity = verbosity;
 		}
 	}
 }

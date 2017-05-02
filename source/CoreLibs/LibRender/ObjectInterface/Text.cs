@@ -127,7 +127,7 @@ namespace LibRender {
 			int id = AssertValid(th);
 
 			if (texts[id].texture_ready == false) {
-				Algorithms.UpdateTextTextures(texts, id, id + 1);
+				Algorithms.UpdateTextTextures(texts, id, id + 1, settings.text_rendering_quality);
 			}
 
 			return new Vector2(texts[id].width, texts[id].height);

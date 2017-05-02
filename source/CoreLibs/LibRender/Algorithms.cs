@@ -122,14 +122,14 @@ namespace LibRender {
 			}
 		}
 
-        internal static void UpdateCameraMatrices(List<Camera> cameras, int start, int end, float ratio) {
+        internal static void UpdateCameraMatrices(List<Camera> cameras, int start, int end, float ratio, float view_distance, bool force = false) {
 			Utilities.AssertValidIndicies(cameras, start, end);
 
             for (int i = start; i < end; ++i) {
                 // Reference to Camera
                 Camera c = cameras[i];
 
-                if (c == null || c.matrix_valid) {
+                if (c == null || (c.matrix_valid && !force)) {
                     continue;
                 }
 
@@ -187,7 +187,7 @@ namespace LibRender {
 			sun.matrix_valid = true;
 		}
 
-		internal static void UpdateTextTextures(List<Text> texts, int start, int end) {
+		internal static void UpdateTextTextures(List<Text> texts, int start, int end, Settings.TextRenderingQuality quality) {
 			Utilities.AssertValidIndicies(texts, start, end);
 
 			// Dummy bitmap with dummy graphics
@@ -219,12 +219,36 @@ namespace LibRender {
 					using (Bitmap img = new Bitmap((int) text_size.Width, (int) text_size.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
 					using (Graphics drawing = Graphics.FromImage(img)) {
 						// set text quality
-						// TODO: Options to change at runtime?
-						drawing.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
-						drawing.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBilinear;
-						drawing.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
-						drawing.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-						drawing.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+						switch (quality) {
+							case Settings.TextRenderingQuality.Low:
+								drawing.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
+								drawing.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+								drawing.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.None;
+								drawing.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
+								drawing.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixel;
+								break;
+							case Settings.TextRenderingQuality.Medium:
+								drawing.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.AssumeLinear;
+								drawing.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Low;
+								drawing.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+								drawing.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed;
+								drawing.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixel;
+								break;
+							case Settings.TextRenderingQuality.High:
+								drawing.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+								drawing.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.High;
+								drawing.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+								drawing.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+								drawing.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+								break;
+							case Settings.TextRenderingQuality.Ultra:
+								drawing.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+								drawing.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+								drawing.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+								drawing.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+								drawing.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+								break;
+						}
 
 						// paint the background
 						drawing.Clear(Color.Transparent);
@@ -292,14 +316,15 @@ namespace LibRender {
 
 		internal static void GarbageCollectUnused(Renderer renderer) {
 			const float clear_ratio = 0.5f;
-			const float padding = 1.33f;
+			const float padding = 1.5f;
 			int kickback_num = -1;
 
-			///////////////////
-			// Clear Cameras //
-			///////////////////
+            ///////////////////
+            // Clear Cameras //
+            ///////////////////
 
-			if (renderer.camera_translation.Count / (float)renderer.cameras.Count <= clear_ratio) {
+            renderer.statistics.val_cameras.collected = 0;
+            if (renderer.camera_translation.Count / (float)renderer.cameras.Count <= clear_ratio) {
 				// Find first null
 				for (int i = 0; i < renderer.cameras.Count; ++i) {
 					if (renderer.cameras[i] == null) {
@@ -320,16 +345,21 @@ namespace LibRender {
 						renderer.camera_translation[renderer.cameras[kickback_num].handle.id] = kickback_num;
 						kickback_num += 1;
 					}
-					renderer.cameras.RemoveRange(kickback_num, renderer.cameras.Count - kickback_num);
+                    int count = renderer.cameras.Count - kickback_num;
+                    renderer.cameras.RemoveRange(kickback_num, count);
 					renderer.cameras.Capacity = (int)(renderer.cameras.Count * padding);
+                    renderer.statistics.val_cameras.collected = count;
 				}
 			}
+            renderer.statistics.val_cameras.total = renderer.camera_translation.Count;
 
-			//////////////////////
-			// Clear ConeLights //
-			//////////////////////
 
-			if (renderer.cone_lights_translation.Count / (float) renderer.cone_lights.Count <= clear_ratio) {
+            //////////////////////
+            // Clear ConeLights //
+            //////////////////////
+
+            renderer.statistics.val_conelights.collected = 0;
+            if (renderer.cone_lights_translation.Count / (float) renderer.cone_lights.Count <= clear_ratio) {
 				kickback_num = -1;
 				// Find first null
 				for (int i = 0; i < renderer.cone_lights.Count; ++i) {
@@ -351,16 +381,20 @@ namespace LibRender {
 						renderer.cone_lights_translation[renderer.cone_lights[kickback_num].handle.id] = kickback_num;
 						kickback_num += 1;
 					}
-					renderer.cone_lights.RemoveRange(kickback_num, renderer.cone_lights.Count - kickback_num);
+                    int count = renderer.cone_lights.Count - kickback_num;
+                    renderer.cone_lights.RemoveRange(kickback_num, count);
 					renderer.cone_lights.Capacity = (int) (renderer.cone_lights.Count * padding);
+                    renderer.statistics.val_conelights.collected = count;
 				}
 			}
+            renderer.statistics.val_conelights.total = renderer.cone_lights_translation.Count;
 
-			//////////////////////
-			// Clear FlatMeshes //
-			//////////////////////
+            //////////////////////
+            // Clear FlatMeshes //
+            //////////////////////
 
-			if (renderer.flat_meshes_translation.Count / (float) renderer.flat_meshes.Count <= clear_ratio) {
+            renderer.statistics.val_flatmeshes.collected = 0;
+            if (renderer.flat_meshes_translation.Count / (float) renderer.flat_meshes.Count <= clear_ratio) {
 				kickback_num = -1;
 				// Find first null
 				for (int i = 0; i < renderer.flat_meshes.Count; ++i) {
@@ -382,16 +416,20 @@ namespace LibRender {
 						renderer.flat_meshes_translation[renderer.flat_meshes[kickback_num].handle.id] = kickback_num;
 						kickback_num += 1;
 					}
-					renderer.flat_meshes.RemoveRange(kickback_num, renderer.flat_meshes.Count - kickback_num);
+                    int count = renderer.flat_meshes.Count - kickback_num;
+                    renderer.flat_meshes.RemoveRange(kickback_num, count);
 					renderer.flat_meshes.Capacity = (int) (renderer.flat_meshes.Count * padding);
+                    renderer.statistics.val_flatmeshes.collected = count;
 				}
 			}
+            renderer.statistics.val_flatmeshes.total = renderer.flat_meshes_translation.Count;
 
-			//////////////////
-			// Clear Meshes //
-			//////////////////
+            //////////////////
+            // Clear Meshes //
+            //////////////////
 
-			if (renderer.meshes_translation.Count / (float) renderer.meshes.Count <= clear_ratio) {
+            renderer.statistics.val_meshes.collected = 0;
+            if (renderer.meshes_translation.Count / (float) renderer.meshes.Count <= clear_ratio) {
 				kickback_num = -1;
 				// Find first null
 				for (int i = 0; i < renderer.meshes.Count; ++i) {
@@ -413,16 +451,20 @@ namespace LibRender {
 						renderer.meshes_translation[renderer.meshes[kickback_num].handle.id] = kickback_num;
 						kickback_num += 1;
 					}
-					renderer.meshes.RemoveRange(kickback_num, renderer.meshes.Count - kickback_num);
+                    int count = renderer.meshes.Count - kickback_num;
+                    renderer.meshes.RemoveRange(kickback_num, count);
 					renderer.meshes.Capacity = (int) (renderer.meshes.Count * padding);
+                    renderer.statistics.val_meshes.collected = count;
 				}
 			}
+            renderer.statistics.val_meshes.total = renderer.meshes_translation.Count;
 
-			///////////////////
-			// Clear Objects //
-			///////////////////
+            ///////////////////
+            // Clear Objects //
+            ///////////////////
 
-			if (renderer.object_translation.Count / (float) renderer.objects.Count <= clear_ratio) {
+            renderer.statistics.val_objects.collected = 0;
+            if (renderer.object_translation.Count / (float) renderer.objects.Count <= clear_ratio) {
 				kickback_num = -1;
 				// Find first null
 				for (int i = 0; i < renderer.objects.Count; ++i) {
@@ -444,16 +486,20 @@ namespace LibRender {
 						renderer.object_translation[renderer.objects[kickback_num].handle.id] = kickback_num;
 						kickback_num += 1;
 					}
-					renderer.objects.RemoveRange(kickback_num, renderer.objects.Count - kickback_num);
+                    int count = renderer.objects.Count - kickback_num;
+                    renderer.objects.RemoveRange(kickback_num, count);
 					renderer.objects.Capacity = (int) (renderer.objects.Count * padding);
+                    renderer.statistics.val_objects.collected = count;
 				}
 			}
+            renderer.statistics.val_objects.total = renderer.object_translation.Count;
 
-			///////////////////////
-			// Clear PointLights //
-			///////////////////////
+            ///////////////////////
+            // Clear PointLights //
+            ///////////////////////
 
-			if (renderer.point_lights_translation.Count / (float) renderer.point_lights.Count <= clear_ratio) {
+            renderer.statistics.val_pointlights.collected = 0;
+            if (renderer.point_lights_translation.Count / (float) renderer.point_lights.Count <= clear_ratio) {
 				kickback_num = -1;
 				// Find first null
 				for (int i = 0; i < renderer.point_lights.Count; ++i) {
@@ -475,16 +521,20 @@ namespace LibRender {
 						renderer.point_lights_translation[renderer.point_lights[kickback_num].handle.id] = kickback_num;
 						kickback_num += 1;
 					}
-					renderer.point_lights.RemoveRange(kickback_num, renderer.point_lights.Count - kickback_num);
+                    int count = renderer.point_lights.Count - kickback_num;
+                    renderer.point_lights.RemoveRange(kickback_num, count);
 					renderer.point_lights.Capacity = (int) (renderer.point_lights.Count * padding);
+                    renderer.statistics.val_pointlights.collected = count;
 				}
 			}
+            renderer.statistics.val_pointlights.total = renderer.point_lights_translation.Count;
 
-			////////////////
-			// Clear Text //
-			////////////////
+            ////////////////
+            // Clear Text //
+            ////////////////
 
-			if (renderer.texts_translation.Count / (float) renderer.texts.Count <= clear_ratio) {
+            renderer.statistics.val_texts.collected = 0;
+            if (renderer.texts_translation.Count / (float) renderer.texts.Count <= clear_ratio) {
 				kickback_num = -1;
 				// Find first null
 				for (int i = 0; i < renderer.texts.Count; ++i) {
@@ -506,16 +556,20 @@ namespace LibRender {
 						renderer.texts_translation[renderer.texts[kickback_num].handle.id] = kickback_num;
 						kickback_num += 1;
 					}
-					renderer.texts.RemoveRange(kickback_num, renderer.texts.Count - kickback_num);
+                    int count = renderer.texts.Count - kickback_num;
+                    renderer.texts.RemoveRange(kickback_num, count);
 					renderer.texts.Capacity = (int) (renderer.texts.Count * padding);
+                    renderer.statistics.val_texts.collected = count;
 				}
 			}
+            renderer.statistics.val_texts.total = renderer.texts_translation.Count;
 
-			////////////////////
-			// Clear Textures //
-			////////////////////
+            ////////////////////
+            // Clear Textures //
+            ////////////////////
 
-			if (renderer.textures_translation.Count / (float) renderer.textures.Count <= clear_ratio) {
+            renderer.statistics.val_textures.collected = 0;
+            if (renderer.textures_translation.Count / (float) renderer.textures.Count <= clear_ratio) {
 				kickback_num = -1;
 				// Find first null
 				for (int i = 0; i < renderer.textures.Count; ++i) {
@@ -537,16 +591,20 @@ namespace LibRender {
 						renderer.textures_translation[renderer.textures[kickback_num].handle.id] = kickback_num;
 						kickback_num += 1;
 					}
-					renderer.textures.RemoveRange(kickback_num, renderer.textures.Count - kickback_num);
+                    int count = renderer.textures.Count - kickback_num;
+                    renderer.textures.RemoveRange(kickback_num, count);
 					renderer.textures.Capacity = (int) (renderer.textures.Count * padding);
+                    renderer.statistics.val_textures.collected = count;
 				}
 			}
+            renderer.statistics.val_textures.total = renderer.textures_translation.Count;
 
-			//////////////////////
-			// Clear UIElements //
-			//////////////////////
+            //////////////////////
+            // Clear UIElements //
+            //////////////////////
 
-			if (renderer.uielements_translation.Count / (float) renderer.uielements.Count <= clear_ratio) {
+            renderer.statistics.val_uielements.collected = 0;
+            if (renderer.uielements_translation.Count / (float) renderer.uielements.Count <= clear_ratio) {
 				kickback_num = -1;
 				// Find first null
 				for (int i = 0; i < renderer.uielements.Count; ++i) {
@@ -568,10 +626,13 @@ namespace LibRender {
 						renderer.uielements_translation[renderer.uielements[kickback_num].handle.id] = kickback_num;
 						kickback_num += 1;
 					}
-					renderer.uielements.RemoveRange(kickback_num, renderer.uielements.Count - kickback_num);
+                    int count = renderer.uielements.Count - kickback_num;
+                    renderer.uielements.RemoveRange(kickback_num, count);
 					renderer.uielements.Capacity = (int) (renderer.uielements.Count * padding);
+                    renderer.statistics.val_uielements.collected = count;
 				}
 			}
+            renderer.statistics.val_uielements.total = renderer.uielements_translation.Count;
 		}
     }
 }

@@ -123,6 +123,16 @@ namespace LibRender {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] multisample_hdrpass_fs {
+            get {
+                object obj = ResourceManager.GetObject("multisample_hdrpass_fs", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] onscreenquad_vs {
             get {
                 object obj = ResourceManager.GetObject("onscreenquad_vs", resourceCulture);
