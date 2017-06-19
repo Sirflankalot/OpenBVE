@@ -68,6 +68,8 @@ namespace OpenBve {
 		// parse route
 		internal static void ParseRoute(string FileName, bool IsRW, System.Text.Encoding Encoding, string TrainPath, string ObjectPath, string SoundPath, bool PreviewOnly) {
 			// initialize data
+			freeObjCount = 0;
+			railtypeCount = 0;
 			Game.UnitOfSpeed = "km/h";
 			Game.SpeedConversionFactor = 0.0;
 			Game.RouteInformation.RouteBriefing = null;
@@ -406,6 +408,10 @@ namespace OpenBve {
 			}
 			// parse
 			for (int i = 0; i < Lines.Length; i++) {
+				//Remove empty null characters
+				//Found these in a couple of older routes, harmless but generate errors
+				//Possibly caused by BVE-RR (DOS version)
+				Lines[i] = Lines[i].Replace("\0", "");
 				if (IsRW & AllowRwRouteDescription) {
 					// ignore rw route description
 					if (
@@ -693,6 +699,12 @@ namespace OpenBve {
 										if (!System.IO.File.Exists(files[ia])) {
 											continueWithNextExpression = true;
 											Interface.AddMessage(Interface.MessageType.Error, false, "The file " + file + " could not be found in " + t + Epilog);
+											for (int ta = i; ta < Expressions.Length - 1; ta++)
+											{
+												Expressions[ta] = Expressions[ta + 1];
+											}
+											Array.Resize<Expression>(ref Expressions, Expressions.Length - 1);
+											i--;
 											break;
 										}
 										if (2 * ia + 1 < args.Length)
@@ -731,7 +743,15 @@ namespace OpenBve {
 											}
 										}
 										Expression[] expr;
-										string[] lines = System.IO.File.ReadAllLines(files[chosenIndex], Encoding);
+										//Get the text encoding of our $Include file
+										System.Text.Encoding includeEncoding = TextEncoding.GetSystemEncodingFromFile(files[chosenIndex]);
+										if (!includeEncoding.Equals(Encoding))
+										{
+											//If the encodings do not match, add a warning
+											//This is not critical, but it's a bad idea to mix and match character encodings within a routefile, as the auto-detection may sometimes be wrong
+											Interface.AddMessage(Interface.MessageType.Warning, false, "The text encoding of the $Include file " + files[chosenIndex] + " does not match that of the base routefile.");
+										}
+										string[] lines = System.IO.File.ReadAllLines(files[chosenIndex], includeEncoding);
 										PreprocessSplitIntoExpressions(files[chosenIndex], IsRW, lines, out expr, false, offsets[chosenIndex] + Expressions[i].TrackPositionOffset);
 										int length = Expressions.Length;
 										if (expr.Length == 0) {
@@ -1138,6 +1158,12 @@ namespace OpenBve {
 		private static void SeparateCommandsAndArguments(Expression Expression, out string Command, out string ArgumentSequence, System.Globalization.CultureInfo Culture, bool RaiseErrors) {
 			bool openingerror = false, closingerror = false;
 			int i, fcb = 0;
+			if (Expression.Text.StartsWith("Train. ", StringComparison.InvariantCultureIgnoreCase))
+			{
+				//HACK: Some Chinese routes seem to have used a space between Train. and the rest of the command
+				//e.g. Taipei Metro. BVE4/ 2 accept this......
+				Expression.Text = "Train." + Expression.Text.Substring(7, Expression.Text.Length -7);
+			}
 			for (i = 0; i < Expression.Text.Length; i++) {
 				if (Expression.Text[i] == '(') {
 					bool found = false;
@@ -1331,6 +1357,9 @@ namespace OpenBve {
 				}
 			}
 		}
+
+		private static int freeObjCount = 0;
+		private static int railtypeCount = 0;
 
 		// parse route for data
 		private static void ParseRouteForData(string FileName, bool IsRW, System.Text.Encoding Encoding, Expression[] Expressions, string TrainPath, string ObjectPath, string SoundPath, double[] UnitOfLength, ref RouteData Data, bool PreviewOnly) {
@@ -1922,6 +1951,10 @@ namespace OpenBve {
 												}
 												Data.Structure.Run[CommandIndex1] = val;
 											}
+										}
+										else
+										{
+											railtypeCount++;
 										}
 									} break;
 								case "train.flange":
@@ -2517,6 +2550,10 @@ namespace OpenBve {
 												}
 											}
 										}
+										else
+										{
+											freeObjCount++;
+										}
 									} break;
 									// signal
 								case "signal":
@@ -2552,11 +2589,23 @@ namespace OpenBve {
 												} else {
 													if (Path.ContainsInvalidChars(Arguments[0])) {
 														Interface.AddMessage(Interface.MessageType.Error, false, "SignalFileWithoutExtension contains illegal characters in " + Command + " at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
-													} else {
+													}
+													else {
 														if (Arguments.Length > 2) {
 															Interface.AddMessage(Interface.MessageType.Warning, false, Command + " is expected to have between 1 and 2 arguments at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
 														}
-														string f = OpenBveApi.Path.CombineFile(ObjectPath, Arguments[0]);
+														string f;
+														try
+														{
+															f = OpenBveApi.Path.CombineFile(ObjectPath, Arguments[0]);
+														}
+														catch
+														{
+															//NYCT-1 line has a comment containing SIGNAL, which is then misinterpreted by the parser here
+															//Really needs commenting fixing, rather than hacks like this.....
+															Interface.AddMessage(Interface.MessageType.Error, false, "SignalFileWithoutExtension does not contain a valid path in " + Command + " at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+															break;
+														}
 														Bve4SignalData Signal = new Bve4SignalData
 														{
 															BaseObject = ObjectManager.LoadStaticObject(f, Encoding, ObjectManager.ObjectLoadMode.Normal, false, false, false),
@@ -3134,7 +3183,12 @@ namespace OpenBve {
 												} else {
 													if (Data.Blocks[BlockIndex].RailType.Length <= idx) {
 														Array.Resize<int>(ref Data.Blocks[BlockIndex].RailType, idx + 1);
+														int ol = Data.Blocks[BlockIndex].RailCycle.Length;
 														Array.Resize(ref Data.Blocks[BlockIndex].RailCycle, idx + 1);
+														for (int rc = ol; rc < Data.Blocks[BlockIndex].RailCycle.Length; rc++)
+														{
+															Data.Blocks[BlockIndex].RailCycle[rc].RailCycleIndex = -1;
+														}
 													}
 													if (sttype < Data.Structure.RailCycle.Length && Data.Structure.RailCycle[sttype] != null) {
 														Data.Blocks[BlockIndex].RailType[idx] = Data.Structure.RailCycle[sttype][0];
@@ -4368,17 +4422,32 @@ namespace OpenBve {
 										}
 									} break;
 								case "track.marker":
+								case "track.textmarker":
 									{
-										if (!PreviewOnly) {
+										if (!PreviewOnly)
+										{
 											if (Arguments.Length < 1) {
 												Interface.AddMessage(Interface.MessageType.Error, false, "Track.Marker is expected to have at least one argument at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
 											} else if (Path.ContainsInvalidChars(Arguments[0])) {
 												Interface.AddMessage(Interface.MessageType.Error, false, "FileName " + Arguments[0] + " contains illegal characters in " + Command + " at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
 											} else {
 												string f = OpenBveApi.Path.CombineFile(ObjectPath, Arguments[0]);
-												if (!System.IO.File.Exists(f)) {
+												if (!System.IO.File.Exists(f) && Command.ToLowerInvariant() == "track.marker")
+												{
 													Interface.AddMessage(Interface.MessageType.Error, true, "FileName " + f + " not found in Track.Marker at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
 												} else {
+													if (System.IO.File.Exists(f) && f.ToLowerInvariant().EndsWith(".xml"))
+													{
+														Marker m = new Marker();
+														if (MarkerScriptParser.ReadMarkerXML(f, ref m))
+														{
+															int nn = Data.Markers.Length;
+															Array.Resize<Marker>(ref Data.Markers, nn + 1);
+															Data.Markers[nn] = m;
+														}
+
+														break;
+													}
 													double dist = Data.BlockInterval;
 													if (Arguments.Length >= 2 && Arguments[1].Length > 0 && !NumberFormats.TryParseDoubleVb6(Arguments[1], UnitOfLength, out dist)) {
 														Interface.AddMessage(Interface.MessageType.Error, false, "Distance is invalid in Track.Marker at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
@@ -4399,7 +4468,60 @@ namespace OpenBve {
 													Array.Resize<Marker>(ref Data.Markers, n + 1);
 													Data.Markers[n].StartingPosition = start;
 													Data.Markers[n].EndingPosition = end;
-													Textures.RegisterTexture(f, new OpenBveApi.Textures.TextureParameters(null, new Color24(64, 64, 64)), out Data.Markers[n].Texture);
+													if (Command.ToLowerInvariant() == "track.textmarker")
+													{
+														Data.Markers[n].Message = new MessageManager.MarkerText(Arguments[0]);
+														if (Arguments.Length >= 3)
+														{
+															switch (Arguments[2].ToLowerInvariant())
+															{
+																case "black":
+																case "1":
+																	Data.Markers[n].Message.Color = MessageColor.Black;
+																	break;
+																case "gray":
+																case "2":
+																	Data.Markers[n].Message.Color = MessageColor.Gray;
+																	break;
+																case "white":
+																case "3":
+																	Data.Markers[n].Message.Color = MessageColor.White;
+																	break;
+																case "red":
+																case "4":
+																	Data.Markers[n].Message.Color = MessageColor.Red;
+																	break;
+																case "orange":
+																case "5":
+																	Data.Markers[n].Message.Color = MessageColor.Orange;
+																	break;
+																case "green":
+																case "6":
+																	Data.Markers[n].Message.Color = MessageColor.Green;
+																	break;
+																case "blue":
+																case "7":
+																	Data.Markers[n].Message.Color = MessageColor.Blue;
+																	break;
+																case "magenta":
+																case "8":
+																	Data.Markers[n].Message.Color = MessageColor.Magenta;
+																	break;
+																default:
+																	Interface.AddMessage(Interface.MessageType.Error, false, "MessageColor is invalid in Track.TextMarker at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+																	//Default message color is set to white
+																	break;
+															}
+														}
+													}
+													else
+													{
+														Textures.Texture t;
+														Textures.RegisterTexture(f, new OpenBveApi.Textures.TextureParameters(null, new Color24(64, 64, 64)), out t);
+														Data.Markers[n].Message = new MessageManager.MarkerImage(t);
+														
+													}
+													
 												}
 											}
 										}
@@ -4782,7 +4904,7 @@ namespace OpenBve {
 					if (!PreviewOnly) {
 						for (int j = 0; j < Data.Blocks[i].RailType.Length; j++) {
 							int rc = Data.Blocks[i].RailCycle[j].RailCycleIndex;
-							if (rc != -1 && Data.Structure.RailCycle[rc].Length > 1) {
+							if (rc != -1 && Data.Structure.RailCycle.Length > rc && Data.Structure.RailCycle[rc].Length > 1) {
 								int cc = Data.Blocks[i].RailCycle[j].CurrentCycle;
 								if (cc == Data.Structure.RailCycle[rc].Length - 1) {
 									Data.Blocks[i].RailType[j] = Data.Structure.RailCycle[rc][0];
@@ -4855,6 +4977,13 @@ namespace OpenBve {
 			if (CompatibilityObjectsUsed != 0)
 			{
 				Interface.AddMessage(Interface.MessageType.Warning, false, "Warning: " + CompatibilityObjectsUsed + " compatibility objects were used.");
+			}
+			if (PreviewOnly)
+			{
+				if (freeObjCount == 0 && railtypeCount == 0)
+				{
+					throw new Exception(Interface.GetInterfaceString("errors_route_corrupt_noobjects"));
+				}
 			}
 			string SignalPath, LimitPath, LimitGraphicsPath, TransponderPath;
 			ObjectManager.StaticObject SignalPost, LimitPostStraight, LimitPostLeft, LimitPostRight, LimitPostInfinite;
@@ -5050,6 +5179,11 @@ namespace OpenBve {
 				if (!PreviewOnly) {
 					if (Data.FogTransitionMode) {
 						if (Data.Blocks[i].FogDefined) {
+							if (i == 0 && StartingDistance == 0)
+							{
+								//Fog starts at zero position
+								PreviousFog = Data.Blocks[i].Fog;
+							}
 							Data.Blocks[i].Fog.TrackPosition = StartingDistance;
 							int m = TrackManager.CurrentTrack.Elements[n].Events.Length;
 							Array.Resize<TrackManager.GeneralEvent>(ref TrackManager.CurrentTrack.Elements[n].Events, m + 1);
@@ -5067,12 +5201,26 @@ namespace OpenBve {
 							PreviousFogEvent = m;
 						}
 					} else {
-						Data.Blocks[i].Fog.TrackPosition = StartingDistance + Data.BlockInterval;
-						int m = TrackManager.CurrentTrack.Elements[n].Events.Length;
-						Array.Resize<TrackManager.GeneralEvent>(ref TrackManager.CurrentTrack.Elements[n].Events, m + 1);
-						TrackManager.CurrentTrack.Elements[n].Events[m] = new TrackManager.FogChangeEvent(0.0, PreviousFog, CurrentFog, Data.Blocks[i].Fog);
-						PreviousFog = CurrentFog;
-						CurrentFog = Data.Blocks[i].Fog;
+						if (i == 0 && StartingDistance == 0)
+						{
+							//Fog starts at zero position
+							CurrentFog = Data.Blocks[i].Fog;
+							PreviousFog = CurrentFog;
+							Game.PreviousFog = CurrentFog;
+							Game.CurrentFog = CurrentFog;
+							Game.NextFog = CurrentFog;
+							
+							
+						}
+						else
+						{
+							Data.Blocks[i].Fog.TrackPosition = StartingDistance + Data.BlockInterval;
+							int m = TrackManager.CurrentTrack.Elements[n].Events.Length;
+							Array.Resize<TrackManager.GeneralEvent>(ref TrackManager.CurrentTrack.Elements[n].Events, m + 1);
+							TrackManager.CurrentTrack.Elements[n].Events[m] = new TrackManager.FogChangeEvent(0.0, PreviousFog, CurrentFog, Data.Blocks[i].Fog);
+							PreviousFog = CurrentFog;
+							CurrentFog = Data.Blocks[i].Fog;
+						}
 					}
 				}
 				// rail sounds
@@ -5176,13 +5324,19 @@ namespace OpenBve {
 							int m = TrackManager.CurrentTrack.Elements[n].Events.Length;
 							Array.Resize<TrackManager.GeneralEvent>(ref TrackManager.CurrentTrack.Elements[n].Events, m + 1);
 							double d = Data.Markers[j].StartingPosition - StartingDistance;
-							TrackManager.CurrentTrack.Elements[n].Events[m] = new TrackManager.MarkerStartEvent(d, Data.Markers[j].Texture);
+							if (Data.Markers[j].Message != null)
+							{
+								TrackManager.CurrentTrack.Elements[n].Events[m] = new TrackManager.MarkerStartEvent(d, Data.Markers[j].Message);
+							}
 						}
 						if (Data.Markers[j].EndingPosition >= StartingDistance & Data.Markers[j].EndingPosition < EndingDistance) {
 							int m = TrackManager.CurrentTrack.Elements[n].Events.Length;
 							Array.Resize<TrackManager.GeneralEvent>(ref TrackManager.CurrentTrack.Elements[n].Events, m + 1);
 							double d = Data.Markers[j].EndingPosition - StartingDistance;
-							TrackManager.CurrentTrack.Elements[n].Events[m] = new TrackManager.MarkerEndEvent(d, Data.Markers[j].Texture);
+							if (Data.Markers[j].Message != null)
+							{
+								TrackManager.CurrentTrack.Elements[n].Events[m] = new TrackManager.MarkerEndEvent(d, Data.Markers[j].Message);
+							}
 						}
 					}
 				}

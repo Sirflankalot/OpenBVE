@@ -280,12 +280,14 @@ namespace OpenBve {
 		/// <param name="Time">The time in seconds for which to display the message</param>
 		internal void AddInterfaceMessage(string Message, MessageColor Color, double Time)
 		{
-			Game.AddMessage(Message, Game.MessageDependency.None, Interface.GameMode.Expert, Color, Game.SecondsSinceMidnight + Time);
+			Game.AddMessage(Message, Game.MessageDependency.None, Interface.GameMode.Expert, Color, Game.SecondsSinceMidnight + Time, null);
 		}
 
 		/// <summary>May be called from a .Net plugin, in order to add a score to the post-game log</summary>
 		/// <param name="Score">The score to add</param>
 		/// <param name="Message">The message to display in the post-game log</param>
+		/// <param name="Color">The color of the in-game message</param>
+		/// <param name="Timeout">The time in seconds for which to display the in-game message</param>
 		internal void AddScore(int Score, string Message, MessageColor Color, double Timeout)
 		{
 			Game.CurrentScore.Value += Score;

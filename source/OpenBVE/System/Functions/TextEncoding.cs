@@ -31,7 +31,39 @@ namespace OpenBve
 			Utf32Be = 6,
 			/// <summary>SHIFT_JIS</summary>
 			Shift_JIS = 7,
+			/// <summary>Windows-1252 (Legacy Microsoft)</summary>
+			Windows1252,
+			/// <summary>BIG5</summary>
+			Big5
 		}
+
+		/// <summary>Gets the character endcoding of a file</summary>
+		/// <param name="File">The absolute path to a file</param>
+		/// <returns>The character encoding, or the system default encoding if unknown</returns>
+		internal static System.Text.Encoding GetSystemEncodingFromFile(string File)
+		{
+			Encoding e = GetEncodingFromFile(File);
+			switch (e)
+			{
+				case Encoding.Utf7:
+					return System.Text.Encoding.UTF7;
+				case Encoding.Utf8:
+					return System.Text.Encoding.UTF8;
+				case Encoding.Utf16Le:
+					return System.Text.Encoding.Unicode;
+				case Encoding.Utf16Be:
+					return System.Text.Encoding.BigEndianUnicode;
+				case Encoding.Utf32Le:
+					return System.Text.Encoding.UTF32;
+				case Encoding.Utf32Be:
+					return System.Text.Encoding.GetEncoding(12001);
+				case Encoding.Shift_JIS:
+					return System.Text.Encoding.GetEncoding(932);
+				default:
+					return System.Text.Encoding.Default;
+			}
+		}
+		
 		/// <summary>Gets the character endcoding of a file</summary>
 		/// <param name="File">The absolute path to a file</param>
 		/// <returns>The character encoding, or unknown</returns>
@@ -63,6 +95,14 @@ namespace OpenBve
 				{
 					case "SHIFT_JIS":
 						return Encoding.Shift_JIS;
+					case "UTF-8":
+						return Encoding.Utf8;
+					case "UTF-7":
+						return Encoding.Utf7;
+					case "WINDOWS-1252":
+						return Encoding.Windows1252;
+					case "BIG5":
+						return Encoding.Big5;
 				}
 				Det.Reset();
 				return Encoding.Unknown;

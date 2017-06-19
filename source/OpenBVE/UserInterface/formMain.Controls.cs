@@ -95,12 +95,12 @@ namespace OpenBve {
 			}
 			Item.SubItems[2].Text = Info.Description;
 			if (Interface.CurrentControls[Index].Method == Interface.ControlMethod.Keyboard) {
-				Item.ImageKey = "keyboard";
+				Item.ImageKey = @"keyboard";
 			} else if (Interface.CurrentControls[Index].Method == Interface.ControlMethod.Joystick) {
 				if (Info.Type == Interface.CommandType.AnalogHalf | Info.Type == Interface.CommandType.AnalogFull) {
-					Item.ImageKey = "joystick";
+					Item.ImageKey = @"joystick";
 				} else {
-					Item.ImageKey = "gamepad";
+					Item.ImageKey = @"gamepad";
 				}
 			} else {
 				Item.ImageKey = null;
@@ -129,8 +129,16 @@ namespace OpenBve {
 					//OpenTK key description
 					if (Interface.CurrentControls[Index].Key != Key.Unknown)
 					{
+						for (int k = 0; k < Interface.TranslatedKeys.Length; k++)
+						{
+							if (Interface.CurrentControls[Index].Key == Interface.TranslatedKeys[k].Key)
+							{
+								t += Interface.TranslatedKeys[k].Description;
+								return t;
+							}
+						}
 						t += Interface.CurrentControls[Index].Key;
-						break;
+						return t;
 					}
 				} if (j == 133) {
 					t += "{" + Interface.CurrentControls[Index].Element.ToString(Culture) + "}";
@@ -405,12 +413,12 @@ namespace OpenBve {
 			{
 				OverwritePrompt = true,
 				Filter =
-					Interface.GetInterfaceString("dialog_controlsfiles") + "|*.controls|" +
-					Interface.GetInterfaceString("dialog_allfiles") + "|*"
+					Interface.GetInterfaceString("dialog_controlsfiles") + @"|*.controls|" +
+					Interface.GetInterfaceString("dialog_allfiles") + @"|*"
 			};
 			if (Dialog.ShowDialog() == DialogResult.OK) {
 				try {
-					Interface.SaveControls(Dialog.FileName);
+					Interface.SaveControls(Dialog.FileName, Interface.CurrentControls);
 				} catch (Exception ex) {
 					MessageBox.Show(ex.Message, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Hand);
 				}
@@ -666,7 +674,7 @@ namespace OpenBve {
 							int n = capabilities.ButtonCount;
 							float g = (float)0.5f * (pictureboxJoysticks.ClientRectangle.Height - v - 10.0f);
 							for (int j = 0; j < n; j++) {
-								bool q = state.GetButton((JoystickButton)j) != 0;
+								bool q = state.GetButton(j) != 0;
 								float dv = (float)(j & 1) * (g + 8.0f);
 								if (q) e.Graphics.FillRectangle(Brushes.Firebrick, u, v + dv, g, g);
 								if (device == i & component == Interface.JoystickComponent.Button & element == j) {

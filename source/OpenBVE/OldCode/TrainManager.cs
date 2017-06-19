@@ -180,17 +180,7 @@ namespace OpenBve
 			internal float NextBrightness;
 			internal double NextTrackPosition;
 		}
-		internal struct Horn
-		{
-			internal CarSound Sound;
-			internal bool Loop;
-			private Horn(CarSound sound, bool loop)
-			{
-				this.Sound = sound;
-				this.Loop = loop;
-			}
-			internal static readonly Horn Empty = new Horn(CarSound.Empty, false);
-		}
+
 		internal struct CarSound
 		{
 			internal Sounds.SoundBuffer Buffer;
@@ -270,8 +260,8 @@ namespace OpenBve
 			internal CarSound PilotLampOn;
 			/// <summary>Played once when the first door opens</summary>
 			internal CarSound PilotLampOff;
-			internal CarSound PointFrontAxle;
-			internal CarSound PointRearAxle;
+			internal CarSound[] PointFrontAxle;
+			internal CarSound[] PointRearAxle;
 			internal CarSound Rub;
 			internal CarSound ReverserOn;
 			internal CarSound ReverserOff;
@@ -2018,15 +2008,15 @@ namespace OpenBve
 				{
 					if (Train.Specs.CurrentAverageSpeed > Train.CurrentRouteLimit)
 					{
-						Game.AddMessage(Interface.GetInterfaceString("message_route_overspeed"), Game.MessageDependency.RouteLimit, Interface.GameMode.Arcade, MessageColor.Orange, double.PositiveInfinity);
+						Game.AddMessage(Interface.GetInterfaceString("message_route_overspeed"), Game.MessageDependency.RouteLimit, Interface.GameMode.Arcade, MessageColor.Orange, double.PositiveInfinity, null);
 					}
 					if (Train.CurrentSectionLimit == 0.0)
 					{
-						Game.AddMessage(Interface.GetInterfaceString("message_signal_stop"), Game.MessageDependency.SectionLimit, Interface.GameMode.Normal, MessageColor.Red, double.PositiveInfinity);
+						Game.AddMessage(Interface.GetInterfaceString("message_signal_stop"), Game.MessageDependency.SectionLimit, Interface.GameMode.Normal, MessageColor.Red, double.PositiveInfinity, null);
 					}
 					else if (Train.Specs.CurrentAverageSpeed > Train.CurrentSectionLimit)
 					{
-						Game.AddMessage(Interface.GetInterfaceString("message_signal_overspeed"), Game.MessageDependency.SectionLimit, Interface.GameMode.Normal, MessageColor.Orange, double.PositiveInfinity);
+						Game.AddMessage(Interface.GetInterfaceString("message_signal_overspeed"), Game.MessageDependency.SectionLimit, Interface.GameMode.Normal, MessageColor.Orange, double.PositiveInfinity, null);
 					}
 				}
 				if (Train.AI != null)
@@ -3144,8 +3134,11 @@ namespace OpenBve
 		// update train physics and controls
 		private static void UpdateTrainPhysicsAndControls(Train Train, double TimeElapsed)
 		{
-			if (TimeElapsed == 0.0)
+			if (TimeElapsed == 0.0 || TimeElapsed > 1000)
 			{
+				//HACK: The physics engine really does not like update times above 1000ms
+				//This works around a bug experienced when jumping to a station on a steep hill
+				//causing exessive acceleration
 				return;
 			}
 			// move cars
@@ -3534,7 +3527,7 @@ namespace OpenBve
 						double a = (3.6 * Train.CurrentSectionLimit) * Game.SpeedConversionFactor;
 						s = s.Replace("[speed]", a.ToString("0", System.Globalization.CultureInfo.InvariantCulture));
 						s = s.Replace("[unit]", Game.UnitOfSpeed);
-						Game.AddMessage(s, Game.MessageDependency.None, Interface.GameMode.Normal, MessageColor.Red, Game.SecondsSinceMidnight + 5.0);
+						Game.AddMessage(s, Game.MessageDependency.None, Interface.GameMode.Normal, MessageColor.Red, Game.SecondsSinceMidnight + 5.0, null);
 					}
 				}
 			}

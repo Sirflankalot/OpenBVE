@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
+using OpenBveApi.Colors;
 using OpenTK;
 using OpenTK.Graphics;
 using GL = OpenTK.Graphics.OpenGL;
@@ -98,10 +99,20 @@ namespace OpenBve
 				TotalTimeElapsedForInfo = 0.0;
 			}
 			
+			
+			if (Game.PreviousInterface != Game.InterfaceType.Normal)
+			{
+				ObjectManager.UpdateAnimatedWorldObjects(0.0, false);
+				Game.PreviousInterface = Game.InterfaceType.Normal;
+			}
+			else
+			{
+				ObjectManager.UpdateAnimatedWorldObjects(TimeElapsed, false);
+			}
+
 			//We need to update the camera position in the render sequence
 			//Not doing this means that the camera doesn't move
 			// update in one piece
-			ObjectManager.UpdateAnimatedWorldObjects(TimeElapsed, false);
 			if (World.CameraMode == World.CameraViewMode.Interior | World.CameraMode == World.CameraViewMode.InteriorLookAhead)
 			{
 				//Update the in-car camera based upon the current driver car (Cabview or passenger view)
@@ -290,6 +301,7 @@ namespace OpenBve
 			Keyboard.KeyRepeat	 = false;
 			Mouse.ButtonDown	+= MainLoop.mouseDownEvent;
 			Mouse.Move			+= MainLoop.mouseMoveEvent;
+			Mouse.WheelChanged  += MainLoop.mouseWheelEvent;
 		}
 		protected override void OnClosing(CancelEventArgs e)
 		{
@@ -638,7 +650,7 @@ namespace OpenBve
 				if (TrainManager.PlayerTrain.Plugin != null && !TrainManager.PlayerTrain.Plugin.SupportsAI)
 				{
 					Game.AddMessage(Interface.GetInterfaceString("notification_aiunable"),Game.MessageDependency.None, Interface.GameMode.Expert,
-						OpenBveApi.Colors.MessageColor.Blue, Game.SecondsSinceMidnight + 10.0);
+						OpenBveApi.Colors.MessageColor.Blue, Game.SecondsSinceMidnight + 10.0, null);
 				}
 			}
 			
@@ -668,23 +680,23 @@ namespace OpenBve
 				if (filesNotFound != 0)
 				{
 					NotFound = filesNotFound.ToString() + " file(s) not found";
-					Game.AddDebugMessage(NotFound, 10.0);
+					Game.AddMessage(NotFound, Game.MessageDependency.None, Interface.GameMode.Expert, MessageColor.Magenta, Game.SecondsSinceMidnight + 10.0, null);
 					
 				}
 				if (errors != 0 & warnings != 0)
 				{
 					Messages = errors.ToString() + " error(s), " + warnings.ToString() + " warning(s)";
-					Game.AddDebugMessage(Messages, 10.0);
+					Game.AddMessage(Messages, Game.MessageDependency.None, Interface.GameMode.Expert, MessageColor.Magenta, Game.SecondsSinceMidnight + 10.0, null);
 				}
 				else if (errors != 0)
 				{
 					Messages = errors.ToString() + " error(s)";
-					Game.AddDebugMessage(Messages, 10.0);
+					Game.AddMessage(Messages, Game.MessageDependency.None, Interface.GameMode.Expert, MessageColor.Magenta, Game.SecondsSinceMidnight + 10.0, null);
 				}
 				else
 				{
 					Messages = warnings.ToString() + " warning(s)";
-					Game.AddDebugMessage(Messages, 10.0);
+					Game.AddMessage(Messages, Game.MessageDependency.None, Interface.GameMode.Expert, MessageColor.Magenta, Game.SecondsSinceMidnight + 10.0, null);
 				}
 				Game.RouteInformation.FilesNotFound = NotFound;
 				Game.RouteInformation.ErrorsAndWarnings = Messages;
@@ -692,8 +704,8 @@ namespace OpenBve
 				//This must be done after the simulation has init, as otherwise the timeout doesn't work
 				if (Loading.PluginError != null)
 				{
-					Game.AddMessage(Loading.PluginError, Game.MessageDependency.None, Interface.GameMode.Expert, OpenBveApi.Colors.MessageColor.Red, Game.SecondsSinceMidnight + 5.0);
-					Game.AddMessage(Interface.GetInterfaceString("errors_plugin_failure2"), Game.MessageDependency.None, Interface.GameMode.Expert, OpenBveApi.Colors.MessageColor.Red, Game.SecondsSinceMidnight + 5.0);
+					Game.AddMessage(Loading.PluginError, Game.MessageDependency.None, Interface.GameMode.Expert, OpenBveApi.Colors.MessageColor.Red, Game.SecondsSinceMidnight + 5.0, null);
+					Game.AddMessage(Interface.GetInterfaceString("errors_plugin_failure2"), Game.MessageDependency.None, Interface.GameMode.Expert, OpenBveApi.Colors.MessageColor.Red, Game.SecondsSinceMidnight + 5.0, null);
 				}
 			}
 			loadComplete = true;

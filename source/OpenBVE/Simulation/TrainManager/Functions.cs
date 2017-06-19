@@ -29,6 +29,21 @@ namespace OpenBve
 		/// <param name="stationIndex">The zero-based index of the station</param>
 		internal static void JumpTrain(Train train, int stationIndex)
 		{
+			if (train == PlayerTrain)
+			{
+				for (int i = 0; i < ObjectManager.AnimatedWorldObjects.Length; i++)
+				{
+					if (ObjectManager.AnimatedWorldObjects[i].FollowsTrack)
+					{
+						//Track followers should be reset if we jump between stations
+						ObjectManager.AnimatedWorldObjects[i].FrontAxleFollower.TrackPosition = ObjectManager.AnimatedWorldObjects[i].TrackPosition + ObjectManager.AnimatedWorldObjects[i].FrontAxlePosition;
+						ObjectManager.AnimatedWorldObjects[i].FrontAxleFollower.TrackPosition = ObjectManager.AnimatedWorldObjects[i].TrackPosition + ObjectManager.AnimatedWorldObjects[i].RearAxlePosition;
+						ObjectManager.AnimatedWorldObjects[i].FrontAxleFollower.UpdateWorldCoordinates(false);
+						ObjectManager.AnimatedWorldObjects[i].RearAxleFollower.UpdateWorldCoordinates(false);
+					}
+				 
+				}
+			}
 			train.StationState = TrainStopState.Pending;
 			int stopIndex = Game.GetStopIndex(stationIndex, train.Cars.Length);
 			if (stopIndex >= 0)
@@ -118,7 +133,7 @@ namespace OpenBve
 				{
 					Game.CurrentScore.DepartureStation = stationIndex;
 					Game.CurrentInterface = Game.InterfaceType.Normal;
-					Game.Messages = new Game.Message[] { };
+					//Game.Messages = new Game.Message[] { };
 				}
 				ObjectManager.UpdateAnimatedWorldObjects(0.0, true);
 				TrainManager.UpdateTrainObjects(0.0, true);

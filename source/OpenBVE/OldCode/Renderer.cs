@@ -53,7 +53,12 @@ namespace OpenBve
         internal static bool OptionBackfaceCulling = true;
 
         // interface options
+		/// <summary>Whether the clock overlay is currently displayed</summary>
         internal static bool OptionClock = false;
+
+		internal enum GradientDisplayMode { Percentage, UnitOfChange, None }
+		/// <summary>Whether the gradient overlay is currently displayed</summary>
+	    internal static GradientDisplayMode OptionGradient = GradientDisplayMode.None;
         internal enum SpeedDisplayMode { None, Kmph, Mph }
         internal static SpeedDisplayMode OptionSpeed = SpeedDisplayMode.None;
         internal static bool OptionFrameRates = false;
@@ -315,8 +320,6 @@ namespace OpenBve
                         if (additive)
                         {
                             SetAlphaFunc(AlphaFunction.Less, 1.0f);
-							//HACK: Reset mesh material after using additive blending (Shouldn't be necessary, but there's a bug somewhere)
-							GL.Material(MaterialFace.FrontAndBack, MaterialParameter.Emission, new float[] { 0.0f, 0.0f, 0.0f, 1.0f });
 							additive = false;
                         }
                         RenderFace(ref DynamicAlpha.Faces[i], cx, cy, cz);
@@ -604,7 +607,7 @@ namespace OpenBve
                 GL.Material(MaterialFace.FrontAndBack, MaterialParameter.Emission, new float[] { inv255 * (float)Material.EmissiveColor.R, inv255 * (float)Material.EmissiveColor.G, inv255 * (float)Material.EmissiveColor.B, 1.0f });
                 EmissiveEnabled = true;
             }
-            else if (EmissiveEnabled)
+            else// if (EmissiveEnabled)
             {
                 GL.Material(MaterialFace.FrontAndBack, MaterialParameter.Emission, new float[] { 0.0f, 0.0f, 0.0f, 1.0f });
                 EmissiveEnabled = false;
@@ -701,7 +704,7 @@ namespace OpenBve
                     GL.Material(MaterialFace.FrontAndBack, MaterialParameter.Emission, new float[] { inv255 * (float)Material.EmissiveColor.R, inv255 * (float)Material.EmissiveColor.G, inv255 * (float)Material.EmissiveColor.B, 1.0f });
                     EmissiveEnabled = true;
                 }
-                else if (EmissiveEnabled)
+                else// if (EmissiveEnabled)
                 {
                     GL.Material(MaterialFace.FrontAndBack, MaterialParameter.Emission, new float[] { 0.0f, 0.0f, 0.0f, 1.0f });
                     EmissiveEnabled = false;

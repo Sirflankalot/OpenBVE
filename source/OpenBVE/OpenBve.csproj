@@ -111,12 +111,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Game\AI.cs" />
+    <Compile Include="Game\Markers.cs" />
+    <Compile Include="Game\MessageManager.cs" />
+    <Compile Include="Game\MessageManager.ImageMessage.cs" />
+    <Compile Include="Game\MessageManager.TextualMessages.cs" />
     <Compile Include="Game\Messages.cs" />
+    <Compile Include="Game\MessageManager.Message.cs" />
+    <Compile Include="Game\PointsOfInterest.cs" />
     <Compile Include="Game\RouteInformation.cs" />
     <Compile Include="Game\RouteInfoOverlay.cs" />
     <Compile Include="Game\Information.cs" />
     <Compile Include="Game\Menu.cs" />
     <Compile Include="Game\RouteConstants.cs" />
+    <Compile Include="Game\Signalling.cs" />
     <Compile Include="Game\Station.cs" />
     <Compile Include="Graphics\OpenGLCallback.cs" />
     <Compile Include="Graphics\Renderer\Background.cs" />
@@ -127,6 +134,7 @@
     <Compile Include="Graphics\Renderer\Lighting.cs" />
     <Compile Include="Graphics\Renderer\MotionBlur.cs" />
     <Compile Include="Graphics\Renderer\Overlays.cs" />
+    <Compile Include="Graphics\Renderer\Overlays.Functions.cs" />
     <Compile Include="Graphics\Renderer\Structures.cs" />
     <Compile Include="Graphics\Renderer\Objects.cs" />
     <Compile Include="OldCode\Game.cs" />
@@ -141,6 +149,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>AssemblyInfo.tt</DependentUpon>
     </Compile>
+    <Compile Include="Parsers\MarkerScriptParser.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -153,6 +162,7 @@
     <Compile Include="Simulation\TrainManager\Train\Handles.cs" />
     <Compile Include="Simulation\TrainManager\Passengers.cs" />
     <Compile Include="Simulation\TrainManager\Station.cs" />
+    <Compile Include="Simulation\TrainManager\Train\Horn.cs" />
     <Compile Include="Simulation\TrainManager\Train\Reverser.cs" />
     <Compile Include="Simulation\World\BackgroundManager.cs" />
     <Compile Include="Simulation\World\Transformations.cs" />
@@ -358,7 +368,7 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
   </PropertyGroup>
   <!-- This is the important line: -->
-  <Import Condition=" '$(OS)' != 'Unix' " Project="$(VSToolsPath)\TextTemplating\Microsoft.TextTemplating.targets" />
+  <Import Condition=" '$(OS)' != 'Unix' and Exists('$(VSToolsPath)\TextTemplating\Microsoft.TextTemplating.targets')" Project="$(VSToolsPath)\TextTemplating\Microsoft.TextTemplating.targets" />
   <!-- Details about translation -->
   <PropertyGroup>
     <TransformOnBuild>true</TransformOnBuild>
@@ -370,16 +380,22 @@
     <TransformOutOfDateOnly>true</TransformOutOfDateOnly>
   </PropertyGroup>
   <PropertyGroup>
+    <PreBuildEvent Condition=" '$(OS)' != 'Unix' and !Exists('$(VSToolsPath)\TextTemplating\Microsoft.TextTemplating.targets')">set textTemplatingPath="%25CommonProgramFiles(x86)%25\Microsoft Shared\TextTemplating\$(VisualStudioVersion)\texttransform.exe" -if %25textTemplatingPath%25=="\Microsoft Shared\TextTemplating\$(VisualStudioVersion)\texttransform.exe" set textTemplatingPath="%25CommonProgramFiles%25\Microsoft Shared\TextTemplating\$(VisualStudioVersion)\texttransform.exe" -%25textTemplatingPath%25 "$(ProjectDir)\Properties\AssemblyInfo.tt"</PreBuildEvent>
     <PreBuildEvent Condition=" '$(OS)' == 'Unix' ">bash $(ProjectDir)Properties/AssemblyInfo.sh</PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Copy in dependancies and child projects -->
+	<!-- Finally, set LBA flag & cleanup -->	
     <PostBuildEvent Condition=" '$(OS)' != 'Unix' ">
-		xcopy "$(SolutionDir)assets\*.*" "$(TargetDir)Data" /Y /I /E /C /D
+		xcopy "$(SolutionDir)assets\*.*" "$(TargetDir)Data" /Y /I /E /C	
+"$(TargetDir)LBAHeader.exe" OpenBve.exe 
+del "$(TargetDir)LBAHeader*.*"
 	</PostBuildEvent>
     <!-- NOTE: Whilst AtsPluginProxy.dll is Windows specific, we still want to copy it in the auto-generated nightly builds -->
     <PostBuildEvent Condition=" '$(OS)' == 'Unix' ">
 		cp -rf "$(SolutionDir)assets/." "$(TargetDir)Data/"
+mono "$(TargetDir)LBAHeader.exe" OpenBve.exe 
+rm -rf "$(TargetDir)LBAHeader"*.*
 	</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

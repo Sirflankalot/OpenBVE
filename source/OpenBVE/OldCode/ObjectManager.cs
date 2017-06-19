@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Windows.Forms;
 using CSScriptLibrary;
 using OpenBveApi.Math;
 
@@ -259,10 +258,6 @@ namespace OpenBve {
 
 		internal static double UpdateTrackFollowerScript(ref AnimatedObject Object, bool IsPartOfTrain, TrainManager.Train Train, int CarIndex, int SectionIndex, double TrackPosition, Vector3 Position, Vector3 Direction, Vector3 Up, Vector3 Side, bool Overlay, bool UpdateFunctions, bool Show, double TimeElapsed)
 		{
-			if (Object.CurrentState == -1)
-			{
-				return 0;
-			}
 			double x = 0.0;
 			if (Object.TrackFollowerFunction != null)
 			{
@@ -1142,6 +1137,10 @@ namespace OpenBve {
 		// load object
 		internal enum ObjectLoadMode { Normal, DontAllowUnloadOfTextures }
 		internal static UnifiedObject LoadObject(string FileName, System.Text.Encoding Encoding, ObjectLoadMode LoadMode, bool PreserveVertices, bool ForceTextureRepeatX, bool ForceTextureRepeatY) {
+			if (String.IsNullOrEmpty(FileName))
+			{
+				return null;
+			}
 			#if !DEBUG
 			try {
 				#endif
@@ -1171,7 +1170,41 @@ namespace OpenBve {
 					}
 				}
 				UnifiedObject Result;
-				switch (System.IO.Path.GetExtension(FileName).ToLowerInvariant()) {
+				TextEncoding.Encoding newEncoding = TextEncoding.GetEncodingFromFile(FileName);
+				if (newEncoding != TextEncoding.Encoding.Unknown)
+				{
+					switch (newEncoding)
+					{
+						case TextEncoding.Encoding.Utf7:
+							Encoding = System.Text.Encoding.UTF7;
+							break;
+						case TextEncoding.Encoding.Utf8:
+							Encoding = System.Text.Encoding.UTF8;
+							break;
+						case TextEncoding.Encoding.Utf16Le:
+							Encoding = System.Text.Encoding.Unicode;
+							break;
+						case TextEncoding.Encoding.Utf16Be:
+							Encoding = System.Text.Encoding.BigEndianUnicode;
+							break;
+						case TextEncoding.Encoding.Utf32Le:
+							Encoding = System.Text.Encoding.UTF32;
+							break;
+						case TextEncoding.Encoding.Utf32Be:
+							Encoding = System.Text.Encoding.GetEncoding(12001);
+							break;
+						case TextEncoding.Encoding.Shift_JIS:
+							Encoding = System.Text.Encoding.GetEncoding(932);
+							break;
+						case TextEncoding.Encoding.Windows1252:
+							Encoding = System.Text.Encoding.GetEncoding(1252);
+							break;
+						case TextEncoding.Encoding.Big5:
+							Encoding = System.Text.Encoding.GetEncoding(950);
+							break;
+					}
+				}
+			switch (System.IO.Path.GetExtension(FileName).ToLowerInvariant()) {
 					case ".csv":
 					case ".b3d":
 						Result = CsvB3dObjectParser.ReadObject(FileName, Encoding, LoadMode, ForceTextureRepeatX, ForceTextureRepeatY);
@@ -1199,6 +1232,10 @@ namespace OpenBve {
 			#endif
 		}
 		internal static StaticObject LoadStaticObject(string FileName, System.Text.Encoding Encoding, ObjectLoadMode LoadMode, bool PreserveVertices, bool ForceTextureRepeatX, bool ForceTextureRepeatY) {
+			if (String.IsNullOrEmpty(FileName))
+			{
+				return null;
+			}
 			#if !DEBUG
 			try {
 				#endif
