@@ -43,6 +43,31 @@ namespace OpenBve {
 			}
 		}
 
+        internal static Font ConverttoFont(FontType fonttype) {
+            float size = SmallFontSize;
+            switch (fonttype) {
+                case FontType.ExtraSmall:
+                    size = ExtraSmallFontSize;
+                    break;
+                case FontType.Small:
+                    size = SmallFontSize;
+                    break;
+                case FontType.Medium:
+                    size = MediumFontSize;
+                    break;
+                case FontType.Large:
+                    size = LargeFontSize;
+                    break;
+                case FontType.ExtraLarge:
+                    size = ExtraLargeFontSize;
+                    break;
+                default:
+                    size = SmallFontSize;
+                    break;
+            }
+            return new Font(FontFamily.GenericSansSerif, size, FontStyle.Bold, GraphicsUnit.Pixel);
+        }
+
 		// get opengl texture index
 		internal static int GetTextureIndex(FontType FontType, int Codepoint) {
 			int Font = (int)FontType;

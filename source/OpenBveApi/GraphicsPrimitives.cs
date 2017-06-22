@@ -29,7 +29,35 @@ namespace OpenBveApi {
 		public byte b;
 		/// <summary>Alpha component of pixel (0-255). 255 is opaque.</summary>
 		public byte a;
-	}
+
+        /// <summary>
+        /// Normal constuctor copying values inside struct.
+        /// </summary>
+        /// <param name="r">Red component of pixel (0-255)</param>
+        /// <param name="g">Green component of pixel (0-255)</param>
+        /// <param name="b">Blue component of pixel (0-255)</param>
+        /// <param name="a">Alpha component of pixel (0-255). 255 is opaque.</param>
+        public Pixel(byte r, byte g, byte b, byte a) {
+            this.r = r;
+            this.g = g;
+            this.b = b;
+            this.a = a;
+        }
+
+        /// <summary>
+        /// Float (0-1) to byte (0-255) converting constuctor copying values inside struct.
+        /// </summary>
+        /// <param name="r">Red component of pixel (0-1)</param>
+        /// <param name="g">Green component of pixel (0-1)</param>
+        /// <param name="b">Blue component of pixel (0-1)</param>
+        /// <param name="a">Alpha component of pixel (0-1). 1 is opaque.</param>
+        public Pixel(float r, float g, float b, float a) {
+            this.r = (byte)(r * 255.0f);
+            this.g = (byte)(g * 255.0f);
+            this.b = (byte)(b * 255.0f);
+            this.a = (byte)(a * 255.0f);
+        }
+    }
 
 	/// <summary>
 	/// Represents a vertex in 2D space with a position and a texture position

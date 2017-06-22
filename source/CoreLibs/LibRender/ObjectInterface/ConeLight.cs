@@ -69,13 +69,23 @@ namespace LibRender {
 
 			cone_lights_translation.Remove(clh.id);
 			cone_lights[id] = null;
-		}
+        }
 
-		////////////////////////////////////
-		// Cone Light Getters and Setters //
-		////////////////////////////////////
+        public bool Valid(ConeLightHandle clh) {
+            try {
+                AssertValid(clh);
+            }
+            catch (System.Exception) {
+                return false;
+            }
+            return true;
+        }
 
-		public Vector3 GetLocation(ConeLightHandle clh) {
+        ////////////////////////////////////
+        // Cone Light Getters and Setters //
+        ////////////////////////////////////
+
+        public Vector3 GetLocation(ConeLightHandle clh) {
 			int id = AssertValid(clh);
 
 			return cone_lights[id].location;

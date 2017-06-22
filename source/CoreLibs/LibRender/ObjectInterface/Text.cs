@@ -95,11 +95,21 @@ namespace LibRender {
 			texts[id] = null;
 		}
 
-		//////////////////////////////
-		// Text Setters and Getters //
-		//////////////////////////////
+        public bool Valid(TextHandle th) {
+            try {
+                AssertValid(th);
+            }
+            catch (System.Exception) {
+                return false;
+            }
+            return true;
+        }
 
-		public string GetText(TextHandle th) {
+        //////////////////////////////
+        // Text Setters and Getters //
+        //////////////////////////////
+
+        public string GetText(TextHandle th) {
 			int id = AssertValid(th);
 
 			return texts[id].text;

@@ -74,6 +74,16 @@ namespace LibRender {
 			cameras[id] = null;
 		}
 
+        public bool Valid(CameraHandle ch) {
+            try {
+                AssertValid(ch);
+            }
+            catch(System.Exception) {
+                return false;
+            }
+            return true;
+        }
+
 		////////////////////////////////
 		// Camera Setters and Getters //
 		////////////////////////////////

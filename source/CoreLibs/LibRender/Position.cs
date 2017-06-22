@@ -36,15 +36,15 @@ namespace LibRender {
 			position = old_pos.position;
 		}
 
-		public Position(WindowOrigin window_origin, ObjectOrigin object_origin, Vector2 position) {
-			this.window_origin = window_origin;
-			this.object_origin = object_origin;
+		public Position(Vector2 position, WindowOrigin window_origin = WindowOrigin.TopLeft, ObjectOrigin object_origin = ObjectOrigin.TopLeft) {
+            this.object_origin = object_origin;
+            this.window_origin = window_origin;
 			this.position = position;
 		}
 
-		public Position(WindowOrigin window_origin, ObjectOrigin object_origin, float pos_x, float pos_y) {
-			this.window_origin = window_origin;
-			this.object_origin = object_origin;
+		public Position(float pos_x, float pos_y, WindowOrigin window_origin = WindowOrigin.TopLeft, ObjectOrigin object_origin = ObjectOrigin.TopLeft) {
+            this.object_origin = object_origin;
+            this.window_origin = window_origin;
 			position = new Vector2(pos_x, pos_y);
 		}
 
@@ -198,5 +198,18 @@ namespace LibRender {
 			new_pos.Translate(window_origin, object_origin, width, height, object_dimentions);
 			return new_pos;
 		}
-	}
+
+        public static Position operator+(Position p, Vector2 vec) {
+            p.position += vec;
+            return p;
+        }
+        public static Position operator-(Position p, Vector2 vec) {
+            p.position -= vec;
+            return p;
+        }
+        public static Position operator*(Position p, Vector2 vec) {
+            p.position *= vec;
+            return p;
+        }
+    }
 }

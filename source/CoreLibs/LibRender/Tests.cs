@@ -174,7 +174,7 @@ namespace LibRender {
 		public static class Test2 {
 			private static TextHandle one;
 			private static TextHandle two;
-			private static UIElementHandle rainbows;
+			//private static UIElementHandle rainbows;
 			private static MeshHandle m;
 			private static TextureHandle to;
 			private static TextureHandle tt;
@@ -192,12 +192,12 @@ namespace LibRender {
 
 				Font f = new Font(FontFamily.GenericSansSerif, 50, FontStyle.Regular, GraphicsUnit.Pixel);
 
-				one = renderer.AddText("Good morning from the lovely state of New York!", f, new Pixel{ r=255, g=255, b=255, a=255}, new Position(WindowOrigin.TopLeft, ObjectOrigin.TopLeft, 0, 0), 0, renderer.display_width);
-				two = renderer.AddText("Frame: 0", f, new Pixel { r = 255, g = 255, b = 255, a = 255 }, new Position(WindowOrigin.TopLeft, ObjectOrigin.TopLeft, 0, renderer.GetDimentions(one).Y), 0);
+				one = renderer.AddText("Good morning from the lovely state of New York!", f, new Pixel{ r=255, g=255, b=255, a=255}, new Position(0, 0), 0, renderer.display_width);
+				two = renderer.AddText("Frame: 0", f, new Pixel { r = 255, g = 255, b = 255, a = 255 }, new Position(0, renderer.GetDimentions(one).Y), 0);
 
 				var fm = renderer.AddFlatMesh(ui_panel, ui_panel_index);
 				var uit = renderer.AddTexture(ui_panel_tex, 4, 2);
-				rainbows = renderer.AddUIElement(fm, uit, new Position(WindowOrigin.BottomRight, ObjectOrigin.BottomRight, 0, 0), new Vector2(75), 0, 1);
+				renderer.AddUIElement(fm, uit, new Position(0, 0, WindowOrigin.BottomRight, ObjectOrigin.BottomRight), new Vector2(75), 0, 1);
 
 				renderer.SetSetting(Settings.TextureFiltering.Anisotropic16);
                 renderer.SetSetting(Settings.RendererType.Deferred);

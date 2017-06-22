@@ -110,6 +110,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CoreLibs\LibRender\LibRender.csproj">
+      <Project>{f86484cd-6e1e-4b42-a7fe-4f0564a8a1a5}</Project>
+      <Name>LibRender</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OpenBveApi\OpenBveApi.csproj">
       <Project>{27134980-4415-4375-A564-40A9014DFA5F}</Project>
       <Name>OpenBveApi</Name>

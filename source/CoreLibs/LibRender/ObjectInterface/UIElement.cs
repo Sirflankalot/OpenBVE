@@ -80,11 +80,21 @@ namespace LibRender {
 			uielements[id] = null;
 		}
 
-		///////////////////////////////////
-		// UIElement Setters and Getters //
-		///////////////////////////////////
+        public bool Valid(UIElementHandle uih) {
+            try {
+                AssertValid(uih);
+            }
+            catch (System.Exception) {
+                return false;
+            }
+            return true;
+        }
 
-		public Position GetLocation(UIElementHandle uieh) {
+        ///////////////////////////////////
+        // UIElement Setters and Getters //
+        ///////////////////////////////////
+
+        public Position GetLocation(UIElementHandle uieh) {
 			int id = AssertValid(uieh);
 
 			return uielements[id].location;

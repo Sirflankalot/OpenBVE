@@ -98,11 +98,21 @@ namespace LibRender {
 			textures[id] = null;
 		}
 
-		///////////////////////////////
-		// Texture Utility Functions //
-		///////////////////////////////
+        public bool Valid(TextureHandle th) {
+            try {
+                AssertValid(th);
+            }
+            catch (System.Exception) {
+                return false;
+            }
+            return true;
+        }
 
-		public TextureHandle AddTextureFromColor(Pixel color) {
+        ///////////////////////////////
+        // Texture Utility Functions //
+        ///////////////////////////////
+
+        public TextureHandle AddTextureFromColor(Pixel color) {
 			return AddTexture(new Pixel[] { color }, 1, 1);
 		}
 	}

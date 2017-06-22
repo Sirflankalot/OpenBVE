@@ -90,5 +90,15 @@ namespace LibRender {
 			meshes_translation.Remove(mh.id);
 			meshes[id] = null;
 		}
-	}
+
+        public bool Valid(MeshHandle mh) {
+            try {
+                AssertValid(mh);
+            }
+            catch (System.Exception) {
+                return false;
+            }
+            return true;
+        }
+    }
 }

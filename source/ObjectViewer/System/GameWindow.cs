@@ -2,6 +2,7 @@
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
+using LibRender;
 
 namespace OpenBve
 {
@@ -9,7 +10,7 @@ namespace OpenBve
     {
         //Deliberately specify the default constructor with various overrides
         public ObjectViewer(int width, int height, GraphicsMode currentGraphicsMode, string openbve,
-            GameWindowFlags @default) : base(width, height, currentGraphicsMode, openbve, @default)
+            GameWindowFlags @default) : base(width, height, currentGraphicsMode, openbve, @default, DisplayDevice.Default, 3, 3, GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
         {
             try
             {
@@ -36,6 +37,7 @@ namespace OpenBve
         private static double MoveXSpeed = 0.0;
         private static double MoveYSpeed = 0.0;
         private static double MoveZSpeed = 0.0;
+
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             Program.MouseMovement();

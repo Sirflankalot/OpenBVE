@@ -55,11 +55,21 @@ namespace LibRender {
 			point_lights[id] = null;
 		}
 
-		/////////////////////////////////////
-		// Point Light Getters and Setters //
-		/////////////////////////////////////
+        public bool Valid(PointLightHandle plh) {
+            try {
+                AssertValid(plh);
+            }
+            catch (System.Exception) {
+                return false;
+            }
+            return true;
+        }
 
-		public Vector3 GetLocation(PointLightHandle plh) {
+        /////////////////////////////////////
+        // Point Light Getters and Setters //
+        /////////////////////////////////////
+
+        public Vector3 GetLocation(PointLightHandle plh) {
 			int id = AssertValid(plh);
 
 			return point_lights[id].location;

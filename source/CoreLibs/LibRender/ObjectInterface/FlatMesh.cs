@@ -84,5 +84,15 @@ namespace LibRender {
 			flat_meshes_translation.Remove(fmh.id);
 			flat_meshes[id] = null;
 		}
+
+        public bool Valid(FlatMeshHandle fmh) {
+            try {
+                AssertValid(fmh);
+            }
+            catch (System.Exception) {
+                return false;
+            }
+            return true;
+        }
 	}
 }

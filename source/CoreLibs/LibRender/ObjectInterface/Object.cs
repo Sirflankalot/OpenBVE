@@ -77,11 +77,21 @@ namespace LibRender {
 			objects[id] = null;
 		}
 
-		////////////////////////////////
-		// Object Setters and Getters //
-		////////////////////////////////
+        public bool Valid(ObjectHandle oh) {
+            try {
+                AssertValid(oh);
+            }
+            catch (System.Exception) {
+                return false;
+            }
+            return true;
+        }
 
-		public bool GetVisibility(ObjectHandle oh) {
+        ////////////////////////////////
+        // Object Setters and Getters //
+        ////////////////////////////////
+
+        public bool GetVisibility(ObjectHandle oh) {
 			int id = AssertValid(oh);
 
 			return objects[id].visible;
