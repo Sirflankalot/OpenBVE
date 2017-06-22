@@ -63,6 +63,16 @@ namespace LibRender {
 			Level3 = 3
 		}
 
+		public enum Wireframe {
+			Off = 0,
+			On = 1,
+			Toggle = 2
+		}
+
+		public enum ClearColor {
+			Set
+		}
+
 		public float view_distance;
 		public string log_file_location;
 		public TextureFiltering texture_filtering;
@@ -72,6 +82,8 @@ namespace LibRender {
 		public UIAntialiasing ui_aa;
 		public TextRenderingQuality text_rendering_quality;
 		public Verbosity vebosity;
+		public Wireframe wireframe;
+		public OpenTK.Vector3 clear_color;
 	}
 
 	public partial class Renderer {
@@ -84,7 +96,9 @@ namespace LibRender {
 			deferred_aa            = Settings.DeferredAntialiasing.None,
 			ui_aa                  = Settings.UIAntialiasing.None,
 			text_rendering_quality = Settings.TextRenderingQuality.Low,
-			vebosity               = Settings.Verbosity.Level1
+			vebosity               = Settings.Verbosity.Level1,
+			wireframe              = Settings.Wireframe.Off,
+			clear_color            = new OpenTK.Vector3(66, 149, 244) / 255
 		};
 
 		public Settings GetSettings() {
@@ -101,6 +115,7 @@ namespace LibRender {
 			SetSetting(set.ui_aa);
 			SetSetting(set.text_rendering_quality);
 			SetSetting(set.vebosity);
+			SetSetting(set.wireframe);
 		}
 
 		public void SetSetting(Settings.ViewDistance ignore, float distance) {
@@ -183,6 +198,19 @@ namespace LibRender {
 
 		public void SetSetting(Settings.Verbosity verbosity) {
 			settings.vebosity = verbosity;
+		}
+
+		public void SetSetting(Settings.Wireframe wireframe) {
+			if (wireframe == Settings.Wireframe.Toggle) {
+				settings.wireframe = 1 - settings.wireframe;
+			}
+			else {
+				settings.wireframe = wireframe;
+			}
+		}
+
+		public void SetSetting(Settings.ClearColor ignore, OpenTK.Vector3 color) {
+			settings.clear_color = color;
 		}
 	}
 }

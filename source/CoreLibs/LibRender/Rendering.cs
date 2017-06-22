@@ -336,7 +336,7 @@ namespace LibRender {
 			}
 			else {
 				GLFunc.BindFramebuffer(GL.FramebufferTarget.Framebuffer, lBuffer);
-				GLFunc.ClearColor(0.05112f, 0.3066f, 0.9075f, 1.0f); // SRGB 66, 149, 244, 255
+				GLFunc.ClearColor(new OpenTK.Graphics.Color4((float) System.Math.Pow(settings.clear_color.X, 2.2), (float)System.Math.Pow(settings.clear_color.Y, 2.2), (float)System.Math.Pow(settings.clear_color.Z, 2.2), 1.0f));
 				GLFunc.Clear(GL.ClearBufferMask.ColorBufferBit | GL.ClearBufferMask.DepthBufferBit | GL.ClearBufferMask.StencilBufferBit);
 
 				transparent = objects.Where((o) => o != null)
@@ -350,6 +350,11 @@ namespace LibRender {
             GLFunc.BeginQuery(GL.QueryTarget.PrimitivesGenerated, primitive_counters[1]);
 
 			forward_geometry_prog.Use();
+			
+			if (settings.wireframe == Settings.Wireframe.On) {
+				GLFunc.PolygonMode(GL.MaterialFace.FrontAndBack, GL.PolygonMode.Line);
+				GLFunc.LineWidth(2.0f);
+			}
 
 			GLFunc.Uniform1(lightpass_prog.GetUniform("model_tex"), 0);
 			GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
@@ -384,8 +389,12 @@ namespace LibRender {
 
 			GLFunc.Disable(GL.EnableCap.Blend);
 			GLFunc.DepthMask(true);
+			
+			if (settings.wireframe == Settings.Wireframe.On) {
+				GLFunc.PolygonMode(GL.MaterialFace.FrontAndBack, GL.PolygonMode.Fill);
+			}
 
-            GLFunc.EndQuery(GL.QueryTarget.TimeElapsed);
+			GLFunc.EndQuery(GL.QueryTarget.TimeElapsed);
             GLFunc.EndQuery(GL.QueryTarget.PrimitivesGenerated);
 
             GLFunc.BeginQuery(GL.QueryTarget.TimeElapsed, timers[3]);
@@ -488,6 +497,11 @@ namespace LibRender {
 
 			ui_prog.Use();
 
+			if (settings.wireframe == Settings.Wireframe.On) {
+				GLFunc.PolygonMode(GL.MaterialFace.FrontAndBack, GL.PolygonMode.Line);
+				GLFunc.LineWidth(2.0f);
+			}
+
 			GLFunc.Uniform1(ui_prog.GetUniform("uiTexture"), 0);
 			GLFunc.Uniform1(ui_prog.GetUniform("ratio"), (float) display_width / display_height);
 			GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
@@ -540,8 +554,12 @@ namespace LibRender {
 					RenderFullscreenQuad();
 				}
 			}
+			
+			if (settings.wireframe == Settings.Wireframe.On) {
+				GLFunc.PolygonMode(GL.MaterialFace.FrontAndBack, GL.PolygonMode.Fill);
+			}
 
-            GLFunc.EndQuery(GL.QueryTarget.TimeElapsed);
+			GLFunc.EndQuery(GL.QueryTarget.TimeElapsed);
             GLFunc.EndQuery(GL.QueryTarget.PrimitivesGenerated);
             GLFunc.BeginQuery(GL.QueryTarget.TimeElapsed, timers[5]);
 
@@ -608,6 +626,11 @@ namespace LibRender {
 
             deferred_geometry_prog.Use();
 
+			if (settings.wireframe == Settings.Wireframe.On) {
+				GLFunc.PolygonMode(GL.MaterialFace.FrontAndBack, GL.PolygonMode.Line);
+				GLFunc.LineWidth(2.0f);
+			}
+
 			GLFunc.Uniform1(deferred_geometry_prog.GetUniform("tex"), 0);
 			GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
 
@@ -651,6 +674,10 @@ namespace LibRender {
 				GLFunc.BindVertexArray(0);
 			}
 
+			if (settings.wireframe == Settings.Wireframe.On) {
+				GLFunc.PolygonMode(GL.MaterialFace.FrontAndBack, GL.PolygonMode.Fill);
+			}
+
 			GLFunc.BindFramebuffer(GL.FramebufferTarget.ReadFramebuffer, gBuffer);
 			GLFunc.BindFramebuffer(GL.FramebufferTarget.DrawFramebuffer, lBuffer);
 
@@ -684,7 +711,7 @@ namespace LibRender {
 			GLFunc.DepthFunc(GL.DepthFunction.Greater);
 			GLFunc.DepthMask(false);
 
-			GLFunc.ClearColor(0.05112f, 0.3066f, 0.9075f, 1.0f); // SRGB 66, 149, 244, 255
+			GLFunc.ClearColor(new OpenTK.Graphics.Color4((float)System.Math.Pow(settings.clear_color.X, 2.2), (float)System.Math.Pow(settings.clear_color.Y, 2.2), (float)System.Math.Pow(settings.clear_color.Z, 2.2), 1.0f));
 			GLFunc.Clear(GL.ClearBufferMask.ColorBufferBit);
 			RenderFullscreenQuad();
 

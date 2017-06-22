@@ -82,7 +82,6 @@ namespace OpenBve
             //Check if interpolation mode or ansiotropic filtering level has changed, and trigger a reload
             if (previousInterpolationMode != Interface.CurrentOptions.Interpolation || previousAnsiotropicLevel != Interface.CurrentOptions.AnisotropicFilteringLevel)
             {
-                    Program.ReducedMode = false;
                     Program.LightingRelative = -1.0;
                     Game.Reset();
                     TextureManager.UnuseAllTextures();

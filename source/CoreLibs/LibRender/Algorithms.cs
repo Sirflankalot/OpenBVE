@@ -216,7 +216,7 @@ namespace LibRender {
 						text_size = dummy_drawing.MeasureString(t.text, t.font, t.max_width);
 					}
 					// create new image of right size
-					using (Bitmap img = new Bitmap((int) text_size.Width, (int) text_size.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
+					using (Bitmap img = new Bitmap((int) text_size.Width + 3, (int) text_size.Height + 1, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
 					using (Graphics drawing = Graphics.FromImage(img)) {
 						// set text quality
 						switch (quality) {

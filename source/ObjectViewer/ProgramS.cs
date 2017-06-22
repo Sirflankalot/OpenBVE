@@ -45,7 +45,6 @@ namespace OpenBve {
         internal static int LightingTarget = 1;
         internal static double LightingRelative = 1.0;
         private static bool ShiftPressed = false;
-        internal static bool ReducedMode = true;
 
         internal static GameWindow currentGameWindow;
         internal static GraphicsMode currentGraphicsMode;
@@ -74,7 +73,6 @@ namespace OpenBve {
 	        // file system
 	        FileSystem = FileSystem.FromCommandLineArgs(args);
 	        FileSystem.CreateFileSystem();
-	        SetPackageLookupDirectories();
 	        // command line arguments
 	        SkipArgs = new bool[args.Length];
 	        if (args.Length != 0)
@@ -167,7 +165,6 @@ namespace OpenBve {
 				World.AbsoluteCameraPosition.X += dx * World.AbsoluteCameraDirection.X;
 				World.AbsoluteCameraPosition.Y += dx * World.AbsoluteCameraDirection.Y;
 				World.AbsoluteCameraPosition.Z += dx * World.AbsoluteCameraDirection.Z;
-				ReducedMode = false;
 			}
 		}
 
@@ -221,7 +218,6 @@ namespace OpenBve {
                         World.Rotate(ref World.AbsoluteCameraDirection.X, ref World.AbsoluteCameraDirection.Y, ref World.AbsoluteCameraDirection.Z, World.AbsoluteCameraSide.X, World.AbsoluteCameraSide.Y, World.AbsoluteCameraSide.Z, cosa, sina);
                         World.Rotate(ref World.AbsoluteCameraUp.X, ref World.AbsoluteCameraUp.Y, ref World.AbsoluteCameraUp.Z, World.AbsoluteCameraSide.X, World.AbsoluteCameraSide.Y, World.AbsoluteCameraSide.Z, cosa, sina);
                     }
-                    ReducedMode = false;
 	            }
 	            else if(MouseButton == 2)
 	            {
@@ -234,7 +230,6 @@ namespace OpenBve {
                     World.AbsoluteCameraPosition.X += dy * World.AbsoluteCameraUp.X;
                     World.AbsoluteCameraPosition.Y += dy * World.AbsoluteCameraUp.Y;
                     World.AbsoluteCameraPosition.Z += dy * World.AbsoluteCameraUp.Z;
-                    ReducedMode = false;
 	            }
 	            else
 	            {
@@ -247,7 +242,6 @@ namespace OpenBve {
                     World.AbsoluteCameraPosition.X += dz * World.AbsoluteCameraDirection.X;
                     World.AbsoluteCameraPosition.Y += dz * World.AbsoluteCameraDirection.Y;
                     World.AbsoluteCameraPosition.Z += dz * World.AbsoluteCameraDirection.Z;
-                    ReducedMode = false;
 	            }
 	        }
 	    }
@@ -264,7 +258,6 @@ namespace OpenBve {
 	                break;
 	            case Key.F5:
 	                // reset
-	                ReducedMode = false;
 	                LightingRelative = -1.0;
 	                Game.Reset();
 	                TextureManager.UnuseAllTextures();
@@ -307,7 +300,6 @@ namespace OpenBve {
 				            Files[n + i] = f[i];
 			            }
 			            // reset
-			            ReducedMode = false;
 			            LightingRelative = -1.0;
 			            Game.Reset();
 			            TextureManager.UnuseAllTextures();
@@ -359,7 +351,6 @@ namespace OpenBve {
 	                }
 	                break;
 	            case Key.Delete:
-	                ReducedMode = false;
 	                LightingRelative = -1.0;
 	                Game.Reset();
 	                TextureManager.UnuseAllTextures();
@@ -370,63 +361,46 @@ namespace OpenBve {
 	                break;
 	            case Key.Left:
 	                RotateX = -1;
-	                ReducedMode = false;
 	                break;
 	            case Key.Right:
 	                RotateX = 1;
-	                ReducedMode = false;
 	                break;
 	            case Key.Up:
 	                RotateY = -1;
-	                ReducedMode = false;
 	                break;
 	            case Key.Down:
 	                RotateY = 1;
-	                ReducedMode = false;
 	                break;
 	            case Key.A:
 	            case Key.Keypad4:
 	                MoveX = -1;
-	                ReducedMode = false;
 	                break;
 	            case Key.D:
 	            case Key.Keypad6:
 	                MoveX = 1;
-	                ReducedMode = false;
 	                break;
 	            case Key.Keypad8:
 	                MoveY = 1;
-	                ReducedMode = false;
 	                break;
 	            case Key.Keypad2:
 	                MoveY = -1;
-	                ReducedMode = false;
 	                break;
 	            case Key.W:
 	            case Key.Keypad9:
 	                MoveZ = 1;
-	                ReducedMode = false;
 	                break;
 	            case Key.S:
 	            case Key.Keypad3:
 	                MoveZ = -1;
-	                ReducedMode = false;
 	                break;
 	            case Key.Keypad5:
 	                ResetCamera();
 	                break;
 	            case Key.F:
 	            case Key.F1:
-	                Renderer.OptionWireframe = !Renderer.OptionWireframe;
-	                if (Renderer.OptionWireframe)
-	                {
-	                    GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-	                }
-	                else
-	                {
-	                    GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
-	                }
-	                break;
+					Renderer.renderer.SetSetting(LibRender.Settings.Wireframe.Toggle);
+					Renderer.OptionWireframe = !Renderer.OptionWireframe;
+					break;
 	            case Key.N:
 	            case Key.F2:
 	                Renderer.OptionNormals = !Renderer.OptionNormals;
@@ -434,12 +408,10 @@ namespace OpenBve {
 	            case Key.L:
 	            case Key.F3:
 	                LightingTarget = 1 - LightingTarget;
-	                ReducedMode = false;
 	                break;
 	            case Key.I:
 	            case Key.F4:
 	                Renderer.OptionInterface = !Renderer.OptionInterface;
-	                ReducedMode = false;
 	                break;
                 case Key.F8:
                     formOptions.ShowOptions();
@@ -448,7 +420,6 @@ namespace OpenBve {
 	            case Key.G:
 	            case Key.C:
 	                Renderer.OptionCoordinateSystem = !Renderer.OptionCoordinateSystem;
-	                ReducedMode = false;
 	                break;
 	            case Key.B:
 	                if (ShiftPressed)
@@ -470,7 +441,6 @@ namespace OpenBve {
 	                    }
 	                    Renderer.ApplyBackgroundColor();
 	                }
-	                ReducedMode = false;
 	                break;
 	        }
 	    }
@@ -523,35 +493,5 @@ namespace OpenBve {
 				//Sdl.SDL_WM_SetCaption(Application.ProductName, null);
 			}
 		}
-		
-		
-		/// <summary>The object that serves as an authentication for the SetPackageLookupDirectories call.</summary>
-		private static object SetPackageLookupDirectoriesAuthentication = null;
-
-		/// <summary>Provides the API with lookup directories for all installed packages.</summary>
-		internal static void SetPackageLookupDirectories() {
-			int size = 16;
-			string[] names = new string[size];
-			string[] directories = new string[size];
-			int count = 0;
-			foreach (string lookupDirectory in FileSystem.ManagedContentFolders) {
-				string[] packageDirectories = System.IO.Directory.GetDirectories(lookupDirectory);
-				foreach (string packageDirectory in packageDirectories) {
-					string package = System.IO.Path.GetFileName(packageDirectory);
-					if (count == size) {
-						size <<= 1;
-						Array.Resize<string>(ref names, size);
-						Array.Resize<string>(ref directories, size);
-					}
-					names[count] = package;
-					directories[count] = packageDirectory;
-					count++;
-				}
-			}
-			Array.Resize<string>(ref names, count);
-			Array.Resize<string>(ref directories, count);
-			SetPackageLookupDirectoriesAuthentication = OpenBveApi.Path.SetPackageLookupDirectories(names, directories, SetPackageLookupDirectoriesAuthentication);
-		}
-
 	}
 }

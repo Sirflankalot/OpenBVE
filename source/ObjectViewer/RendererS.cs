@@ -114,26 +114,41 @@ namespace OpenBve {
             switch (BackgroundColor)
             {
                 case 0:
-                    GL.ClearColor(0.67f, 0.67f, 0.67f, 1.0f);
+                    ApplyBackgroundColor(0.67f, 0.67f, 0.67f);
                     break;
                 case 1:
-                    GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+                    ApplyBackgroundColor(1.0f, 1.0f, 1.0f);
                     break;
                 case 2:
-                    GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+					ApplyBackgroundColor(0.0f, 0.0f, 0.0f);
                     break;
                 case 3:
-                    GL.ClearColor(0.33f, 0.33f, 0.33f, 1.0f);
+					ApplyBackgroundColor(0.33f, 0.33f, 0.33f);
                     break;
             }
         }
-        internal static void ApplyBackgroundColor(byte red, byte green, byte blue)
-        {
-            GL.ClearColor((float)red / 255.0f, (float)green / 255.0f, (float)blue / 255.0f, 1.0f);
-        }
 
-        // constants
-        private const float inv255 = 1.0f / 255.0f;
+		/// <summary>
+		/// Makes program background the supplied color
+		/// </summary>
+		/// <param name="red">Red component of background (0-255)</param>
+		/// <param name="green">Green component of background (0-255)</param>
+		/// <param name="blue">Blue component of background (0-255)</param>
+		internal static void ApplyBackgroundColor(byte red, byte green, byte blue) {
+			ApplyBackgroundColor((float)red / 255.0f, (float)green / 255.0f, (float)blue / 255.0f);
+		}
+		/// <summary>
+		/// Makes program background the supplied color
+		/// </summary>
+		/// <param name="red">Red component of background (0-1)</param>
+		/// <param name="green">Green component of background (0-1)</param>
+		/// <param name="blue">Blue component of background (0-1)</param>
+		internal static void ApplyBackgroundColor(float red, float green, float blue) {
+			renderer.SetSetting(LibRender.Settings.ClearColor.Set, new Vector3(red, green, blue));
+		}
+
+		// constants
+		private const float inv255 = 1.0f / 255.0f;
 
         // reset
         internal static void Reset()
@@ -165,6 +180,7 @@ namespace OpenBve {
         {
             renderer.Initialize(ScreenWidth, ScreenHeight);
             renderer.SetSetting(LibRender.Settings.TextRenderingQuality.Ultra);
+			ApplyBackgroundColor();
             // opengl
             //GL.ShadeModel(ShadingModel.Decal); // what is decal?
             GL.ShadeModel(ShadingModel.Smooth);
