@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OpenBveApi;
+using LibRender;
 
 namespace OpenBve {
     internal static class Renderer
@@ -176,41 +177,40 @@ namespace OpenBve {
         }
 
         // initialize
-        internal static void Initialize()
-        {
+        internal static void Initialize() {
             renderer.Initialize(ScreenWidth, ScreenHeight);
             renderer.SetSetting(LibRender.Settings.TextRenderingQuality.Ultra);
 			ApplyBackgroundColor();
-            // opengl
-            //GL.ShadeModel(ShadingModel.Decal); // what is decal?
-            GL.ShadeModel(ShadingModel.Smooth);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            GL.ClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-            GL.Enable(EnableCap.DepthTest);
-            if (!TexturingEnabled)
-            {
-                GL.Enable(EnableCap.Texture2D);
-                TexturingEnabled = true;
-            }
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-            GL.DepthFunc(DepthFunction.Lequal);
-            GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Fastest);
-            GL.Hint(HintTarget.GenerateMipmapHint, HintMode.Nicest);
-            GL.Enable(EnableCap.CullFace); CullEnabled = true;
-            GL.CullFace(CullFaceMode.Front);
-            GL.Disable(EnableCap.Dither);
-            // opengl
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            GL.PushMatrix();
-            GL.ClearColor(0.67f, 0.67f, 0.67f, 1.0f);
-            var mat = Matrix4d.LookAt(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0);
-            GL.MultMatrix(ref mat);
-            GL.PopMatrix();
-            TransparentColorDepthSorting = Interface.CurrentOptions.TransparencyMode == TransparencyMode.Smooth & Interface.CurrentOptions.Interpolation != TextureManager.InterpolationMode.NearestNeighbor & Interface.CurrentOptions.Interpolation != TextureManager.InterpolationMode.Bilinear;
-        }
+			// opengl
+			//GL.ShadeModel(ShadingModel.Decal); // what is decal?
+			GL.ShadeModel(ShadingModel.Smooth);
+			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+			GL.ClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+			GL.Enable(EnableCap.DepthTest);
+			if (!TexturingEnabled) {
+				GL.Enable(EnableCap.Texture2D);
+				TexturingEnabled = true;
+			}
+			GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+			GL.DepthFunc(DepthFunction.Lequal);
+			GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Fastest);
+			GL.Hint(HintTarget.GenerateMipmapHint, HintMode.Nicest);
+			GL.Enable(EnableCap.CullFace);
+			CullEnabled = true;
+			GL.CullFace(CullFaceMode.Front);
+			GL.Disable(EnableCap.Dither);
+			// opengl
+			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+			GL.PushMatrix();
+			GL.ClearColor(0.67f, 0.67f, 0.67f, 1.0f);
+			var mat = Matrix4d.LookAt(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0);
+			GL.MultMatrix(ref mat);
+			GL.PopMatrix();
+			TransparentColorDepthSorting = Interface.CurrentOptions.TransparencyMode == TransparencyMode.Smooth & Interface.CurrentOptions.Interpolation != TextureManager.InterpolationMode.NearestNeighbor & Interface.CurrentOptions.Interpolation != TextureManager.InterpolationMode.Bilinear;
+		}
 
-        // initialize lighting
-        internal static void InitializeLighting()
+		// initialize lighting
+		internal static void InitializeLighting()
         {
             if (OptionAmbientColor.R == 255 & OptionAmbientColor.G == 255 & OptionAmbientColor.B == 255 & OptionDiffuseColor.R == 0 & OptionDiffuseColor.G == 0 & OptionDiffuseColor.B == 0)
             {
@@ -290,24 +290,6 @@ namespace OpenBve {
             GL.Enable(EnableCap.DepthTest);
             GL.DepthMask(true);
             LastBoundTexture = 0;
-            // opaque list
-            if (OptionCoordinateSystem)
-            {
-                if (LightingEnabled)
-                {
-                    GL.Disable(EnableCap.Lighting);
-                }
-                GL.Color3(1.0, 0.0, 0.0);
-                RenderBox(new World.Vector3D(0.0, 0.0, 0.0), new World.Vector3D(0.0, 0.0, 1.0), new World.Vector3D(0.0, 1.0, 0.0), new World.Vector3D(1.0, 0.0, 0.0), new World.Vector3D(100.0, 0.01, 0.01), cx, cy, cz);
-                GL.Color3(0.0, 1.0, 0.0);
-                RenderBox(new World.Vector3D(0.0, 0.0, 0.0), new World.Vector3D(0.0, 0.0, 1.0), new World.Vector3D(0.0, 1.0, 0.0), new World.Vector3D(1.0, 0.0, 0.0), new World.Vector3D(0.01, 100.0, 0.01), cx, cy, cz);
-                GL.Color3(0.0, 0.0, 1.0);
-                RenderBox(new World.Vector3D(0.0, 0.0, 0.0), new World.Vector3D(0.0, 0.0, 1.0), new World.Vector3D(0.0, 1.0, 0.0), new World.Vector3D(1.0, 0.0, 0.0), new World.Vector3D(0.01, 0.01, 100.0), cx, cy, cz);
-                if (LightingEnabled)
-                {
-                    GL.Enable(EnableCap.Lighting);
-                }
-            }
             for (int i = 0; i < OpaqueListCount; i++)
             {
                 RenderFace(ref OpaqueList[i], cx, cy, cz);
@@ -386,17 +368,7 @@ namespace OpenBve {
                 GL.Disable(EnableCap.Lighting);
                 LightingEnabled = false;
             }
-            if (OptionCoordinateSystem)
-            {
-                GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-                GL.Enable(EnableCap.Blend);
-                GL.Color4(1.0, 0.0, 0.0, 0.2);
-                RenderBox(new World.Vector3D(0.0, 0.0, 0.0), new World.Vector3D(0.0, 0.0, 1.0), new World.Vector3D(0.0, 1.0, 0.0), new World.Vector3D(1.0, 0.0, 0.0), new World.Vector3D(100.0, 0.01, 0.01), cx, cy, cz);
-                GL.Color4(0.0, 1.0, 0.0, 0.2);
-                RenderBox(new World.Vector3D(0.0, 0.0, 0.0), new World.Vector3D(0.0, 0.0, 1.0), new World.Vector3D(0.0, 1.0, 0.0), new World.Vector3D(1.0, 0.0, 0.0), new World.Vector3D(0.01, 100.0, 0.01), cx, cy, cz);
-                GL.Color4(0.0, 0.0, 1.0, 0.2);
-                RenderBox(new World.Vector3D(0.0, 0.0, 0.0), new World.Vector3D(0.0, 0.0, 1.0), new World.Vector3D(0.0, 1.0, 0.0), new World.Vector3D(1.0, 0.0, 0.0), new World.Vector3D(0.01, 0.01, 100.0), cx, cy, cz);
-            }
+			PrepareCoordinates(OptionCoordinateSystem);
             PrepareOverlays();
             // finalize rendering
             GL.PopMatrix();
@@ -701,58 +673,61 @@ namespace OpenBve {
             }
         }
 
-        // render cube
-        private static void RenderBox(World.Vector3D Position, World.Vector3D Direction, World.Vector3D Up, World.Vector3D Side, World.Vector3D Size, double CameraX, double CameraY, double CameraZ)
-        {
-            if (TexturingEnabled)
-            {
-                GL.Disable(EnableCap.Texture2D);
-                TexturingEnabled = false;
-            }
-            World.Vector3D[] v = new World.Vector3D[8];
-            v[0] = new World.Vector3D(Size.X, Size.Y, -Size.Z);
-            v[1] = new World.Vector3D(Size.X, -Size.Y, -Size.Z);
-            v[2] = new World.Vector3D(-Size.X, -Size.Y, -Size.Z);
-            v[3] = new World.Vector3D(-Size.X, Size.Y, -Size.Z);
-            v[4] = new World.Vector3D(Size.X, Size.Y, Size.Z);
-            v[5] = new World.Vector3D(Size.X, -Size.Y, Size.Z);
-            v[6] = new World.Vector3D(-Size.X, -Size.Y, Size.Z);
-            v[7] = new World.Vector3D(-Size.X, Size.Y, Size.Z);
-            for (int i = 0; i < 8; i++)
-            {
-                World.Rotate(ref v[i].X, ref v[i].Y, ref v[i].Z, Direction.X, Direction.Y, Direction.Z, Up.X, Up.Y, Up.Z, Side.X, Side.Y, Side.Z);
-                v[i].X += Position.X - CameraX;
-                v[i].Y += Position.Y - CameraY;
-                v[i].Z += Position.Z - CameraZ;
-            }
-            int[][] Faces = new int[6][];
-            Faces[0] = new int[] { 0, 1, 2, 3 };
-            Faces[1] = new int[] { 0, 4, 5, 1 };
-            Faces[2] = new int[] { 0, 3, 7, 4 };
-            Faces[3] = new int[] { 6, 5, 4, 7 };
-            Faces[4] = new int[] { 6, 7, 3, 2 };
-            Faces[5] = new int[] { 6, 2, 1, 5 };
-            for (int i = 0; i < 6; i++)
-            {
-                GL.Begin(PrimitiveType.Quads);
-                for (int j = 0; j < 4; j++)
-                {
-                    GL.Vertex3(v[Faces[i][j]].X, v[Faces[i][j]].Y, v[Faces[i][j]].Z);
-                }
-                GL.End();
-            }
-        }
+		private struct CoordinateHandles {
+			internal TextureHandle redtex;
+			internal TextureHandle greentex;
+			internal TextureHandle bluetex;
+			internal ObjectHandle x_box;
+			internal ObjectHandle y_box;
+			internal ObjectHandle z_box;
+			internal bool enabled;
+			internal bool created;
+		}
+
+		private static CoordinateHandles coordinate_handles = new CoordinateHandles { created = false, enabled = true };
+
+		/// <summary>
+		/// Prepare coordinates for rendering
+		/// </summary>
+		/// <param name="enabled">If coordinate lines are enabled</param>
+		private static void PrepareCoordinates(bool enabled) {
+			// Create all handles for the coordinates if they weren't created already
+			if (coordinate_handles.created == false) {
+				coordinate_handles.redtex = renderer.AddTextureFromColor(new Pixel(1.0f, 0, 0, 1.0f));
+				coordinate_handles.greentex = renderer.AddTextureFromColor(new Pixel(0, 1.0f, 0, 1.0f));
+				coordinate_handles.bluetex = renderer.AddTextureFromColor(new Pixel(0, 0, 1.0f, 1.0f));
+
+				coordinate_handles.x_box = renderer.AddObject(renderer.CubeMesh(), coordinate_handles.redtex);
+				coordinate_handles.y_box = renderer.AddObject(renderer.CubeMesh(), coordinate_handles.greentex);
+				coordinate_handles.z_box = renderer.AddObject(renderer.CubeMesh(), coordinate_handles.bluetex);
+
+				renderer.SetScale(coordinate_handles.x_box, new Vector3(100.0f, 0.01f, 0.01f));
+				renderer.SetScale(coordinate_handles.y_box, new Vector3(0.01f, 100.0f, 0.01f));
+				renderer.SetScale(coordinate_handles.z_box, new Vector3(0.01f, 0.01f, 100.0f));
+
+				coordinate_handles.created = true;
+			}
+
+			// If previous state is different, change visibility
+			if (enabled ^ coordinate_handles.enabled) {
+				renderer.SetVisibility(coordinate_handles.x_box, enabled);
+				renderer.SetVisibility(coordinate_handles.y_box, enabled);
+				renderer.SetVisibility(coordinate_handles.z_box, enabled);
+
+				coordinate_handles.enabled = enabled;
+			}
+		}
 
         private struct OverlayHandles {
             internal List<KeyHandles> no_object_keys1;
-            internal List<LibRender.TextHandle> no_object_text;
+            internal List<TextHandle> no_object_text;
             internal List<KeyHandles> object_keys1;
             internal List<KeyHandles> object_keys2;
             internal List<KeyHandles> object_keys3;
             internal List<KeyHandles> object_keys4;
             internal List<KeyHandles> object_keys5;
             internal List<KeyHandles> object_keys6;
-            internal List<LibRender.TextHandle> object_text;
+            internal List<TextHandle> object_text;
             /// <summary>
             /// Tag to tell which rendering mode was the last:
             /// 0 = no interface;
@@ -763,7 +738,7 @@ namespace OpenBve {
             internal bool created;
         }
 
-        private static OverlayHandles overlay_handles = new OverlayHandles { created = false, object_menus = 0, no_object_text = new List<LibRender.TextHandle>(), object_text = new List<LibRender.TextHandle>() };
+        private static OverlayHandles overlay_handles = new OverlayHandles { created = false, object_menus = 0, no_object_text = new List<TextHandle>(), object_text = new List<TextHandle>() };
 
         private static void PrepareOverlays() {
             // Grab culture. Has effect on text rendering
@@ -778,41 +753,41 @@ namespace OpenBve {
 
                 // Key icons to display when no object loaded
                 Keys = new string[][] { new string[] { "F7" }, new string[] { "F8" } };
-                overlay_handles.no_object_keys1 = CreateKeyHandles(new LibRender.Position(4.0f, 4.0f), 24.0, Keys);
+                overlay_handles.no_object_keys1 = CreateKeyHandles(new Position(4.0f, 4.0f), 24.0, Keys);
 
                 // Key icons to display when an object is loaded
                 Keys = new string[][] { new string[] { "F5" }, new string[] { "F7" }, new string[] { "del" }, new string[] { "F8" } };
-                overlay_handles.object_keys1 = CreateKeyHandles(new LibRender.Position(4.0f, 4.0f), 24.0, Keys);
+                overlay_handles.object_keys1 = CreateKeyHandles(new Position(4.0f, 4.0f), 24.0, Keys);
                 Keys = new string[][] { new string[] { "F" }, new string[] { "N" }, new string[] { "L" }, new string[] { "G" }, new string[] { "B" }, new string[] { "I" } };
-                overlay_handles.object_keys2 = CreateKeyHandles(new LibRender.Position(-20f, 4.0f, LibRender.WindowOrigin.TopRight), 16.0, Keys);
+                overlay_handles.object_keys2 = CreateKeyHandles(new Position(-20f, 4.0f, WindowOrigin.TopRight), 16.0, Keys);
                 Keys = new string[][] { new string[] { null, "W", null }, new string[] { "A", "S", "D" } };
-                overlay_handles.object_keys3 = CreateKeyHandles(new LibRender.Position(4.0f, -40.0f, LibRender.WindowOrigin.BottomLeft), 16.0, Keys);
+                overlay_handles.object_keys3 = CreateKeyHandles(new Position(4.0f, -40.0f, WindowOrigin.BottomLeft), 16.0, Keys);
                 Keys = new string[][] { new string[] { null, "↑", null }, new string[] { "←", "↓", "→" } };
-                overlay_handles.object_keys4 = CreateKeyHandles(new LibRender.Position(-28.0f, -40.0f, LibRender.WindowOrigin.BottomCenter), 16.0, Keys);
+                overlay_handles.object_keys4 = CreateKeyHandles(new Position(-28.0f, -40.0f, WindowOrigin.BottomCenter), 16.0, Keys);
                 Keys = new string[][] { new string[] { null, "8", "9" }, new string[] { "4", "5", "6" }, new string[] { null, "2", "3" } };
-                overlay_handles.object_keys5 = CreateKeyHandles(new LibRender.Position(-60.0f, -60.0f, LibRender.WindowOrigin.BottomRight), 16.0, Keys);
+                overlay_handles.object_keys5 = CreateKeyHandles(new Position(-60.0f, -60.0f, WindowOrigin.BottomRight), 16.0, Keys);
                 Keys = new string[][] { new string[] { "F9" } };
-                overlay_handles.object_keys6 = CreateKeyHandles(new LibRender.Position(4.0f, 92.0f), 24.0, Keys);
+                overlay_handles.object_keys6 = CreateKeyHandles(new Position(4.0f, 92.0f), 24.0, Keys);
 
                 // Text to display when no object loaded
-                overlay_handles.no_object_text.Add(CreateTextHandles("Open one or more objects", new LibRender.Position(32.0f, 4.0f), Fonts.FontType.Small));
-                overlay_handles.no_object_text.Add(CreateTextHandles("Display the options window", new LibRender.Position(32.0f, 24.0f), Fonts.FontType.Small));
-                overlay_handles.no_object_text.Add(CreateTextHandles("v" + System.Windows.Forms.Application.ProductVersion, new LibRender.Position(8.0f, 20.0f, LibRender.WindowOrigin.BottomRight, LibRender.ObjectOrigin.BottomRight), Fonts.FontType.Small));
+                overlay_handles.no_object_text.Add(CreateTextHandles("Open one or more objects", new Position(32.0f, 4.0f), Fonts.FontType.Small));
+                overlay_handles.no_object_text.Add(CreateTextHandles("Display the options window", new Position(32.0f, 24.0f), Fonts.FontType.Small));
+                overlay_handles.no_object_text.Add(CreateTextHandles("v" + System.Windows.Forms.Application.ProductVersion, new Position(8.0f, 20.0f, WindowOrigin.BottomRight, ObjectOrigin.BottomRight), Fonts.FontType.Small));
 
                 // Text to display when an object is loaded
                 string current_position = "Position: " + World.AbsoluteCameraPosition.X.ToString("0.00", Culture) + ", " + World.AbsoluteCameraPosition.Y.ToString("0.00", Culture) + ", " + World.AbsoluteCameraPosition.Z.ToString("0.00", Culture);
-                overlay_handles.object_text.Add(CreateTextHandles(current_position, new LibRender.Position(0f, 4f, LibRender.WindowOrigin.TopCenter, LibRender.ObjectOrigin.TopCenter), Fonts.FontType.Small));
-                overlay_handles.object_text.Add(CreateTextHandles("Reload the currently open objects", new LibRender.Position(32f, 4f), Fonts.FontType.Small));
-                overlay_handles.object_text.Add(CreateTextHandles("Open additional objects", new LibRender.Position(32f, 24f), Fonts.FontType.Small));
-                overlay_handles.object_text.Add(CreateTextHandles("Clear currently open objects", new LibRender.Position(32f, 44f), Fonts.FontType.Small));
-                overlay_handles.object_text.Add(CreateTextHandles("Display the options window", new LibRender.Position(32f, 64f), Fonts.FontType.Small));
-                overlay_handles.object_text.Add(CreateTextHandles("Wireframe: " + (Renderer.OptionWireframe ? "on" : "off"), new LibRender.Position(-28f, 4f, LibRender.WindowOrigin.TopRight, LibRender.ObjectOrigin.TopRight), Fonts.FontType.Small));
-                overlay_handles.object_text.Add(CreateTextHandles("Normals: " + (Renderer.OptionNormals ? "on" : "off"), new LibRender.Position(-28f, 24f, LibRender.WindowOrigin.TopRight, LibRender.ObjectOrigin.TopRight), Fonts.FontType.Small));
-                overlay_handles.object_text.Add(CreateTextHandles("Lighting: " + (Program.LightingTarget == 0 ? "night" : "day"), new LibRender.Position(-28f, 44f, LibRender.WindowOrigin.TopRight, LibRender.ObjectOrigin.TopRight), Fonts.FontType.Small));
-                overlay_handles.object_text.Add(CreateTextHandles("Grid: " + (Renderer.OptionCoordinateSystem ? "on" : "off"), new LibRender.Position(-28f, 64f, LibRender.WindowOrigin.TopRight, LibRender.ObjectOrigin.TopRight), Fonts.FontType.Small));
-                overlay_handles.object_text.Add(CreateTextHandles("Background: " + GetBackgroundColorName(), new LibRender.Position(-28f, 84f, LibRender.WindowOrigin.TopRight, LibRender.ObjectOrigin.TopRight), Fonts.FontType.Small));
-                overlay_handles.object_text.Add(CreateTextHandles("Hide interface", new LibRender.Position(-28f, 104f, LibRender.WindowOrigin.TopRight, LibRender.ObjectOrigin.TopRight), Fonts.FontType.Small));
-                overlay_handles.object_text.Add(CreateTextHandles("Display the " + Interface.MessageCount.ToString(Culture) + " messages recently generated.", new LibRender.Position(32f, 92f), Fonts.FontType.Small));
+                overlay_handles.object_text.Add(CreateTextHandles(current_position, new Position(0f, 4f, WindowOrigin.TopCenter, ObjectOrigin.TopCenter), Fonts.FontType.Small));
+                overlay_handles.object_text.Add(CreateTextHandles("Reload the currently open objects", new Position(32f, 4f), Fonts.FontType.Small));
+                overlay_handles.object_text.Add(CreateTextHandles("Open additional objects", new Position(32f, 24f), Fonts.FontType.Small));
+                overlay_handles.object_text.Add(CreateTextHandles("Clear currently open objects", new Position(32f, 44f), Fonts.FontType.Small));
+                overlay_handles.object_text.Add(CreateTextHandles("Display the options window", new Position(32f, 64f), Fonts.FontType.Small));
+                overlay_handles.object_text.Add(CreateTextHandles("Wireframe: " + (Renderer.OptionWireframe ? "on" : "off"), new Position(-28f, 4f, WindowOrigin.TopRight, ObjectOrigin.TopRight), Fonts.FontType.Small));
+                overlay_handles.object_text.Add(CreateTextHandles("Normals: " + (Renderer.OptionNormals ? "on" : "off"), new Position(-28f, 24f, WindowOrigin.TopRight, ObjectOrigin.TopRight), Fonts.FontType.Small));
+                overlay_handles.object_text.Add(CreateTextHandles("Lighting: " + (Program.LightingTarget == 0 ? "night" : "day"), new Position(-28f, 44f, WindowOrigin.TopRight, ObjectOrigin.TopRight), Fonts.FontType.Small));
+                overlay_handles.object_text.Add(CreateTextHandles("Grid: " + (Renderer.OptionCoordinateSystem ? "on" : "off"), new Position(-28f, 64f, WindowOrigin.TopRight, ObjectOrigin.TopRight), Fonts.FontType.Small));
+                overlay_handles.object_text.Add(CreateTextHandles("Background: " + GetBackgroundColorName(), new Position(-28f, 84f, WindowOrigin.TopRight, ObjectOrigin.TopRight), Fonts.FontType.Small));
+                overlay_handles.object_text.Add(CreateTextHandles("Hide interface", new Position(-28f, 104f, WindowOrigin.TopRight, ObjectOrigin.TopRight), Fonts.FontType.Small));
+                overlay_handles.object_text.Add(CreateTextHandles("Display the " + Interface.MessageCount.ToString(Culture) + " messages recently generated.", new Position(32f, 92f), Fonts.FontType.Small));
 
                 overlay_handles.created = true;
             }
@@ -823,6 +798,7 @@ namespace OpenBve {
             // 1 = no object interface
             // 2 = object interface
 
+			// TODO: Simplify these if/else blocks
             if (OptionInterface) {
                 if (ObjectManager.ObjectsUsed == 0 & ObjectManager.AnimatedWorldObjectsUsed == 0) {
                     if (overlay_handles.object_menus != 1) {
@@ -882,17 +858,16 @@ namespace OpenBve {
         }
 
         struct KeyHandles {
-            internal LibRender.UIElementHandle light;
-            internal LibRender.UIElementHandle middle;
-            internal LibRender.UIElementHandle dark;
-            internal LibRender.TextHandle text;
+            internal UIElementHandle light;
+            internal UIElementHandle middle;
+            internal UIElementHandle dark;
+            internal TextHandle text;
         }
 
         private struct GlobalKeyHandles {
-            internal LibRender.FlatMeshHandle mesh;
-            internal LibRender.TextureHandle lighttex;
-            internal LibRender.TextureHandle darktex;
-            internal LibRender.TextureHandle midtex;
+            internal TextureHandle lighttex;
+            internal TextureHandle darktex;
+            internal TextureHandle midtex;
             internal bool created;
         }
 
@@ -906,26 +881,10 @@ namespace OpenBve {
         /// <param name="Width">Width of the whole key icon</param>
         /// <param name="Keys">List of list of keys to create displays for. Keys[row][column]. Null strings allowed</param>
         /// <returns>List of handles for each key</returns>
-        private static List<KeyHandles> CreateKeyHandles(LibRender.Position position, double Width, string[][] Keys)
+        private static List<KeyHandles> CreateKeyHandles(Position position, double Width, string[][] Keys)
         {
             // Creates global variables if they aren't made yet.
             if (global_key_handles.created == false) {
-                // If mesh handles for key effects haven't been made yet, create them.
-
-                // Default square mesh and indices
-                Vertex2D[] square_mesh = {
-                    new Vertex2D{ position = new Vector2(-1.0f, -1.0f), texcoord = new Vector2(0.0f, 0.0f) },
-                    new Vertex2D{ position = new Vector2(-1.0f, 1.0f), texcoord = new Vector2(0.0f, 1.0f) },
-                    new Vertex2D{ position = new Vector2(1.0f, -1.0f), texcoord = new Vector2(1.0f, 0.0f) },
-                    new Vertex2D{ position = new Vector2(1.0f, 1.0f), texcoord = new Vector2(1.0f, 1.0f) },
-                };
-                int[] square_mesh_indices = {
-                    0, 1, 2,
-                    1, 2, 3
-                };
-
-                global_key_handles.mesh = renderer.AddFlatMesh(square_mesh, square_mesh_indices);
-
                 // If texture handles for key effects haven't been made yet, create them. 
                 global_key_handles.darktex = renderer.AddTextureFromColor(new Pixel(0.25f, 0.25f, 0.25f, 0.5f));
                 global_key_handles.lighttex = renderer.AddTextureFromColor(new Pixel(0.75f, 0.75f, 0.75f, 0.5f));
@@ -936,10 +895,10 @@ namespace OpenBve {
 
             List<KeyHandles> handles = new List<KeyHandles>();
 
-            // All keys are made by three colored boxes and the text of the button.
-            // The dark box is to the left and up, the light box is the size of the button,
-            // and the mid box is in the middle. 12pt text is overlayed on top of everything.
-            LibRender.Position current_pos = position;
+			// All keys are made by three colored boxes and the text of the button.
+			// The dark box is to the left and up, the light box is the size of the button,
+			// and the mid box is in the middle. 12pt text is overlayed on top of everything.
+			Position current_pos = position;
             for (int y = 0; y < Keys.Length; y++) {
                 current_pos.position.X = position.position.X;
                 for (int x = 0; x < Keys[y].Length; x++) {
@@ -948,17 +907,17 @@ namespace OpenBve {
                         var darkpos = current_pos + new Vector2(2.0f, 1.0f);
                         var midpos = current_pos + new Vector2(1.0f);
 
-                        lightpos.object_origin = LibRender.ObjectOrigin.TopLeft;
-                        darkpos.object_origin = LibRender.ObjectOrigin.TopLeft;
-                        midpos.object_origin = LibRender.ObjectOrigin.TopLeft;
+                        lightpos.object_origin = ObjectOrigin.TopLeft;
+                        darkpos.object_origin = ObjectOrigin.TopLeft;
+                        midpos.object_origin = ObjectOrigin.TopLeft;
 
-                        LibRender.UIElementHandle lightsquare = renderer.AddUIElement(global_key_handles.mesh, global_key_handles.lighttex, lightpos, new Vector2((float)Width - 4, 14), 0, -1);
-                        LibRender.UIElementHandle darksquare = renderer.AddUIElement(global_key_handles.mesh, global_key_handles.darktex, darkpos, new Vector2((float)Width - 4, 15), 0, -3);
-                        LibRender.UIElementHandle midsquare = renderer.AddUIElement(global_key_handles.mesh, global_key_handles.midtex, midpos, new Vector2((float)Width - 5, 14), 0, -2);
+						UIElementHandle lightsquare = renderer.AddUIElement(renderer.SquareMesh(), global_key_handles.lighttex, lightpos, new Vector2((float)Width - 4, 14), 0, -1);
+						UIElementHandle darksquare = renderer.AddUIElement(renderer.SquareMesh(), global_key_handles.darktex, darkpos, new Vector2((float)Width - 4, 15), 0, -3);
+						UIElementHandle midsquare = renderer.AddUIElement(renderer.SquareMesh(), global_key_handles.midtex, midpos, new Vector2((float)Width - 5, 14), 0, -2);
 
-                        LibRender.Position textpos = current_pos + new Vector2(2f, 0f);
+						Position textpos = current_pos + new Vector2(2f, 0f);
                         Font font = new Font(FontFamily.GenericSansSerif, 12.0f, FontStyle.Regular, GraphicsUnit.Pixel);
-                        LibRender.TextHandle text = renderer.AddText(Keys[y][x], font , new Pixel(1.0f, 1.0f, 1.0f, 1.0f), textpos);
+						TextHandle text = renderer.AddText(Keys[y][x], font , new Pixel(1.0f, 1.0f, 1.0f, 1.0f), textpos);
 
                         handles.Add(new KeyHandles { light = lightsquare, middle = midsquare, dark = darksquare, text = text });
                     }
@@ -991,8 +950,8 @@ namespace OpenBve {
         /// </summary>
         /// <param name="list">List of text handles to change</param>
         /// <param name="vis">true is visible, false is not</param>
-        private static void SetTextListVisibility(List<LibRender.TextHandle> list, bool vis) {
-            foreach (LibRender.TextHandle th in list) {
+        private static void SetTextListVisibility(List<TextHandle> list, bool vis) {
+            foreach (TextHandle th in list) {
                 renderer.SetVisibility(th, vis);
             }
         }
@@ -1009,7 +968,7 @@ namespace OpenBve {
         /// <param name="a">Alpha component of the color of the text (0-1). 1 is opaque</param>
         /// <param name="shadow">Ignored</param>
         /// <returns>Handle that was created</returns>
-        private static LibRender.TextHandle CreateTextHandles(string text, LibRender.Position position, Fonts.FontType fonttype, float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f, bool shadow = true) {
+        private static TextHandle CreateTextHandles(string text, Position position, Fonts.FontType fonttype, float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f, bool shadow = true) {
             Font font = Fonts.ConverttoFont(fonttype);
             return renderer.AddText(text, font, new Pixel(r, g, b, a), position);
         }

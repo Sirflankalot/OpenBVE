@@ -68,6 +68,7 @@
     <BaseAddress>4194304</BaseAddress>
     <FileAlignment>4096</FileAlignment>
     <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>

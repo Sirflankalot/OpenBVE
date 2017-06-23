@@ -19,6 +19,10 @@ namespace LibRender {
 			InitializeShaders();
 			InitializeFramebuffers();
 			SetSetting(settings);
+
+			cube_mesh = CreateCubeMesh();
+			square_mesh = CreateSquareMesh();
+
 			Log("Initializing!", Settings.Verbosity.Level0);
 		}
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using OpenTK;
 using GLFunc = OpenTK.Graphics.OpenGL.GL;
 using OpenBveApi;
 
@@ -93,6 +94,36 @@ namespace LibRender {
                 return false;
             }
             return true;
-        }
+		}
+
+		/////////////////////////////////////////
+		// Utility Functions for Common Idioms //
+		/////////////////////////////////////////
+
+		internal FlatMeshHandle square_mesh;
+
+		/// <summary>
+		/// Get handle for premade 2x2x2 (-1 - 1) cube
+		/// </summary>
+		/// <returns>Cube handle</returns>
+		public FlatMeshHandle SquareMesh() {
+			return square_mesh;
+		}
+
+		internal FlatMeshHandle CreateSquareMesh() {
+			// Default square mesh and indices
+			Vertex2D[] square_mesh_vertices = {
+				new Vertex2D{ position = new Vector2(-1.0f, -1.0f), texcoord = new Vector2(0.0f, 0.0f) },
+				new Vertex2D{ position = new Vector2(-1.0f, 1.0f), texcoord = new Vector2(0.0f, 1.0f) },
+				new Vertex2D{ position = new Vector2(1.0f, -1.0f), texcoord = new Vector2(1.0f, 0.0f) },
+				new Vertex2D{ position = new Vector2(1.0f, 1.0f), texcoord = new Vector2(1.0f, 1.0f) },
+			};
+			int[] square_mesh_indices = {
+				0, 1, 2,
+				1, 2, 3
+			};
+
+			return AddFlatMesh(square_mesh_vertices, square_mesh_indices);
+		}
 	}
 }

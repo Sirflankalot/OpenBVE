@@ -52,6 +52,7 @@
     <OutputPath>..\..\bin_release\</OutputPath>
     <DocumentationFile>..\..\bin_release\OpenBveApi.xml</DocumentationFile>
     <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.Targets" />
   <ItemGroup>

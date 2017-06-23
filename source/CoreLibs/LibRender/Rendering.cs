@@ -314,6 +314,8 @@ namespace LibRender {
 
 			GLFunc.Viewport(0, 0, internal_width, internal_height);
 			GLFunc.Enable(GL.EnableCap.DepthTest);
+			GLFunc.DepthRange(0, 1);
+			GLFunc.DepthMask(true);
 
 			var sun_mat = new Matrix3(cameras[active_camera].view_matrix);
 			sun_mat.Transpose();

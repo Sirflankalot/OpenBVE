@@ -100,5 +100,49 @@ namespace LibRender {
             }
             return true;
         }
+
+		/////////////////////////////////////////
+		// Utility Functions for Common Idioms //
+		/////////////////////////////////////////
+
+		internal MeshHandle cube_mesh;
+
+		/// <summary>
+		/// Get handle for premade 2x2x2 (-1 - 1) cube
+		/// </summary>
+		/// <returns>Cube handle</returns>
+		public MeshHandle CubeMesh() {
+			return cube_mesh;
+		}
+
+		internal MeshHandle CreateCubeMesh() {
+			Vertex3D[] cube_mesh_vertices = new Vertex3D[] {
+				new Vertex3D() { position = new Vector3(  1, -1, -1 ), tex_pos = new Vector2(0, 0), normal = new Vector3(  0.5773f, -0.5773f, -0.5773f )}, // Bottom, Left, Front
+				new Vertex3D() { position = new Vector3(  1, -1,  1 ), tex_pos = new Vector2(1, 0), normal = new Vector3(  0.5773f, -0.5773f,  0.5773f ) }, // Bottom, Right, Front
+				new Vertex3D() { position = new Vector3( -1, -1,  1 ), tex_pos = new Vector2(1, 1), normal = new Vector3( -0.5773f, -0.5773f,  0.5773f ) }, // Top, Right, Front
+				new Vertex3D() { position = new Vector3( -1, -1, -1 ), tex_pos = new Vector2(0, 1), normal = new Vector3( -0.5773f, -0.5773f, -0.5773f ) }, // Top, Left, Front
+				new Vertex3D() { position = new Vector3(  1,  1, -1 ), tex_pos = new Vector2(0, 0), normal = new Vector3(  0.5773f,  0.5773f, -0.5773f ) }, // Bottom, Left, Back
+				new Vertex3D() { position = new Vector3(  1,  1,  1 ), tex_pos = new Vector2(1, 0), normal = new Vector3(  0.5773f,  0.5773f,  0.5773f ) }, // Bottom, Right, Back
+				new Vertex3D() { position = new Vector3( -1,  1,  1 ), tex_pos = new Vector2(1, 1), normal = new Vector3( -0.5773f,  0.5773f,  0.5773f ) }, // Top, Right, Back
+				new Vertex3D() { position = new Vector3( -1,  1, -1 ), tex_pos = new Vector2(0, 1), normal = new Vector3( -0.5773f,  0.5773f, -0.5773f ) }  // Top, Left, Back
+			};
+
+			int[] cube_mesh_indices = new int[] {
+				1,3,0,
+				7,5,4,
+				4,1,0,
+				5,2,1,
+				2,7,3,
+				0,7,4,
+				1,2,3,
+				7,6,5,
+				4,5,1,
+				5,6,2,
+				2,6,7,
+				0,3,7
+			};
+
+			return AddMesh(cube_mesh_vertices, cube_mesh_indices);
+		}
     }
 }

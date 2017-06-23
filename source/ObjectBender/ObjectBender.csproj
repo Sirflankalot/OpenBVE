@@ -45,6 +45,7 @@
     <BaseAddress>4194304</BaseAddress>
     <PlatformTarget>x86</PlatformTarget>
     <FileAlignment>4096</FileAlignment>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.Targets" />
   <ItemGroup>

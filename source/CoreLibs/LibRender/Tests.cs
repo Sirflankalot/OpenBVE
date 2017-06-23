@@ -4,31 +4,6 @@ using OpenBveApi;
 
 namespace LibRender {
 	public static class Tests {
-		internal static Vertex3D[] mesh = new Vertex3D[] {
-			new Vertex3D() { position = new Vector3(  1, -1, -1 ), tex_pos = new Vector2(0, 0), normal = new Vector3(  0.5773f, -0.5773f, -0.5773f )}, // Bottom, Left, Front
-			new Vertex3D() { position = new Vector3(  1, -1,  1 ), tex_pos = new Vector2(1, 0), normal = new Vector3(  0.5773f, -0.5773f,  0.5773f ) }, // Bottom, Right, Front
-			new Vertex3D() { position = new Vector3( -1, -1,  1 ), tex_pos = new Vector2(1, 1), normal = new Vector3( -0.5773f, -0.5773f,  0.5773f ) }, // Top, Right, Front
-			new Vertex3D() { position = new Vector3( -1, -1, -1 ), tex_pos = new Vector2(0, 1), normal = new Vector3( -0.5773f, -0.5773f, -0.5773f ) }, // Top, Left, Front
-			new Vertex3D() { position = new Vector3(  1,  1, -1 ), tex_pos = new Vector2(0, 0), normal = new Vector3(  0.5773f,  0.5773f, -0.5773f ) }, // Bottom, Left, Back
-			new Vertex3D() { position = new Vector3(  1,  1,  1 ), tex_pos = new Vector2(1, 0), normal = new Vector3(  0.5773f,  0.5773f,  0.5773f ) }, // Bottom, Right, Back
-			new Vertex3D() { position = new Vector3( -1,  1,  1 ), tex_pos = new Vector2(1, 1), normal = new Vector3( -0.5773f,  0.5773f,  0.5773f ) }, // Top, Right, Back
-			new Vertex3D() { position = new Vector3( -1,  1, -1 ), tex_pos = new Vector2(0, 1), normal = new Vector3( -0.5773f,  0.5773f, -0.5773f ) }  // Top, Left, Back
-		};
-
-		internal static int[] indices = new int[] {
-			1,3,0,
-			7,5,4,
-			4,1,0,
-			5,2,1,
-			2,7,3,
-			0,7,4,
-			1,2,3,
-			7,6,5,
-			4,5,1,
-			5,6,2,
-			2,6,7,
-			0,3,7
-		};
 
 		internal static Pixel[] opaque_pixels = new Pixel[16] {
 			new Pixel() { r= 68, g= 68, b= 68, a=255 },
@@ -133,7 +108,7 @@ namespace LibRender {
 			private static ObjectHandle oh;
 
 			public static void Initialize(Renderer renderer) {
-				var m = renderer.AddMesh(mesh, indices);
+				var m = renderer.CubeMesh();
 				var t = renderer.AddTexture(opaque_pixels, 4, 4);
 				oh = renderer.AddObject(m, t);
 				renderer.SetLocation(oh, new Vector3(0, 0, 0));
@@ -157,7 +132,7 @@ namespace LibRender {
 			private static ObjectHandle oh;
 
 			public static void Initialize(Renderer renderer) {
-				var m = renderer.AddMesh(mesh, indices);
+				var m = renderer.CubeMesh();
 				var t = renderer.AddTexture(opaque_pixels, 4, 4);
 				oh = renderer.AddObject(m, t);
 				renderer.SetLocation(oh, new Vector3(0, 0, 0));
@@ -181,7 +156,7 @@ namespace LibRender {
 			private static ObjectHandle[] oh_list = new ObjectHandle[16];
 
 			public static void Initialize(Renderer renderer) {
-				m = renderer.AddMesh(mesh, indices);
+				m = renderer.CubeMesh();
 				to = renderer.AddTexture(opaque_pixels, 4, 4);
 				tt = renderer.AddTexture(transparent_pixels, 4, 4);
 
