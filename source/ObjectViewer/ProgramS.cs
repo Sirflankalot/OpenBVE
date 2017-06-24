@@ -120,12 +120,13 @@ namespace OpenBve {
 	        // initialize camera
 
 	        currentGraphicsMode = new GraphicsMode(new ColorFormat(8, 8, 8, 8), 24, 8,Interface.CurrentOptions.AntialiasingLevel);
-	        currentGameWindow = new ObjectViewer(Renderer.ScreenWidth, Renderer.ScreenHeight, currentGraphicsMode,"Object Viewer", GameWindowFlags.Default);
-	        currentGameWindow.Visible = true;
-	        currentGameWindow.TargetUpdateFrequency = 0;
-	        currentGameWindow.TargetRenderFrequency = 0;
-	        currentGameWindow.Title = "Object Viewer";
-	        currentGameWindow.Run();
+			currentGameWindow = new ObjectViewer(Renderer.ScreenWidth, Renderer.ScreenHeight, currentGraphicsMode, "Object Viewer", GameWindowFlags.Default) {
+				Visible = true,
+				TargetUpdateFrequency = 0,
+				TargetRenderFrequency = 0,
+				Title = "Object Viewer"
+			};
+			currentGameWindow.Run();
 	        // quit
 	        TextureManager.UnuseAllTextures();
 
@@ -146,6 +147,7 @@ namespace OpenBve {
 
 		// update viewport
 		internal static void UpdateViewport() {
+			Renderer.renderer.Resize(Renderer.ScreenWidth, Renderer.ScreenHeight);
             GL.Viewport(0, 0, Renderer.ScreenWidth, Renderer.ScreenHeight);
             World.AspectRatio = (double)Renderer.ScreenWidth / (double)Renderer.ScreenHeight;
             World.HorizontalViewingAngle = 2.0 * Math.Atan(Math.Tan(0.5 * World.VerticalViewingAngle) * World.AspectRatio);
@@ -161,10 +163,7 @@ namespace OpenBve {
 		{	
 			if(e.Delta != 0)
 			{
-				double dx = -0.025 * e.Delta;
-				World.AbsoluteCameraPosition.X += dx * World.AbsoluteCameraDirection.X;
-				World.AbsoluteCameraPosition.Y += dx * World.AbsoluteCameraDirection.Y;
-				World.AbsoluteCameraPosition.Z += dx * World.AbsoluteCameraDirection.Z;
+                Renderer.CameraZoom(e.Delta);
 			}
 		}
 
@@ -197,53 +196,21 @@ namespace OpenBve {
 	        if (MouseButton == 0) return;
 	        currentMouseState = Mouse.GetState();
 	        if (currentMouseState != previousMouseState)
-	        {
+            {
+                Vector2 mouse_movement = new Vector2(
+                    (previousMouseState.X - currentMouseState.X),
+                    (previousMouseState.Y - currentMouseState.Y)
+                );
 	            if (MouseButton == 1)
 	            {
-                    World.AbsoluteCameraDirection = MouseCameraDirection;
-                    World.AbsoluteCameraUp = MouseCameraUp;
-                    World.AbsoluteCameraSide = MouseCameraSide;
-                    {
-                        double dx = 0.0025 * (double)(previousMouseState.X - currentMouseState.X);
-                        double cosa = Math.Cos(dx);
-                        double sina = Math.Sin(dx);
-                        World.Rotate(ref World.AbsoluteCameraDirection.X, ref World.AbsoluteCameraDirection.Y, ref World.AbsoluteCameraDirection.Z, 0.0, 1.0, 0.0, cosa, sina);
-                        World.Rotate(ref World.AbsoluteCameraUp.X, ref World.AbsoluteCameraUp.Y, ref World.AbsoluteCameraUp.Z, 0.0, 1.0, 0.0, cosa, sina);
-                        World.Rotate(ref World.AbsoluteCameraSide.X, ref World.AbsoluteCameraSide.Y, ref World.AbsoluteCameraSide.Z, 0.0, 1.0, 0.0, cosa, sina);
-                    }
-                    {
-                        double dy = 0.0025 * (double)(previousMouseState.Y - currentMouseState.Y);
-                        double cosa = Math.Cos(dy);
-                        double sina = Math.Sin(dy);
-                        World.Rotate(ref World.AbsoluteCameraDirection.X, ref World.AbsoluteCameraDirection.Y, ref World.AbsoluteCameraDirection.Z, World.AbsoluteCameraSide.X, World.AbsoluteCameraSide.Y, World.AbsoluteCameraSide.Z, cosa, sina);
-                        World.Rotate(ref World.AbsoluteCameraUp.X, ref World.AbsoluteCameraUp.Y, ref World.AbsoluteCameraUp.Z, World.AbsoluteCameraSide.X, World.AbsoluteCameraSide.Y, World.AbsoluteCameraSide.Z, cosa, sina);
-                    }
+                    Renderer.CameraRotate(mouse_movement);
 	            }
 	            else if(MouseButton == 2)
-	            {
-                    World.AbsoluteCameraPosition = MouseCameraPosition;
-                    double dx = -0.025 * (double)(currentMouseState.X - previousMouseState.X);
-                    World.AbsoluteCameraPosition.X += dx * World.AbsoluteCameraSide.X;
-                    World.AbsoluteCameraPosition.Y += dx * World.AbsoluteCameraSide.Y;
-                    World.AbsoluteCameraPosition.Z += dx * World.AbsoluteCameraSide.Z;
-                    double dy = 0.025 * (double)(currentMouseState.Y - previousMouseState.Y);
-                    World.AbsoluteCameraPosition.X += dy * World.AbsoluteCameraUp.X;
-                    World.AbsoluteCameraPosition.Y += dy * World.AbsoluteCameraUp.Y;
-                    World.AbsoluteCameraPosition.Z += dy * World.AbsoluteCameraUp.Z;
-	            }
-	            else
-	            {
-                    World.AbsoluteCameraPosition = MouseCameraPosition;
-                    double dx = -0.025 * (double)(currentMouseState.X - previousMouseState.X);
-                    World.AbsoluteCameraPosition.X += dx * World.AbsoluteCameraSide.X;
-                    World.AbsoluteCameraPosition.Y += dx * World.AbsoluteCameraSide.Y;
-                    World.AbsoluteCameraPosition.Z += dx * World.AbsoluteCameraSide.Z;
-                    double dz = -0.025 * (double)(currentMouseState.Y - previousMouseState.Y);
-                    World.AbsoluteCameraPosition.X += dz * World.AbsoluteCameraDirection.X;
-                    World.AbsoluteCameraPosition.Y += dz * World.AbsoluteCameraDirection.Y;
-                    World.AbsoluteCameraPosition.Z += dz * World.AbsoluteCameraDirection.Z;
+                {
+                    Renderer.CameraMove(mouse_movement);
 	            }
 	        }
+            previousMouseState = currentMouseState;
 	    }
 
 		// process events
@@ -285,11 +252,12 @@ namespace OpenBve {
 	                break;
 	            case Key.F7:
 	            {
-	                OpenFileDialog Dialog = new OpenFileDialog();
-	                Dialog.CheckFileExists = true;
-	                Dialog.Multiselect = true;
-	                Dialog.Filter = "CSV/B3D/X/ANIMATED files|*.csv;*.b3d;*.x;*.animated;*.l3dobj;*.l3dgrp|All files|*";
-		            if (Dialog.ShowDialog() == DialogResult.OK)
+						OpenFileDialog Dialog = new OpenFileDialog() {
+							CheckFileExists = true,
+							Multiselect = true,
+							Filter = "CSV/B3D/X/ANIMATED files|*.csv;*.b3d;*.x;*.animated;*.l3dobj;*.l3dgrp|All files|*"
+						};
+						if (Dialog.ShowDialog() == DialogResult.OK)
 		            {
 			            Application.DoEvents();
 			            string[] f = Dialog.FileNames;
@@ -361,37 +329,45 @@ namespace OpenBve {
 	                break;
 	            case Key.Left:
 	                RotateX = -1;
+                    Renderer.CameraRotate(new Vector2(-1, 0));
 	                break;
 	            case Key.Right:
 	                RotateX = 1;
+                    Renderer.CameraRotate(new Vector2(1, 0));
 	                break;
 	            case Key.Up:
-	                RotateY = -1;
+                    RotateY = -1;
+                    Renderer.CameraRotate(new Vector2(0, -1));
 	                break;
 	            case Key.Down:
-	                RotateY = 1;
+	                RotateY = 1;   
+                    Renderer.CameraRotate(new Vector2(0, 1));
 	                break;
 	            case Key.A:
 	            case Key.Keypad4:
 	                MoveX = -1;
+                    Renderer.CameraMove(new Vector2(1, 0));
 	                break;
 	            case Key.D:
 	            case Key.Keypad6:
-	                MoveX = 1;
+                    MoveX = 1;
+                    Renderer.CameraMove(new Vector2(-1, 0));
 	                break;
 	            case Key.Keypad8:
-	                MoveY = 1;
+                    MoveY = 1;
 	                break;
 	            case Key.Keypad2:
-	                MoveY = -1;
+                    MoveY = -1;
 	                break;
 	            case Key.W:
 	            case Key.Keypad9:
-	                MoveZ = 1;
+                    MoveZ = 1;
+                    Renderer.CameraMove(new Vector2(0, 1));
 	                break;
 	            case Key.S:
 	            case Key.Keypad3:
-	                MoveZ = -1;
+                    MoveZ = -1;
+                    Renderer.CameraMove(new Vector2(0, -1));
 	                break;
 	            case Key.Keypad5:
 	                ResetCamera();
@@ -424,9 +400,10 @@ namespace OpenBve {
 	            case Key.B:
 	                if (ShiftPressed)
 	                {
-	                    ColorDialog dialog = new ColorDialog();
-	                    dialog.FullOpen = true;
-	                    if (dialog.ShowDialog() == DialogResult.OK)
+						ColorDialog dialog = new ColorDialog() {
+							FullOpen = true
+						};
+						if (dialog.ShowDialog() == DialogResult.OK)
 	                    {
 	                        Renderer.BackgroundColor = -1;
 	                        Renderer.ApplyBackgroundColor(dialog.Color.R, dialog.Color.G, dialog.Color.B);

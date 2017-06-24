@@ -973,6 +973,28 @@ namespace OpenBve {
             return renderer.AddText(text, font, new Pixel(r, g, b, a), position);
         }
 
+        internal static void CameraZoom(float movement) {
+            float dist = Renderer.renderer.GetDistance(Renderer.renderer.GetActiveCamera());
+            dist += 0.25f * movement;
+            Renderer.renderer.SetDistance(Renderer.renderer.GetActiveCamera(), dist);
+        }
+
+        internal static void CameraRotate(Vector2 direction) {
+            Vector2 movement  = direction * 0.25f;
+            movement += Renderer.renderer.GetRotation(Renderer.renderer.GetActiveCamera());
+            Renderer.renderer.SetRotation(Renderer.renderer.GetActiveCamera(), movement);
+        }
+
+        internal static void CameraMove(Vector2 direction) {
+            Vector2 currenteyevec = Renderer.renderer.GetEyeVector(Renderer.renderer.GetActiveCamera()).Xz.Normalized();
+            Vector2 leftvec = new Vector2(-currenteyevec.Y, currenteyevec.X);
+            Vector2 movement  = -direction.Y * currenteyevec;
+            movement += direction.X * leftvec;
+            movement *= 0.1f;
+            movement += Renderer.renderer.GetLocation(Renderer.renderer.GetActiveCamera()).Xz;
+            Renderer.renderer.SetLocation(Renderer.renderer.GetActiveCamera(), new Vector3(movement.X, 0, movement.Y));
+        }
+
         // readd objects
         private static void ReAddObjects()
         {
@@ -1245,9 +1267,10 @@ namespace OpenBve {
         {
             if (Face.Vertices.Length != 0)
             {
-                World.GlowAttenuationMode mode; double halfdistance;
-                World.SplitGlowAttenuationData(GlowAttenuationData, out mode, out halfdistance);
-                int i = (int)Face.Vertices[0].Index;
+                double halfdistance;
+                World.GlowAttenuationMode mode;
+				World.SplitGlowAttenuationData(GlowAttenuationData, out mode, out halfdistance);
+				int i = (int)Face.Vertices[0].Index;
                 double dx = Vertices[i].Coordinates.X - CameraX;
                 double dy = Vertices[i].Coordinates.Y - CameraY;
                 double dz = Vertices[i].Coordinates.Z - CameraZ;

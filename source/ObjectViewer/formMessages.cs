@@ -72,10 +72,11 @@ namespace OpenBve
             {
                 Builder.AppendLine(Interface.Messages[i].Text);
             }
-            // save
-            SaveFileDialog Dialog = new SaveFileDialog();
-            Dialog.Filter = "Text files|*.txt|All files|*";
-            if (Dialog.ShowDialog() == DialogResult.OK)
+			// save
+			SaveFileDialog Dialog = new SaveFileDialog() {
+				Filter = "Text files|*.txt|All files|*"
+			};
+			if (Dialog.ShowDialog() == DialogResult.OK)
             {
                 try
                 {

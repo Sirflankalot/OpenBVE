@@ -88,6 +88,12 @@ namespace LibRender {
 		// Camera Setters and Getters //
 		////////////////////////////////
 
+        public Vector3 GetEyeVector(CameraHandle ch) {
+            int id = AssertValid(ch);
+
+            return (cameras[id].position - cameras[id].focal_point).Normalized();
+        }
+
 		public Vector3 GetLocation(CameraHandle ch) {
 			int id = AssertValid(ch);
 
