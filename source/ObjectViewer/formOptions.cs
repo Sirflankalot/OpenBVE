@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using OpenBveApi.Math;
 using OpenTK.Graphics;
 using LibRender;
 

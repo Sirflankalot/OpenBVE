@@ -364,7 +364,7 @@ namespace OpenBve {
 			string[] Lines = System.IO.File.ReadAllLines(FileName, Encoding);
 			Expression[] Expressions;
 			PreprocessSplitIntoExpressions(FileName, IsRW, Lines, out Expressions, true, 0.0);
-			PreprocessChrRndSub(FileName, IsRW, ref Expressions);
+			PreprocessChrRndSub(FileName, IsRW, Encoding, ref Expressions);
 			double[] UnitOfLength = new double[] { 1.0 };
 			//Set units of speed initially to km/h
 			//This represents 1km/h in m/s
@@ -520,9 +520,8 @@ namespace OpenBve {
 		}
 
 		/// <summary>This function processes the list of expressions for $Char, $Rnd, $If and $Sub directives, and evaluates them into the final expressions dataset</summary>
-		private static void PreprocessChrRndSub(string FileName, bool IsRW, ref Expression[] Expressions) {
+		private static void PreprocessChrRndSub(string FileName, bool IsRW, System.Text.Encoding Encoding, ref Expression[] Expressions) {
 			System.Globalization.CultureInfo Culture = System.Globalization.CultureInfo.InvariantCulture;
-			System.Text.Encoding Encoding = new System.Text.ASCIIEncoding();
 			string[] Subs = new string[16];
 			int openIfs = 0;
 			for (int i = 0; i < Expressions.Length; i++) {
@@ -745,7 +744,7 @@ namespace OpenBve {
 										Expression[] expr;
 										//Get the text encoding of our $Include file
 										System.Text.Encoding includeEncoding = TextEncoding.GetSystemEncodingFromFile(files[chosenIndex]);
-										if (!includeEncoding.Equals(Encoding))
+										if (!includeEncoding.Equals(Encoding) && includeEncoding.WindowsCodePage != Encoding.WindowsCodePage)
 										{
 											//If the encodings do not match, add a warning
 											//This is not critical, but it's a bad idea to mix and match character encodings within a routefile, as the auto-detection may sometimes be wrong
@@ -3343,8 +3342,33 @@ namespace OpenBve {
 												Interface.AddMessage(Interface.MessageType.Error, false, "At least one argument is required in " + Command + "at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
 											} else {
 												int[] aspects = new int[Arguments.Length];
+												for (int i = 0; i < Arguments.Length; i++)
+												{
+													int p = Arguments[i].IndexOf('.');
+													if (p != -1)
+													{
+														//HACK: If we encounter a decimal followed by a non numerical character
+														// we can assume that we are missing a comma and hence the section declaration has ended
+														int pp = p;
+														while (pp < Arguments[i].Length)
+														{
+															pp++;
+															if (char.IsLetter(Arguments[i][pp]))
+															{
+																Arguments[i] = Arguments[i].Substring(0, p);
+																Array.Resize(ref Arguments, i +1);
+																Array.Resize(ref aspects, i + 1);
+																break;
+															}
+														}
+													}
+												}
 												for (int i = 0; i < Arguments.Length; i++) {
-													if (!NumberFormats.TryParseIntVb6(Arguments[i], out aspects[i])) {
+													if (string.IsNullOrEmpty(Arguments[i]))
+													{
+														Interface.AddMessage(Interface.MessageType.Error, false, "Aspect" + i.ToString(Culture) + " is invalid in " + Command + "at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
+														aspects[i] = -1;
+													} else if (!NumberFormats.TryParseIntVb6(Arguments[i], out aspects[i])) {
 														Interface.AddMessage(Interface.MessageType.Error, false, "Aspect" + i.ToString(Culture) + " is invalid in " + Command + "at line " + Expressions[j].Line.ToString(Culture) + ", column " + Expressions[j].Column.ToString(Culture) + " in file " + Expressions[j].File);
 														aspects[i] = -1;
 													} else if (aspects[i] < 0) {
