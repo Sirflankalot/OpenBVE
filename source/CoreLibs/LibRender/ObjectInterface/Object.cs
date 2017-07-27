@@ -20,6 +20,7 @@ namespace LibRender {
 		internal bool matrix_valid = false;
 		internal Matrix3 inverse_model_view_matrix;
 		internal bool inverse_model_view_valid = false;
+		internal bool shaded = true;
 
 		internal ObjectHandle handle;
 	}
@@ -115,6 +116,12 @@ namespace LibRender {
 			return objects[id].scale;
 		}
 
+		public bool GetShading(ObjectHandle oh) {
+			int id = AssertValid(oh);
+
+			return objects[id].shaded;
+		}
+
 		public void SetVisibility(ObjectHandle oh, bool visible) {
 			int id = AssertValid(oh);
 
@@ -142,6 +149,12 @@ namespace LibRender {
 			objects[id].scale = scale;
 			objects[id].matrix_valid = false;
 			objects[id].inverse_model_view_valid = false;
+		}
+
+		public void SetShading(ObjectHandle oh, bool shaded) {
+			int id = AssertValid(oh);
+
+			objects[id].shaded = shaded;
 		}
 	}
 }

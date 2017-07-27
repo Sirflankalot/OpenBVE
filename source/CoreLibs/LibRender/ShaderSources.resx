@@ -157,4 +157,7 @@
   <data name="multisample_hdrpass_fs" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Shaders/multisample_hdrpass.fs.glsl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="forward_geometry_unshaded_fs" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Shaders/forward_geometry_unshaded.fs.glsl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

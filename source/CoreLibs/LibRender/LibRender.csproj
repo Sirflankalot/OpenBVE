@@ -82,7 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\OpenBveApi\OpenBveApi.csproj">
-      <Project>{27134980-4415-4375-a564-40a9014dfa5f}</Project>
+      <Project>{27134980-4415-4375-A564-40A9014DFA5F}</Project>
       <Name>OpenBveApi</Name>
     </ProjectReference>
   </ItemGroup>
@@ -94,9 +94,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\deferred_geometry.fs.glsl" />
+    <None Include="Shaders\forward_geometry.fs.glsl" />
     <None Include="Shaders\forward_geometry.vs.glsl" />
     <None Include="Shaders\deferred_geometry.vs.glsl" />
-    <None Include="Shaders\forward_geometry.fs.glsl" />
+    <None Include="Shaders\forward_geometry_unshaded.fs.glsl" />
     <None Include="Shaders\hdrpass.fs.glsl" />
     <None Include="Shaders\lightpass.fs.glsl" />
     <None Include="Shaders\multisample_hdrpass.fs.glsl" />

@@ -205,6 +205,7 @@ namespace LibRender {
 		
 		internal ShaderProgram deferred_geometry_prog;
 		internal ShaderProgram forward_geometry_prog;
+		internal ShaderProgram forward_geometry_unshaded_prog;
 		internal ShaderProgram lightpass_prog;
 		internal ShaderProgram hdrpass_prog;
 		internal ShaderProgram text_prog;
@@ -219,7 +220,9 @@ namespace LibRender {
 
 			var forward_geometry_vertex = new Shader(GL.ShaderType.VertexShader, ShaderSources.forward_geometry_vs);
 			var forward_geometry_fragment = new Shader(GL.ShaderType.FragmentShader, ShaderSources.forward_geometry_fs);
+			var forward_geometry_unshaded_fragment = new Shader(GL.ShaderType.FragmentShader, ShaderSources.forward_geometry_unshaded_fs);
 			forward_geometry_prog = new ShaderProgram(forward_geometry_vertex, forward_geometry_fragment);
+			forward_geometry_unshaded_prog = new ShaderProgram(forward_geometry_vertex, forward_geometry_unshaded_fragment);
 
 			var onscreenquad_vertex = new Shader(GL.ShaderType.VertexShader, ShaderSources.onscreenquad_vs);
 			var light_fragment = new Shader(GL.ShaderType.FragmentShader, ShaderSources.lightpass_fs);
@@ -244,6 +247,7 @@ namespace LibRender {
 
 			deferred_geometry_vertex.Clear();
 			deferred_geometry_fragment.Clear();
+			forward_geometry_unshaded_fragment.Clear();
 			onscreenquad_vertex.Clear();
 			hdr_fragment.Clear();
 			ms_hdr_fragment.Clear();
@@ -257,6 +261,8 @@ namespace LibRender {
 
 		internal void DeleteShaders() {
 			deferred_geometry_prog.Clear();
+			forward_geometry_prog.Clear();
+			forward_geometry_unshaded_prog.Clear();
 			lightpass_prog.Clear();
 			hdrpass_prog.Clear();
 			multsample_hdrpass_prog.Clear();
@@ -342,7 +348,8 @@ namespace LibRender {
 				GLFunc.Clear(GL.ClearBufferMask.ColorBufferBit | GL.ClearBufferMask.DepthBufferBit | GL.ClearBufferMask.StencilBufferBit);
 
 				transparent = objects.Where((o) => o != null)
-									 .OrderByDescending((o) => (o.position - cameras[active_camera].position).LengthSquared)
+									 .OrderByDescending((o) => (o.shaded))
+									 .ThenByDescending((o) => (o.position - cameras[active_camera].position).LengthSquared)
 									 .ToList();
 
                 statistics.val_objects.rendered = transparent.Count;
@@ -351,21 +358,27 @@ namespace LibRender {
             GLFunc.BeginQuery(GL.QueryTarget.TimeElapsed, timers[2]);
             GLFunc.BeginQuery(GL.QueryTarget.PrimitivesGenerated, primitive_counters[1]);
 
-			forward_geometry_prog.Use();
+			forward_geometry_unshaded_prog.Use();
+
+			GLFunc.Uniform1(forward_geometry_unshaded_prog.GetUniform("model_tex"), 0);
+			GLFunc.UniformMatrix4(forward_geometry_unshaded_prog.GetUniform("proj_mat"), false, ref cameras[active_camera].proj_matrix);
 			
+			forward_geometry_prog.Use();
+
 			if (settings.wireframe == Settings.Wireframe.On) {
 				GLFunc.PolygonMode(GL.MaterialFace.FrontAndBack, GL.PolygonMode.Line);
 				GLFunc.LineWidth(2.0f);
 			}
 
-			GLFunc.Uniform1(lightpass_prog.GetUniform("model_tex"), 0);
+			GLFunc.Uniform1(forward_geometry_prog.GetUniform("model_tex"), 0);
 			GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
 
 			GLFunc.UniformMatrix4(forward_geometry_prog.GetUniform("proj_mat"), false, ref cameras[active_camera].proj_matrix);
 			GLFunc.Uniform3(forward_geometry_prog.GetUniform("sunDir", true), sun_vec);
 			GLFunc.Uniform3(forward_geometry_prog.GetUniform("suncolor"), sun.color);
 			GLFunc.Uniform1(forward_geometry_prog.GetUniform("sunbrightness"), sun.brightness);
-			
+
+			bool currently_shaded = true;
 			foreach (Object o in transparent) {
 				// Reference to subobjects
 				Mesh m = meshes[AssertValid(o.mesh)];
@@ -376,11 +389,21 @@ namespace LibRender {
 					continue;
 				}
 
+				if (o.shaded && !currently_shaded) {
+					forward_geometry_prog.Use();
+				}
+				else if (!o.shaded && currently_shaded) {
+					forward_geometry_unshaded_prog.Use();
+				}
+				currently_shaded = o.shaded;
+
+				ShaderProgram current_shader = o.shaded ? forward_geometry_prog : forward_geometry_unshaded_prog;
+
 				GLFunc.BindTexture(GL.TextureTarget.Texture2D, t.gl_id);
 
-				GLFunc.UniformMatrix4(forward_geometry_prog.GetUniform("world_mat"), false, ref o.transform);
-				GLFunc.UniformMatrix4(forward_geometry_prog.GetUniform("view_mat"), false, ref c.view_matrix);
-				GLFunc.UniformMatrix3(forward_geometry_prog.GetUniform("normal_mat"), false, ref o.inverse_model_view_matrix);
+				GLFunc.UniformMatrix4(current_shader.GetUniform("world_mat"), false, ref o.transform);
+				GLFunc.UniformMatrix4(current_shader.GetUniform("view_mat"), false, ref c.view_matrix);
+				GLFunc.UniformMatrix3(current_shader.GetUniform("normal_mat"), false, ref o.inverse_model_view_matrix);
 
 				GLFunc.BindVertexArray(m.gl_vao_id);
 
@@ -660,7 +683,7 @@ namespace LibRender {
 				Texture t = textures[AssertValid(o.texture)];
 				Camera c = cameras[active_camera];
 
-				if (o == null || !o.visible || m == null || t == null) {
+				if (o == null || !o.visible || !o.shaded || m == null || t == null) {
 					continue;
 				}
 

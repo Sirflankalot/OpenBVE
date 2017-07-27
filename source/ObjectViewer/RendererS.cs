@@ -12,8 +12,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using OpenBveApi;
 using LibRender;
-using OpenBveApi.Math;
-using Vector3 = OpenBveApi.Math.Vector3;
 using OpenBveApi.Colors;
 
 namespace OpenBve {
@@ -90,7 +88,7 @@ namespace OpenBve {
         internal static bool OptionLighting = true;
         internal static Color24 OptionAmbientColor = new Color24(160, 160, 160);
         internal static Color24 OptionDiffuseColor = new Color24(159, 159, 159);
-        internal static Vector3 OptionLightPosition = new Vector3(0.215920077052065f, 0.875724044222352f, -0.431840154104129f);
+        internal static OpenBveApi.Math.Vector3 OptionLightPosition = new OpenBveApi.Math.Vector3(0.215920077052065f, 0.875724044222352f, -0.431840154104129f);
         internal static float OptionLightingResultingAmount = 1.0f;
         internal static bool OptionFauxNighttime = true;
         internal static bool OptionNormals = false;
@@ -174,7 +172,7 @@ namespace OpenBve {
             OptionLighting = true;
             OptionAmbientColor = new Color24(160, 160, 160);
             OptionDiffuseColor = new Color24(160, 160, 160);
-            OptionLightPosition = new Vector3(0.215920077052065f, 0.875724044222352f, -0.431840154104129f);
+            OptionLightPosition = new OpenBveApi.Math.Vector3(0.215920077052065f, 0.875724044222352f, -0.431840154104129f);
             OptionLightingResultingAmount = 1.0f;
             GL.Disable(EnableCap.Fog); FogEnabled = false;
         }
@@ -293,27 +291,6 @@ namespace OpenBve {
             GL.Enable(EnableCap.DepthTest);
             GL.DepthMask(true);
             LastBoundTexture = 0;
-<<<<<<< HEAD
-=======
-            // opaque list
-            if (OptionCoordinateSystem)
-            {
-                if (LightingEnabled)
-                {
-                    GL.Disable(EnableCap.Lighting);
-                }
-                GL.Color3(1.0, 0.0, 0.0);
-                RenderBox(new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 1.0), new Vector3(0.0, 1.0, 0.0), new Vector3(1.0, 0.0, 0.0), new Vector3(100.0, 0.01, 0.01), cx, cy, cz);
-                GL.Color3(0.0, 1.0, 0.0);
-                RenderBox(new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 1.0), new Vector3(0.0, 1.0, 0.0), new Vector3(1.0, 0.0, 0.0), new Vector3(0.01, 100.0, 0.01), cx, cy, cz);
-                GL.Color3(0.0, 0.0, 1.0);
-                RenderBox(new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 1.0), new Vector3(0.0, 1.0, 0.0), new Vector3(1.0, 0.0, 0.0), new Vector3(0.01, 0.01, 100.0), cx, cy, cz);
-                if (LightingEnabled)
-                {
-                    GL.Enable(EnableCap.Lighting);
-                }
-            }
->>>>>>> master
             for (int i = 0; i < OpaqueListCount; i++)
             {
                 RenderFace(ref OpaqueList[i], cx, cy, cz);
@@ -724,6 +701,10 @@ namespace OpenBve {
 				coordinate_handles.x_box = renderer.AddObject(renderer.CubeMesh(), coordinate_handles.redtex);
 				coordinate_handles.y_box = renderer.AddObject(renderer.CubeMesh(), coordinate_handles.greentex);
 				coordinate_handles.z_box = renderer.AddObject(renderer.CubeMesh(), coordinate_handles.bluetex);
+
+				renderer.SetShading(coordinate_handles.x_box, false);
+				renderer.SetShading(coordinate_handles.y_box, false);
+				renderer.SetShading(coordinate_handles.z_box, false);
 
 				renderer.SetScale(coordinate_handles.x_box, new Vector3(100.0f, 0.01f, 0.01f));
 				renderer.SetScale(coordinate_handles.y_box, new Vector3(0.01f, 100.0f, 0.01f));
