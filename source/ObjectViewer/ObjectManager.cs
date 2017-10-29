@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using LibRender;
 using OpenBveApi.Math;
 
 namespace OpenBve
@@ -14,9 +15,9 @@ namespace OpenBve
         internal class StaticObject : UnifiedObject
         {
 			internal struct RendererHandles {
-				internal LibRender.MeshHandle mesh;
-				internal LibRender.TextureHandle texture;
-				internal LibRender.ObjectHandle obj;
+				internal List<LibRender.MeshHandle> mesh;
+				internal List<LibRender.TextureHandle> texture;
+				internal List<LibRender.ObjectHandle> obj;
 			}
 			/// <summary> Handles for all renderer info </summary>
 			internal RendererHandles handle;
@@ -1096,12 +1097,75 @@ namespace OpenBve
         }
 
 		/// <summary>
+		/// Split the mesh into multiple meshes so that each resulting mesh has only one material
+		/// </summary>
+		/// <param name="obj">Object to read material data from</param>
+		/// <param name="combined_verts">Input mesh vertices</param>
+		/// <param name="combined_indices">Input mesh indices</param>
+		/// <param name="vert_list">List of each sub-mesh's vertices</param>
+		/// <param name="index_list">List of each sub-mesh's indexes</param>
+		private static void SplitMeshByMaterial(StaticObject obj,
+												List<OpenBveApi.Vertex3D> combined_verts, List<int> combined_indices,
+												out List<List<OpenBveApi.Vertex3D>> vert_list, out List<List<int>> index_list) {
+			var vert_count = combined_verts.Count;
+
+			vert_list = new List<List<OpenBveApi.Vertex3D>>();
+			index_list = new List<List<int>>();
+
+			for (int i = 0; i < obj.Mesh.Materials.Length; ++i) {
+				// List of which vertices need to be used by the object
+				List<bool> to_grab = new List<bool>(System.Linq.Enumerable.Repeat(false, vert_count));
+
+				// Original Indices that are used by this object
+				List<int> orig_indices = new List<int>();
+
+				foreach (World.MeshFace mf in obj.Mesh.Faces) {
+					if (i == mf.Material) {
+						foreach (World.MeshFaceVertex mfv in mf.Vertices) {
+							to_grab[mfv.Index] = true;
+							orig_indices.Add(mfv.Index);
+						}
+					}
+				}
+
+				// Build re-indexing list and
+				// Copy verts to new list
+				List<int> reindex = new List<int>(vert_count);
+				List<OpenBveApi.Vertex3D> submesh_verts = new List<OpenBveApi.Vertex3D>();
+
+				for (int j = 0, index = 0; j < vert_count; ++j) {
+					if (to_grab[j]) {
+						reindex.Add(index++);
+						submesh_verts.Add(combined_verts[j]);
+					}
+					else {
+						reindex.Add(-1);
+					}
+				}
+
+				// Build new index using the reindex array to change the index to new value
+				// eg. if the original index was 7, the reindex array's 8th element will say 3
+				//     making the new index 3
+				for (int j = 0; j < orig_indices.Count; j++) {
+					orig_indices[j] = reindex[orig_indices[j]];
+				}
+
+				vert_list.Add(submesh_verts);
+				index_list.Add(orig_indices);
+			}
+		}
+
+		/// <summary>
 		/// Convert OpenBVE mesh format to LibRender mesh format
 		/// </summary>
 		/// <param name="obj">Static Object to convert to LibRender mesh</param>
-		internal static void CreateLibRenderHandles(StaticObject obj) { 
+		internal static void CreateLibRenderHandles(StaticObject obj) {
 			// Initialize RenderHandles
-			obj.handle = new StaticObject.RendererHandles();
+			obj.handle = new StaticObject.RendererHandles() {
+				mesh = new List<MeshHandle>(),
+				texture = new List<TextureHandle>(),
+				obj = new List<ObjectHandle>()
+			};
 
 			// Deal with mesh
 
@@ -1127,14 +1191,28 @@ namespace OpenBve
 				vertex.normal.NormalizeFast();
 				verts[i] = vertex;
 			}
-			obj.handle.mesh = Renderer.renderer.AddMesh(verts.ToArray(), index.ToArray());
+
+			List<List<OpenBveApi.Vertex3D>> subvert_list;
+			List<List<int>> subindex_list;
+
+			SplitMeshByMaterial(obj, verts, index, out subvert_list, out subindex_list);
 
 			// Deal with texture
+			for (int i = 0; i < obj.Mesh.Materials.Length; ++i) {
+				var material = obj.Mesh.Materials[i];
 
-			TextureManager.Texture tex = TextureManager.Textures[obj.Mesh.Materials[0].DaytimeTextureIndex];
-			obj.handle.texture = Renderer.renderer.AddTextureFromColor(new OpenBveApi.Pixel(255, 255, 255, 255));
-			obj.handle.obj = Renderer.renderer.AddObject(obj.handle.mesh, obj.handle.texture);
+				if (material.DaytimeTextureIndex == -1) {
+					var color = new OpenBveApi.Pixel(material.Color.R, material.Color.G, material.Color.B, material.Color.A);
+					obj.handle.texture.Add(Renderer.renderer.AddTextureFromColor(color));
+				}
+				else {
+					TextureManager.Texture tex = TextureManager.Textures[material.DaytimeTextureIndex];
+					obj.handle.texture.Add(tex.TextureHandle);
+				}
 
+				obj.handle.mesh.Add(Renderer.renderer.AddMesh(subvert_list[i].ToArray(), subindex_list[i].ToArray()));
+				obj.handle.obj.Add(Renderer.renderer.AddObject(obj.handle.mesh[i], obj.handle.texture[i]));
+			}
 		}
 
 		// Covert all AnimatedMesh's Static Meshes to LibRender

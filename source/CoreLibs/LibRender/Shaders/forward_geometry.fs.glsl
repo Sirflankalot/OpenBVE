@@ -29,11 +29,11 @@ void main () {
 	float sun_spec = pow(max(dot(normal, halfwayDir), 0.0), 16.0);
 
 	// Ambient
-	vec3 ambient_val = vec3(0.04);
+	vec3 ambient_val = vec3(1);
 
 	vec3 brightness = sun_diff + ambient_val;
 	vec3 color = albedo * brightness;
-	color += vec3(sun_spec * suncolor) * 10;
+	color += vec3(sun_spec * suncolor * sunbrightness) * 10;
 
 	FragColor = vec4(color, alpha);
 }

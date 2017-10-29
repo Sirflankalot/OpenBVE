@@ -298,7 +298,7 @@ namespace LibRender {
 			GLFunc.Enable(GL.EnableCap.DepthTest);
 			GLFunc.Disable(GL.EnableCap.Blend);
 			GLFunc.CullFace(GL.CullFaceMode.Back);
-			GLFunc.Disable(GL.EnableCap.CullFace);
+			//GLFunc.Disable(GL.EnableCap.CullFace);
 			GLFunc.FrontFace(GL.FrontFaceDirection.Ccw);
 		
 			int internal_width;
@@ -377,7 +377,7 @@ namespace LibRender {
 			GLFunc.UniformMatrix4(forward_geometry_prog.GetUniform("proj_mat"), false, ref cameras[active_camera].proj_matrix);
 			GLFunc.Uniform3(forward_geometry_prog.GetUniform("sunDir", true), sun_vec);
 			GLFunc.Uniform3(forward_geometry_prog.GetUniform("suncolor"), sun.color);
-			GLFunc.Uniform1(forward_geometry_prog.GetUniform("sunbrightness"), sun.brightness);
+			GLFunc.Uniform1(forward_geometry_prog.GetUniform("sunbrightness"), 0);
 
 			bool currently_shaded = true;
 			foreach (Object o in transparent) {

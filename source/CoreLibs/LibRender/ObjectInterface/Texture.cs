@@ -40,7 +40,7 @@ namespace LibRender {
 		internal int AssertValid(TextureHandle th) {
 			int real;
 			if (!textures_translation.TryGetValue(th.id, out real)) {
-				throw new System.ArgumentException("Invalid TextureHandle, no possible translation" + th.id.ToString());
+				throw new System.ArgumentException("Invalid TextureHandle, no possible translation " + th.id.ToString());
 			}
 			if (textures.Count <= real) {
 				throw new System.ArgumentException("Texture Handle ID larger than array: " + th.id.ToString());

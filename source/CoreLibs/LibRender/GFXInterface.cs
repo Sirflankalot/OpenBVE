@@ -137,8 +137,8 @@ namespace LibRender {
                 GLFunc.BindTexture(GL.TextureTarget.Texture2D, t.gl_id);
                 GLFunc.TexImage2D(GL.TextureTarget.Texture2D, 0, GL.PixelInternalFormat.Srgb8Alpha8, t.width, t.height, 0, GL.PixelFormat.Rgba, GL.PixelType.UnsignedByte, t.pixels.ToArray());
                 GLFunc.GenerateMipmap(GL.GenerateMipmapTarget.Texture2D);
-                GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapS, (int) GL.TextureWrapMode.ClampToEdge);
-                GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapT, (int) GL.TextureWrapMode.ClampToEdge);
+                GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapS, (int) GL.TextureWrapMode.Repeat);
+                GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapT, (int) GL.TextureWrapMode.Repeat);
 				GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMinFilter, (int) min);
 				GLFunc.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMagFilter, (int) mag);
 				if (aniso != 0) {

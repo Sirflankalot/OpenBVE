@@ -72,22 +72,27 @@ namespace OpenBve
 		private const double CycleInterval = 10.0;
 		private static double CycleTime = 0.0;
 		
-
 		internal static int UseTexture(int TextureIndex) {
 			if (TextureIndex == -1)
 				return 0;
-			Textures[TextureIndex].CyclesSurvived = 0;
-			if (Textures[TextureIndex].Loaded) {
-				return Textures[TextureIndex].OpenGlTextureIndex;
+
+			var tex = Textures[TextureIndex]; // Reference!
+
+			tex.CyclesSurvived = 0;
+			if (tex.Loaded) {
+				return tex.OpenGlTextureIndex;
 			}
-			else if (Textures[TextureIndex].Data != null) {
+			else if (tex.Data != null) {
 				AddTextureToLibRender(TextureIndex);
-				return Textures[TextureIndex].OpenGlTextureIndex;
+				return tex.OpenGlTextureIndex;
+			}
+			else {
+				LoadTextureData(TextureIndex);
+				AddTextureToLibRender(TextureIndex);
 			}
 			return 0;
 		}
-
-		// unuse texture
+		
 		internal static void UnuseTexture(int TextureIndex) {
 			if (TextureIndex == -1)
 				return;
@@ -104,8 +109,7 @@ namespace OpenBve
 				}
 			}
 		}
-
-		// unregister texture
+		
 		internal static void UnregisterTexture(ref int TextureIndex) {
 			if (TextureIndex == -1)
 				return;
@@ -138,8 +142,7 @@ namespace OpenBve
 				Textures[TextureIndex].Data = null;
 			}
 		}
-
-		// update
+		
 		internal static void Update(double TimeElapsed) {
 			CycleTime += TimeElapsed;
 			if (CycleTime >= CycleInterval) {
@@ -162,8 +165,7 @@ namespace OpenBve
 				}
 			}
 		}
-
-		// register texture
+		
 		internal static int RegisterTexture(string FileName, Color24 TransparentColor, byte TransparentColorUsed, TextureWrapMode WrapModeX, TextureWrapMode WrapModeY, bool DontAllowUnload) {
 			return RegisterTexture(FileName, TransparentColor, TransparentColorUsed, TextureLoadMode.Normal, WrapModeX, WrapModeY, DontAllowUnload, 0, 0, 0, 0);
 		}
@@ -192,6 +194,8 @@ namespace OpenBve
 					LoadImmediately = false,
 					OpenGlTextureIndex = 0
 				};
+				LoadTextureData(i);
+				AddTextureToLibRender(i);
 				return i;
 			}
 		}
@@ -277,7 +281,10 @@ namespace OpenBve
 			return -1;
 		}
 
-		// get free texture
+		/// <summary>
+		/// Get index for new texture from the array
+		/// </summary>
+		/// <returns>Integer index into the texture array</returns>
 		private static int GetFreeTexture() {
 			int i;
 			for (i = 0; i < Textures.Length; i++) {
@@ -299,21 +306,20 @@ namespace OpenBve
 			try {
 				int width = Bitmap.Width;
 				int height = Bitmap.Height;
-				BitmapData d = Bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, Bitmap.PixelFormat);
-				bool alpha = Bitmap.PixelFormat == GDIPixelFormat.Format32bppArgb;
+
+				BitmapData d = Bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, GDIPixelFormat.Format32bppArgb);
 
 				int Stride = d.Stride;
 				byte[] Data = new byte[Stride * height];
 				System.Runtime.InteropServices.Marshal.Copy(d.Scan0, Data, 0, Stride * height);
 				Bitmap.UnlockBits(d);
-
-				// Reference to texture
-				var tex = Textures[TextureIndex];
+				
+				var tex = Textures[TextureIndex]; // Reference!
 
 				tex.Width = width;
 				tex.Height = height;
 				tex.Data = Data;
-				tex.Alpha = alpha;
+				tex.Alpha = true;
 			}
 			catch (Exception ex) {
 				Interface.AddMessage(Interface.MessageType.Error, false, "Internal error in TextureManager.cs::LoadTextureRGBForData: " + ex.Message);
@@ -330,15 +336,16 @@ namespace OpenBve
 		/// <param name="alpha">True if Bytestream has Alpha Component</param>
 		/// <returns>OpenBveApi.Pixel array of the image</returns>
 		private static OpenBveApi.Pixel[] ConvertDatatoPixels(byte[] data, int width, int height, bool alpha) {
-			OpenBveApi.Pixel[] value = new OpenBveApi.Pixel[width * height];
+			var length = width * height;
+			OpenBveApi.Pixel[] value = new OpenBveApi.Pixel[length];
 			if (alpha) {
-				for (int i = 0; i < data.Length; i += 4) {
-					value[i] = new OpenBveApi.Pixel(data[i], data[i + 1], data[i + 2], data[i + 3]);
+				for (int i = 0, j = 0; i < length; i++, j += 4) {
+					value[i] = new OpenBveApi.Pixel(data[j], data[j + 1], data[j + 2], data[j + 3]);
 				}
 			}
 			else {
-				for (int i = 0; i < data.Length; i += 3) {
-					value[i] = new OpenBveApi.Pixel(data[i], data[i + 1], data[i + 2], 255);
+				for (int i = 0, j = 0; i < length; i++, j += 3) {
+					value[i] = new OpenBveApi.Pixel(data[j], data[j + 1], data[j + 2], 255);
 				}
 			}
 			return value;
