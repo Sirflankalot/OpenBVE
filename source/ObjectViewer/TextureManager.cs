@@ -58,7 +58,7 @@ namespace OpenBve
 			internal int ClipHeight; // OBSOLETE
 			internal int Width;
 			internal int Height;
-			internal bool IsRGBA;
+			internal bool Alpha;
 			internal byte[] Data;
 			internal LibRender.TextureHandle TextureHandle;
 			internal int OpenGlTextureIndex; // OBSOLETE
@@ -116,7 +116,10 @@ namespace OpenBve
 			TextureIndex = -1;
 		}
 
-		// load texture data
+		/// <summary>
+		/// Loads texture from the file specified in the texture at TextureIndex
+		/// </summary>
+		/// <param name="TextureIndex">Index of texture to be loaded</param>
 		private static void LoadTextureData(int TextureIndex) {
 			if (Textures[TextureIndex].FileName != null && System.IO.File.Exists(Textures[TextureIndex].FileName)) {
 				try {
@@ -234,7 +237,20 @@ namespace OpenBve
 			return i;
 		}
 
-		// find texture
+		/// <summary>
+		/// Find the index of a texture based it's properties
+		/// </summary>
+		/// <param name="FileName"></param>
+		/// <param name="TransparentColor"></param>
+		/// <param name="TransparentColorUsed"></param>
+		/// <param name="LoadMode"></param>
+		/// <param name="WrapModeX"></param>
+		/// <param name="WrapModeY"></param>
+		/// <param name="ClipLeft"></param>
+		/// <param name="ClipTop"></param>
+		/// <param name="ClipWidth"></param>
+		/// <param name="ClipHeight"></param>
+		/// <returns></returns>
 		private static int FindTexture(string FileName, Color24 TransparentColor, byte TransparentColorUsed, TextureLoadMode LoadMode, TextureWrapMode WrapModeX, TextureWrapMode WrapModeY, int ClipLeft, int ClipTop, int ClipWidth, int ClipHeight) {
 			for (int i = 1; i < Textures.Length; i++) {
 				if (Textures[i] != null && Textures[i].FileName != null) {
@@ -281,20 +297,23 @@ namespace OpenBve
 		/// <param name="TextureIndex">Index of Texture to load into</param>
 		private static void LoadTexture(Bitmap Bitmap, int TextureIndex) {
 			try {
-				int Stride;
-				byte[] Data;
+				int width = Bitmap.Width;
+				int height = Bitmap.Height;
+				BitmapData d = Bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, Bitmap.PixelFormat);
+				bool alpha = Bitmap.PixelFormat == GDIPixelFormat.Format32bppArgb;
 
-				int Width = Bitmap.Width;
-				int Height = Bitmap.Height;
-				BitmapData d = Bitmap.LockBits(new Rectangle(0, 0, Width, Height), ImageLockMode.ReadOnly, Bitmap.PixelFormat);
-				Stride = d.Stride;
-				Data = new byte[Stride * Height];
-				System.Runtime.InteropServices.Marshal.Copy(d.Scan0, Data, 0, Stride * Height);
+				int Stride = d.Stride;
+				byte[] Data = new byte[Stride * height];
+				System.Runtime.InteropServices.Marshal.Copy(d.Scan0, Data, 0, Stride * height);
 				Bitmap.UnlockBits(d);
 
-				Textures[TextureIndex].Width = Width;
-				Textures[TextureIndex].Height = Height;
-				Textures[TextureIndex].Data = Data;
+				// Reference to texture
+				var tex = Textures[TextureIndex];
+
+				tex.Width = width;
+				tex.Height = height;
+				tex.Data = Data;
+				tex.Alpha = alpha;
 			}
 			catch (Exception ex) {
 				Interface.AddMessage(Interface.MessageType.Error, false, "Internal error in TextureManager.cs::LoadTextureRGBForData: " + ex.Message);
@@ -336,7 +355,7 @@ namespace OpenBve
 			// Cache width/height for better perforance
 			var width = tex.Width;
 			var height = tex.Height;
-			var alpha = tex.IsRGBA;
+			var alpha = tex.Alpha;
 
 			var pixels = ConvertDatatoPixels(tex.Data, width, height, alpha);
 
