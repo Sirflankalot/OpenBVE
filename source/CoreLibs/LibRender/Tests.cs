@@ -111,20 +111,20 @@ namespace LibRender {
 				var m = renderer.CubeMesh();
 				var t = renderer.AddTexture(opaque_pixels, 4, 4);
 				oh = renderer.AddObject(m, t);
-				renderer.SetLocation(oh, new Vector3(0, 0, 0));
+				renderer.SetFocalPoint(oh, new Vector3(0, 0, 0));
 			}
 
 			public static void Render(Renderer renderer) {
-				var array = renderer.GetLocation(oh);
+				var array = renderer.GetFocalPoint(oh);
 				array += new Vector3(0.0f, 0.01f, 0.0f);
-				renderer.SetLocation(oh, array);
+				renderer.SetFocalPoint(oh, array);
 				var rot = renderer.GetRotation(oh);
 				rot += new Vector3(0, 0.0f, 0.1f);
 				renderer.SetRotation(oh, rot);
 				var cam = renderer.GetStartingCamera();
-				var cam_loc = renderer.GetLocation(cam);
+				var cam_loc = renderer.GetFocalPoint(cam);
 				cam_loc.Z += 0.01f;
-				renderer.SetLocation(cam, cam_loc);
+				renderer.SetFocalPoint(cam, cam_loc);
 			}
 		}
 		
@@ -135,7 +135,7 @@ namespace LibRender {
 				var m = renderer.CubeMesh();
 				var t = renderer.AddTexture(opaque_pixels, 4, 4);
 				oh = renderer.AddObject(m, t);
-				renderer.SetLocation(oh, new Vector3(0, 0, 0));
+				renderer.SetFocalPoint(oh, new Vector3(0, 0, 0));
 			}
 
 			public static void Render(Renderer renderer) {
@@ -194,7 +194,7 @@ namespace LibRender {
 					else {
 						oh_list[i] = renderer.AddObject(m, tt);
 					}
-					renderer.SetLocation(oh_list[i], new Vector3((i / 4) * 4 - 6, 0, (i % 4) * 4 - 6));
+					renderer.SetFocalPoint(oh_list[i], new Vector3((i / 4) * 4 - 6, 0, (i % 4) * 4 - 6));
 				}
 
 				var cam = renderer.GetStartingCamera();

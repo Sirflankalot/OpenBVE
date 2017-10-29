@@ -410,8 +410,8 @@ namespace OpenBve {
         private static void RenderFace(ref World.MeshMaterial Material, World.Vertex[] Vertices, ref World.MeshFace Face, double CameraX, double CameraY, double CameraZ)
         {
             // texture
-            int OpenGlNighttimeTextureIndex = Material.NighttimeTextureIndex >= 0 ? TextureManager.UseTexture(Material.NighttimeTextureIndex, TextureManager.UseMode.Normal) : 0;
-            int OpenGlDaytimeTextureIndex = Material.DaytimeTextureIndex >= 0 ? TextureManager.UseTexture(Material.DaytimeTextureIndex, TextureManager.UseMode.Normal) : 0;
+            int OpenGlNighttimeTextureIndex = Material.NighttimeTextureIndex >= 0 ? TextureManager.UseTexture(Material.NighttimeTextureIndex) : 0;
+            int OpenGlDaytimeTextureIndex = Material.DaytimeTextureIndex >= 0 ? TextureManager.UseTexture(Material.DaytimeTextureIndex) : 0;
             if (OpenGlDaytimeTextureIndex != 0)
             {
                 if (!TexturingEnabled)
@@ -996,8 +996,8 @@ namespace OpenBve {
             Vector2 movement  = -direction.Y * currenteyevec;
             movement += direction.X * leftvec;
             movement *= 0.1f;
-            movement += Renderer.renderer.GetLocation(Renderer.renderer.GetActiveCamera()).Xz;
-            Renderer.renderer.SetLocation(Renderer.renderer.GetActiveCamera(), new Vector3(movement.X, 0, movement.Y));
+            movement += Renderer.renderer.GetFocalPoint(Renderer.renderer.GetActiveCamera()).Xz;
+            Renderer.renderer.SetFocalPoint(Renderer.renderer.GetActiveCamera(), new Vector3(movement.X, 0, movement.Y));
         }
 
         // readd objects
@@ -1070,7 +1070,7 @@ namespace OpenBve {
                             int tday = ObjectManager.Objects[ObjectIndex].Mesh.Materials[k].DaytimeTextureIndex;
                             if (tday >= 0)
                             {
-                                TextureManager.UseTexture(tday, TextureManager.UseMode.Normal);
+                                TextureManager.UseTexture(tday);
                                 if (TextureManager.Textures[tday].Transparency == TextureManager.TextureTransparencyMode.Alpha)
                                 {
                                     alpha = true;
@@ -1083,7 +1083,7 @@ namespace OpenBve {
                             int tnight = ObjectManager.Objects[ObjectIndex].Mesh.Materials[k].NighttimeTextureIndex;
                             if (tnight >= 0)
                             {
-                                TextureManager.UseTexture(tnight, TextureManager.UseMode.Normal);
+                                TextureManager.UseTexture(tnight);
                                 if (TextureManager.Textures[tnight].Transparency == TextureManager.TextureTransparencyMode.Alpha)
                                 {
                                     alpha = true;

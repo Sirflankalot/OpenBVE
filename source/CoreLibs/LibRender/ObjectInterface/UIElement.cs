@@ -94,7 +94,7 @@ namespace LibRender {
         // UIElement Setters and Getters //
         ///////////////////////////////////
 
-        public Position GetLocation(UIElementHandle uieh) {
+        public Position GetFocalPoint(UIElementHandle uieh) {
 			int id = AssertValid(uieh);
 
 			return uielements[id].location;
@@ -124,7 +124,7 @@ namespace LibRender {
 			return uielements[id].visible;
 		}
 
-		public void SetLocation(UIElementHandle uieh, Position location) {
+		public void SetFocalPoint(UIElementHandle uieh, Position location) {
 			int id = AssertValid(uieh);
 
 			uielements[id].location = location;

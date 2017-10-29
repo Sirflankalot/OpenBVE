@@ -69,7 +69,7 @@ namespace LibRender {
         // Point Light Getters and Setters //
         /////////////////////////////////////
 
-        public Vector3 GetLocation(PointLightHandle plh) {
+        public Vector3 GetFocalPoint(PointLightHandle plh) {
 			int id = AssertValid(plh);
 
 			return point_lights[id].location;
@@ -81,7 +81,7 @@ namespace LibRender {
 			return point_lights[id].brightness;
 		}
 
-		public void SetLocation(PointLightHandle plh, Vector3 location) {
+		public void SetFocalPoint(PointLightHandle plh, Vector3 location) {
 			int id = AssertValid(plh);
 
 			point_lights[id].location = location;

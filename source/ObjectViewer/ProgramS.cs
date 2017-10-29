@@ -292,16 +292,16 @@ namespace OpenBve {
 	                break;
 	            case Key.F7:
 	            {
-						OpenFileDialog Dialog = new OpenFileDialog() {
-							CheckFileExists = true,
-							Multiselect = true,
-							Filter = "CSV/B3D/X/ANIMATED files|*.csv;*.b3d;*.x;*.animated;*.l3dobj;*.l3dgrp|All files|*"
-						};
-						if (Dialog.ShowDialog() == DialogResult.OK)
+					OpenFileDialog Dialog = new OpenFileDialog() {
+						CheckFileExists = true,
+						Multiselect = true,
+						Filter = "CSV/B3D/X/ANIMATED files|*.csv;*.b3d;*.x;*.animated;*.l3dobj;*.l3dgrp|All files|*"
+					};
+					if (Dialog.ShowDialog() == DialogResult.OK)
 		            {
 			            Application.DoEvents();
 			            string[] f = Dialog.FileNames;
-			            int n = Files.Length;
+			            int n = Files.Length;	
 			            Array.Resize<string>(ref Files, n + f.Length);
 			            for (int i = 0; i < f.Length; i++)
 			            {

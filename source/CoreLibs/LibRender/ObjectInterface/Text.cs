@@ -150,7 +150,7 @@ namespace LibRender {
 			return new Pixel { r = (byte) (orig.X * 255.0f), g = (byte) (orig.Y * 255.0f), b = (byte) (orig.Z * 255.0f), a = (byte) (orig.W * 255.0f) };
 		}
 
-		public Position GetLocation(TextHandle th) {
+		public Position GetFocalPoint(TextHandle th) {
 			int id = AssertValid(th);
 
 			return texts[id].location;
@@ -198,7 +198,7 @@ namespace LibRender {
 			texts[id].color = new Vector4(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
 		}
 
-		public void SetLocation(TextHandle th, Position location) {
+		public void SetFocalPoint(TextHandle th, Position location) {
 			int id = AssertValid(th);
 
 			texts[id].location = location;

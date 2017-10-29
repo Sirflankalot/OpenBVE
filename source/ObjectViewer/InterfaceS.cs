@@ -192,29 +192,5 @@ namespace OpenBve {
 				Value = Value | Value >> i;
 			} return Value + 1;
 		}
-
-		// convert newlines to crlf
-		internal static string ConvertNewlinesToCrLf(string Text) {
-			System.Text.StringBuilder Builder = new System.Text.StringBuilder();
-			for (int i = 0; i < Text.Length; i++) {
-				int a = char.ConvertToUtf32(Text, i);
-				if (a == 0xD & i < Text.Length - 1) {
-					int b = char.ConvertToUtf32(Text, i + 1);
-					if (b == 0xA) {
-						Builder.Append("\r\n");
-						i++;
-					} else {
-						Builder.Append("\r\n");
-					}
-				} else if (a == 0xA | a == 0xC | a == 0xD | a == 0x85 | a == 0x2028 | a == 0x2029) {
-					Builder.Append("\r\n");
-				} else if (a < 0x10000) {
-					Builder.Append(Text[i]);
-				} else {
-					Builder.Append(Text.Substring(i, 2));
-					i++;
-				}
-			} return Builder.ToString();
-		}
 	}
 }

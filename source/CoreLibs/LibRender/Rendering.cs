@@ -295,9 +295,10 @@ namespace LibRender {
             int[] primitive_counters = new int[3];
             GLFunc.CreateQueries(GL.QueryTarget.PrimitivesGenerated, 3, primitive_counters);
 
+			GLFunc.Enable(GL.EnableCap.DepthTest);
 			GLFunc.Disable(GL.EnableCap.Blend);
 			GLFunc.CullFace(GL.CullFaceMode.Back);
-			GLFunc.Enable(GL.EnableCap.CullFace);
+			GLFunc.Disable(GL.EnableCap.CullFace);
 			GLFunc.FrontFace(GL.FrontFaceDirection.Ccw);
 		
 			int internal_width;
@@ -467,7 +468,11 @@ namespace LibRender {
 			GLFunc.Enable(GL.EnableCap.Blend);
 			GLFunc.Disable(GL.EnableCap.CullFace);
 
-            GLFunc.EndQuery(GL.QueryTarget.TimeElapsed);
+			if (settings.wireframe == Settings.Wireframe.On) {
+				GLFunc.PolygonMode(GL.MaterialFace.FrontAndBack, GL.PolygonMode.Fill);
+			}
+
+			GLFunc.EndQuery(GL.QueryTarget.TimeElapsed);
             GLFunc.BeginQuery(GL.QueryTarget.TimeElapsed, timers[4]);
             GLFunc.BeginQuery(GL.QueryTarget.PrimitivesGenerated, primitive_counters[2]);
 
@@ -522,11 +527,6 @@ namespace LibRender {
 
 			ui_prog.Use();
 
-			if (settings.wireframe == Settings.Wireframe.On) {
-				GLFunc.PolygonMode(GL.MaterialFace.FrontAndBack, GL.PolygonMode.Line);
-				GLFunc.LineWidth(2.0f);
-			}
-
 			GLFunc.Uniform1(ui_prog.GetUniform("uiTexture"), 0);
 			GLFunc.Uniform1(ui_prog.GetUniform("ratio"), (float) display_width / display_height);
 			GLFunc.ActiveTexture(GL.TextureUnit.Texture0);
@@ -578,10 +578,6 @@ namespace LibRender {
 
 					RenderFullscreenQuad();
 				}
-			}
-			
-			if (settings.wireframe == Settings.Wireframe.On) {
-				GLFunc.PolygonMode(GL.MaterialFace.FrontAndBack, GL.PolygonMode.Fill);
 			}
 
 			GLFunc.EndQuery(GL.QueryTarget.TimeElapsed);

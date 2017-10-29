@@ -450,6 +450,14 @@ namespace OpenBveApi.Math {
 			if (Vector.Z != 0.0f) return false;
 			return true;
 		}
+
+		/// <summary>Converts and OpenBveApi.Vector3 to an OpenTK.Vector3 implicitly</summary>
+		/// <param name="v">OpenBveApi.Vector3 to convert to OpenTK.Vector3</param>
+		/// <returns>Converted OpenTK.Vector3</returns>
+		public static implicit operator OpenTK.Vector3(Vector3 v) {
+			OpenTK.Vector3 new_vector = new OpenTK.Vector3{ X = (float)v.X, Y = (float)v.Y, Z = (float)v.Z };
+			return new_vector;
+		}
 		
 		// --- read-only fields ---
 		

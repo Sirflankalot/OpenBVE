@@ -94,10 +94,16 @@ namespace LibRender {
             return (cameras[id].position - cameras[id].focal_point).Normalized();
         }
 
-		public Vector3 GetLocation(CameraHandle ch) {
+		public Vector3 GetFocalPoint(CameraHandle ch) {
 			int id = AssertValid(ch);
 
 			return cameras[id].focal_point;
+		}
+
+		public Vector3 GetLocation(CameraHandle ch) {
+			int id = AssertValid (ch);
+
+			return cameras[id].position;
 		}
 
 		public Vector2 GetRotation(CameraHandle ch) {
@@ -126,7 +132,7 @@ namespace LibRender {
 			return new CameraHandle(0);
 		}
 
-		public void SetLocation(CameraHandle ch, Vector3 location) {
+		public void SetFocalPoint(CameraHandle ch, Vector3 location) {
 			int id = AssertValid(ch);
 
 			cameras[id].focal_point = location;

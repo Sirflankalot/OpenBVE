@@ -313,6 +313,14 @@ namespace OpenBveApi.Math {
 		public static double NormSquared(Vector2 vector) {
 			return vector.X * vector.X + vector.Y * vector.Y;
 		}
+
+		/// <summary>Converts and OpenBveApi.Vector2 to an OpenTK.Vector2 implicitly</summary>
+		/// <param name="v">OpenBveApi.Vector2 to convert to OpenTK.Vector2</param>
+		/// <returns>Converted OpenTK.Vector2</returns>
+		public static implicit operator OpenTK.Vector2(Vector2 v) {
+			OpenTK.Vector2 new_vector = new OpenTK.Vector2{ X = (float)v.X, Y = (float)v.Y };
+			return new_vector;
+		}
 		
 		
 		// --- read-only fields ---
