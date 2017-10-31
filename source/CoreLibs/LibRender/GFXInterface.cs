@@ -30,32 +30,32 @@ namespace LibRender {
                 }
             }
 
-            if (vaoless_meshes.Count == 0 && vertless_meshes.Count == 0 && indicesless_meshes.Count == 0) {
-                return;
-            }
+			// Generate VAOs and VBOs
+			if (vaoless_meshes.Count != 0) {
+				int[] vao_ids = new int[vaoless_meshes.Count];
+				GLFunc.GenVertexArrays(vaoless_meshes.Count, vao_ids);
 
-            // Generate VAOs and VBOs
-            int[] vao_ids = new int[vaoless_meshes.Count];
-            int[] vert_ids = new int[vertless_meshes.Count];
-            int[] indices_ids = new int[indicesless_meshes.Count];
-            GLFunc.GenVertexArrays(vaoless_meshes.Count, vao_ids);
-            GLFunc.GenBuffers(vertless_meshes.Count, vert_ids);
-            GLFunc.GenBuffers(indicesless_meshes.Count, indices_ids);
+				for (int i = 0; i < vaoless_meshes.Count; ++i) {
+					meshes[vaoless_meshes[i]].gl_vao_id = vao_ids[i];
+				}
+			}
 
-            // Give out VAOs
-            for (int i = 0; i < vaoless_meshes.Count; ++i) {
-                meshes[vaoless_meshes[i]].gl_vao_id = vao_ids[i];
-            }
+			if (vertless_meshes.Count != 0) {
+				int[] vert_ids = new int[vertless_meshes.Count];
+				GLFunc.GenBuffers(vertless_meshes.Count, vert_ids);
+				for (int i = 0; i < vertless_meshes.Count; ++i) {
+					meshes[vertless_meshes[i]].gl_vert_id = vert_ids[i];
+				}
+			}
 
-            // Give out Verticies VBOs
-            for (int i = 0; i < vertless_meshes.Count; ++i) {
-                meshes[vertless_meshes[i]].gl_vert_id = vert_ids[i];
-            }
+			if (indicesless_meshes.Count != 0) {
+				int[] indices_ids = new int[indicesless_meshes.Count];
+				GLFunc.GenBuffers(indicesless_meshes.Count, indices_ids);
 
-            // Give out Indices VBOs
-            for (int i = 0; i < indicesless_meshes.Count; ++i) {
-                meshes[indicesless_meshes[i]].gl_indices_id = indices_ids[i];
-            }
+				for (int i = 0; i < indicesless_meshes.Count; ++i) {
+					meshes[indicesless_meshes[i]].gl_indices_id = indices_ids[i];
+				}
+			}
         }
 
         internal static void UploadMeshes(List<Mesh> meshes, int start, int end) {
@@ -112,6 +112,10 @@ namespace LibRender {
                     idless_textures.Add(i);
                 }
             }
+
+			if (idless_textures.Count == 0) {
+				return;
+			}
 
             // Create OpenGL textures
             int[] ids = new int[idless_textures.Count];
@@ -177,6 +181,10 @@ namespace LibRender {
 				}
 			}
 
+			if (idless_texts.Count == 0) {
+				return;
+			}
+
 			// Create OpenGL Textures
 			int[] ids = new int[idless_texts.Count];
 			GLFunc.CreateTextures(GL.TextureTarget.Texture2D, idless_texts.Count, ids);
@@ -210,47 +218,55 @@ namespace LibRender {
 			}
 		}
 
-        internal static void UpdateFlatMeshVAOVBO(List<FlatMesh> flat_meshes, int start, int end) {
+		internal static void UpdateFlatMeshVAOVBO(List<FlatMesh> flat_meshes, int start, int end) {
 			Utilities.AssertValidIndicies(flat_meshes, start, end);
 
-            List<int> vaoless_flat_meshes = new List<int>();
-            List<int> vboless_flat_meshes = new List<int>();
+			List<int> vaoless_flat_meshes = new List<int>();
+			List<int> vboless_flat_meshes = new List<int>();
 			List<int> indicesless_flat_meshes = new List<int>();
-            for (int i = start; i < end; ++i) {
-                if (flat_meshes[i] == null) {
-                    continue;
-                }
-                if (flat_meshes[i].gl_vao_id == 0) {
-                    vaoless_flat_meshes.Add(i);
-                }
-                if (flat_meshes[i].gl_vert_id == 0) {
-                    vboless_flat_meshes.Add(i);
-                }
+			for (int i = start; i < end; ++i) {
+				if (flat_meshes[i] == null) {
+					continue;
+				}
+				if (flat_meshes[i].gl_vao_id == 0) {
+					vaoless_flat_meshes.Add(i);
+				}
+				if (flat_meshes[i].gl_vert_id == 0) {
+					vboless_flat_meshes.Add(i);
+				}
 				if (flat_meshes[i].gl_indices_id == 0) {
 					indicesless_flat_meshes.Add(i);
 				}
-            }
+			}
 
-            int[] vao = new int[vaoless_flat_meshes.Count];
-            int[] vbo = new int[vboless_flat_meshes.Count];
-			int[] indices_vbo = new int[indicesless_flat_meshes.Count];
-            GLFunc.CreateVertexArrays(vaoless_flat_meshes.Count, vao);
-            GLFunc.CreateBuffers(vboless_flat_meshes.Count, vbo);
-			GLFunc.CreateBuffers(indicesless_flat_meshes.Count, indices_vbo);
+			// Distribute VAOs
+			if (vaoless_flat_meshes.Count != 0) {
+				int[] vao = new int[vaoless_flat_meshes.Count];
+				GLFunc.CreateVertexArrays(vaoless_flat_meshes.Count, vao);
 
-            // Distribute VAOs
-            for (int i = 0; i < vaoless_flat_meshes.Count; ++i) {
-                flat_meshes[vaoless_flat_meshes[i]].gl_vao_id = vao[i];
-            }
+				for (int i = 0; i < vaoless_flat_meshes.Count; ++i) {
+					flat_meshes[vaoless_flat_meshes[i]].gl_vao_id = vao[i];
+				}
+			}
 
-            // Distribute VBOs
-            for (int i = 0; i < vboless_flat_meshes.Count; ++i) {
-                flat_meshes[vboless_flat_meshes[i]].gl_vert_id = vbo[i];
-            }
+			// Distribute VBOs
+			if (vboless_flat_meshes.Count != 0) {
+				int[] vbo = new int[vboless_flat_meshes.Count];
+				GLFunc.CreateBuffers(vboless_flat_meshes.Count, vbo);
+
+				for (int i = 0; i < vboless_flat_meshes.Count; ++i) {
+					flat_meshes[vboless_flat_meshes[i]].gl_vert_id = vbo[i];
+				}
+			}
 
 			// Distribute Indices VBOs
-			for (int i = 0; i < indicesless_flat_meshes.Count; ++i) {
-				flat_meshes[indicesless_flat_meshes[i]].gl_indices_id = indices_vbo[i];
+			if (indicesless_flat_meshes.Count != 0) {
+				int[] indices_vbo = new int[indicesless_flat_meshes.Count];
+				GLFunc.CreateBuffers(indicesless_flat_meshes.Count, indices_vbo);
+
+				for (int i = 0; i < indicesless_flat_meshes.Count; ++i) {
+					flat_meshes[indicesless_flat_meshes[i]].gl_indices_id = indices_vbo[i];
+				}
 			}
         }
 
