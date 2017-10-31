@@ -62,6 +62,19 @@ namespace OpenBve {
 		internal static int InfoTotalPolygon = 0;
 		internal static void Reset() {
 			Renderer.Reset();
+
+			// Clear LibRender Objects and Meshes
+			foreach (var o in ObjectManager.Objects) {
+				if (o != null) {
+					foreach (var oh in o.handle.obj) {
+						Renderer.renderer.Delete(oh);
+					}
+					foreach (var mh in o.handle.mesh) {
+						Renderer.renderer.Delete(mh);
+					}
+				}
+			}
+
 			ObjectManager.Objects = new ObjectManager.StaticObject[16];
 			ObjectManager.ObjectsUsed = 0;
 			ObjectManager.ObjectsSortedByStart = new int[] { };

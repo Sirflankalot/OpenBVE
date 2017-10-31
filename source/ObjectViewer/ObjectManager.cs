@@ -20,7 +20,11 @@ namespace OpenBve
 				internal List<LibRender.ObjectHandle> obj;
 			}
 			/// <summary> Handles for all renderer info </summary>
-			internal RendererHandles handle;
+			internal RendererHandles handle = new RendererHandles() {
+				mesh = new List<MeshHandle>(),
+				texture = new List<TextureHandle>(),
+				obj = new List<ObjectHandle>()
+			};
 			
             internal World.Mesh Mesh;
             /// <summary>The index to the Renderer.Object array, plus 1. The value of zero represents that the object is not currently shown by the renderer.</summary>
@@ -1160,13 +1164,6 @@ namespace OpenBve
 		/// </summary>
 		/// <param name="obj">Static Object to convert to LibRender mesh</param>
 		internal static void CreateLibRenderHandles(StaticObject obj) {
-			// Initialize RenderHandles
-			obj.handle = new StaticObject.RendererHandles() {
-				mesh = new List<MeshHandle>(),
-				texture = new List<TextureHandle>(),
-				obj = new List<ObjectHandle>()
-			};
-
 			// Deal with mesh
 
 			List<OpenBveApi.Vertex3D> verts = new List<OpenBveApi.Vertex3D>(obj.Mesh.Vertices.Length);
@@ -1319,10 +1316,10 @@ namespace OpenBve
 			int v = Prototype.Mesh.Vertices.Length;
 			int m = Prototype.Mesh.Materials.Length;
 			int f = Prototype.Mesh.Faces.Length;
-			if (f >= Interface.CurrentOptions.ObjectOptimizationBasicThreshold)
-			{
-				return;
-			}
+			//if (f >= Interface.CurrentOptions.ObjectOptimizationBasicThreshold)
+			//{
+			//	return;
+			//}
 			// eliminate invalid faces and reduce incomplete faces
 			for (int i = 0; i < f; i++) {
 				int type = Prototype.Mesh.Faces[i].Flags & World.MeshFace.FaceTypeMask;
@@ -1767,9 +1764,11 @@ namespace OpenBve
             ObjectsUsed++;
             return a;
         }
+
         internal static void ApplyStaticObjectData(ref StaticObject Object, StaticObject Prototype, Vector3 Position, World.Transformation BaseTransformation, World.Transformation AuxTransformation, bool AccurateObjectDisposal, double AccurateObjectDisposalZOffset, double StartingDistance, double EndingDistance, double BlockLength, double TrackPosition, double Brightness, bool DuplicateMaterials)
         {
             Object = new StaticObject();
+			Object.handle = Prototype.handle;
             Object.StartingDistance = float.MaxValue;
             Object.EndingDistance = float.MinValue;
             // bool brightnesschange = Brightness != 1.0;

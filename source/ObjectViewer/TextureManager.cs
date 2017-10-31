@@ -49,9 +49,9 @@ namespace OpenBve
 			internal TextureLoadMode LoadMode; // OBSOLETE
 			internal TextureWrapMode WrapModeX; // OBSOLETE
 			internal TextureWrapMode WrapModeY; // OBSOLETE
-			internal Color24 TransparentColor; // OBSOLETE
-			internal byte TransparentColorUsed; // OBSOLETE
-			internal TextureTransparencyMode Transparency; // OBSOLETE
+			internal Color24 TransparentColor;
+			internal byte TransparentColorUsed;
+			internal TextureTransparencyMode Transparency;
 			internal int ClipLeft; // OBSOLETE
 			internal int ClipTop; // OBSOLETE
 			internal int ClipWidth; // OBSOLETE
@@ -173,6 +173,8 @@ namespace OpenBve
 		internal static int RegisterTexture(string FileName, Color24 TransparentColor, byte TransparentColorUsed, TextureLoadMode LoadMode, TextureWrapMode WrapModeX, TextureWrapMode WrapModeY, bool DontAllowUnload, int ClipLeft, int ClipTop, int ClipWidth, int ClipHeight) {
 			int i = FindTexture(FileName, TransparentColor, TransparentColorUsed, LoadMode, WrapModeX, WrapModeY, ClipLeft, ClipTop, ClipWidth, ClipHeight);
 			if (i >= 0) {
+				LoadTextureData(i);
+				AddTextureToLibRender(i);
 				return i;
 			}
 			else {
@@ -307,6 +309,7 @@ namespace OpenBve
 				int width = Bitmap.Width;
 				int height = Bitmap.Height;
 
+				// BYTES ARE BGRA due to little-endianness! A is most signifigant, B is least. :|
 				BitmapData d = Bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, GDIPixelFormat.Format32bppArgb);
 
 				int Stride = d.Stride;
@@ -322,7 +325,7 @@ namespace OpenBve
 				tex.Alpha = true;
 			}
 			catch (Exception ex) {
-				Interface.AddMessage(Interface.MessageType.Error, false, "Internal error in TextureManager.cs::LoadTextureRGBForData: " + ex.Message);
+				Interface.AddMessage(Interface.MessageType.Error, false, "Internal error in TextureManager.cs::LoadTexture: " + ex.Message);
 				throw;
 			}
 		}
@@ -340,15 +343,42 @@ namespace OpenBve
 			OpenBveApi.Pixel[] value = new OpenBveApi.Pixel[length];
 			if (alpha) {
 				for (int i = 0, j = 0; i < length; i++, j += 4) {
-					value[i] = new OpenBveApi.Pixel(data[j], data[j + 1], data[j + 2], data[j + 3]);
+					value[i] = new OpenBveApi.Pixel(data[j + 2], data[j + 1], data[j], data[j + 3]);
 				}
 			}
 			else {
 				for (int i = 0, j = 0; i < length; i++, j += 3) {
-					value[i] = new OpenBveApi.Pixel(data[j], data[j + 1], data[j + 2], 255);
+					value[i] = new OpenBveApi.Pixel(data[j + 2], data[j + 1], data[j], 255);
 				}
 			}
 			return value;
+		}
+
+		/// <summary>
+		/// Removes screening-color in exchange for alpha.
+		/// </summary>
+		/// <param name="TextureIndex">Index of texture to strip</param>
+		private static void TransparentColorStrip(int TextureIndex) {
+			// Reference to texture;
+			var tex = Textures[TextureIndex]; // Reference!
+			var tex_data = tex.Data; // Reference!
+
+			if (tex.TransparentColorUsed != 0) {
+				var transparancy_color = tex.TransparentColor;
+				var tc_r = transparancy_color.R;
+				var tc_g = transparancy_color.G;
+				var tc_b = transparancy_color.B;
+
+				for (int i = 0; i < tex_data.Length; i += 4) {
+					// BGRA byte format
+					if (tex_data[i] == tc_b && tex_data[i + 1] == tc_g && tex_data[i + 2] == tc_r) {
+						tex_data[i + 3] = 0;
+					}
+				}
+
+				tex.TransparentColorUsed = 0;
+				tex.Transparency = TextureTransparencyMode.Alpha;
+			}
 		}
 
 		/// <summary>
@@ -364,6 +394,8 @@ namespace OpenBve
 			var height = tex.Height;
 			var alpha = tex.Alpha;
 
+			// Pixel transforms
+			TransparentColorStrip(TextureIndex);
 			var pixels = ConvertDatatoPixels(tex.Data, width, height, alpha);
 
 			// Add texture to LibRender
