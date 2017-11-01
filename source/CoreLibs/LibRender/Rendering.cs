@@ -340,7 +340,7 @@ namespace LibRender {
 			List<Object> transparent;
 			if (settings.renderer_type == Settings.RendererType.Deferred) {
 				transparent = objects.Where((o) => o != null ? textures[AssertValid(o.texture)].has_transparancy : false)
-									 .OrderByDescending((o) => (o.position - cameras[active_camera].position).LengthSquared)
+									 .OrderByDescending((o) => (Algorithms.GetAdjustedPosition(o, meshes[AssertValid(o.mesh)]) - cameras[active_camera].position).LengthSquared)
 									 .ToList();
 			}
 			else {
@@ -350,7 +350,7 @@ namespace LibRender {
 
 				transparent = objects.Where((o) => o != null)
 									 .OrderByDescending((o) => (o.shaded))
-									 .ThenByDescending((o) => (o.position - cameras[active_camera].position).LengthSquared)
+									 .ThenByDescending((o) => (Algorithms.GetAdjustedPosition(o, meshes[AssertValid(o.mesh)]) - cameras[active_camera].position).LengthSquared)
 									 .ToList();
 
                 statistics.val_objects.rendered = transparent.Count;
@@ -668,7 +668,7 @@ namespace LibRender {
 
 			List<Object> sorted_objects =
 						   objects.Where((o) => o != null)
-								  .OrderBy((o) => (o.position - cameras[active_camera].position).LengthSquared)
+								  .OrderBy((o) => (Algorithms.GetAdjustedPosition(o, meshes[AssertValid(o.mesh)]) - cameras[active_camera].position).LengthSquared)
 								  .ToList();
 
             statistics.val_objects.rendered = sorted_objects.Count;

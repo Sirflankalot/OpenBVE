@@ -316,6 +316,12 @@ namespace LibRender {
 			}
 		}
 
+		internal static Vector3 GetAdjustedPosition(Object o, Mesh mesh) {
+			var middpoint_adjusted = mesh.midpoint * new Matrix3(o.transform);
+
+			return o.position + middpoint_adjusted;
+		}
+
 		internal static void GarbageCollectUnused(Renderer renderer) {
 			const float clear_ratio = 0.5f;
 			const float padding = 1.5f;

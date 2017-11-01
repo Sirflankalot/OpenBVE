@@ -16,6 +16,8 @@ namespace LibRender {
 		internal List<int> indices = new List<int>();
 		internal List<Vector3> normals = new List<Vector3>();
 
+		internal Vector3 midpoint = new Vector3();
+
 		internal bool updated_normals = false;
 
 		internal int gl_vao_id = 0;
@@ -32,6 +34,7 @@ namespace LibRender {
 			if (updated_normals) {
 				m.normals.AddRange(normals);
 			}
+			m.midpoint = midpoint;
 			m.handle = handle;
 			return m;
 		}
@@ -56,6 +59,14 @@ namespace LibRender {
 			return real;
 		}
 
+		private Vector3 MidPoint(Vertex3D[] mesh) {
+			Vector3 sum = new Vector3(0, 0, 0);
+			foreach (var v in mesh) {
+				sum += new Vector3(v.position.X, v.position.Y, v.position.Z);
+			}
+			return sum / mesh.Length;
+		}
+
 		public MeshHandle AddMesh(Vertex3D[] mesh, int[] vertex_indices) {
 			Mesh m = new Mesh();
 			m.vertices.AddRange(mesh);
@@ -63,6 +74,8 @@ namespace LibRender {
 
 			long id = meshes_current_id++;
 			m.handle = new MeshHandle(id);
+
+			m.midpoint = MidPoint(mesh);
 
 			meshes_translation.Add(id, meshes.Count);
 			meshes.Add(m);
@@ -78,6 +91,7 @@ namespace LibRender {
 			meshes[id].indices.AddRange(vertex_indices);
 			meshes[id].updated_normals = false;
 			meshes[id].uploaded = false;
+			meshes[id].midpoint = MidPoint(mesh);
 		}
 
 		public void Delete(MeshHandle mh) {
