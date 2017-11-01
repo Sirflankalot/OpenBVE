@@ -85,7 +85,7 @@ namespace LibRender {
         // Cone Light Getters and Setters //
         ////////////////////////////////////
 
-        public Vector3 GetFocalPoint(ConeLightHandle clh) {
+        public Vector3 GetPosition(ConeLightHandle clh) {
 			int id = AssertValid(clh);
 
 			return cone_lights[id].location;
@@ -115,7 +115,7 @@ namespace LibRender {
 			return cone_lights[id].shadow;
 		}
 
-		public void SetFocalPoint(ConeLightHandle clh, Vector3 location) {
+		public void GetPosition(ConeLightHandle clh, Vector3 location) {
 			int id = AssertValid(clh);
 
 			cone_lights[id].location = location;

@@ -98,7 +98,7 @@ namespace LibRender {
 			return objects[id].visible;
 		}
 
-		public Vector3 GetFocalPoint(ObjectHandle oh) {
+		public Vector3 GetPosition(ObjectHandle oh) {
 			int id = AssertValid(oh);
 
 			return objects[id].position;
@@ -128,7 +128,7 @@ namespace LibRender {
 			objects[id].visible = visible;
 		}
 
-		public void SetFocalPoint(ObjectHandle oh, Vector3 pos) {
+		public void SetPosition(ObjectHandle oh, Vector3 pos) {
 			int id = AssertValid(oh);
 
 			objects[id].position = pos;

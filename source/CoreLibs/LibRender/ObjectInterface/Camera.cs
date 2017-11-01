@@ -100,7 +100,7 @@ namespace LibRender {
 			return cameras[id].focal_point;
 		}
 
-		public Vector3 GetLocation(CameraHandle ch) {
+		public Vector3 GetPosition(CameraHandle ch) {
 			int id = AssertValid (ch);
 
 			return cameras[id].position;
