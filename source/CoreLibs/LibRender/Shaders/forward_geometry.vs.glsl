@@ -16,6 +16,6 @@ out vec3 vNormal;
 void main() {
 	vViewPos = view_mat * world_mat * vec4(position, 1.0);
 	gl_Position = proj_mat * vViewPos;
-	vTexCoord = tex_coord;
+	vTexCoord = vec2(1 - tex_coord.x, tex_coord.y);
 	vNormal = normalize(normal_mat * normal);
 }

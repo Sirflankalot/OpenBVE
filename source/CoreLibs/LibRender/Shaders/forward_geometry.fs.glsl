@@ -15,6 +15,9 @@ out vec4 FragColor;
 void main () {
 	vec3 albedo = texture(model_tex, vTexCoord).rgb;
 	float alpha = texture(model_tex, vTexCoord).a;
+	if (alpha == 0) {
+		discard;
+	}
 	float spec = 1.0;
 	vec3 normal = vNormal;
 	vec3 location = vViewPos.xyz;
