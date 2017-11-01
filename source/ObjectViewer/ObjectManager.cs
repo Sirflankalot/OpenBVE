@@ -15,15 +15,15 @@ namespace OpenBve
         internal class StaticObject : UnifiedObject
         {
 			internal struct RendererHandles {
-				internal List<LibRender.MeshHandle> mesh;
-				internal List<LibRender.TextureHandle> texture;
-				internal List<LibRender.ObjectHandle> obj;
+				internal List<LibRender.MeshHandle> meshes;
+				internal List<LibRender.TextureHandle> textures;
+				internal List<LibRender.ObjectHandle> objects;
 			}
 			/// <summary> Handles for all renderer info </summary>
-			internal RendererHandles handle = new RendererHandles() {
-				mesh = new List<MeshHandle>(),
-				texture = new List<TextureHandle>(),
-				obj = new List<ObjectHandle>()
+			internal RendererHandles render_handles = new RendererHandles() {
+				meshes = new List<MeshHandle>(),
+				textures = new List<TextureHandle>(),
+				objects = new List<ObjectHandle>()
 			};
 			
             internal World.Mesh Mesh;
@@ -291,7 +291,7 @@ namespace OpenBve
 				Position.X += x * rx;
 				Position.Y += x * ry;
 				Position.Z += x * rz;
-				foreach (ObjectHandle oh in Object.States[s].Object.handle.obj) {
+				foreach (ObjectHandle oh in Object.States[s].Object.render_handles.objects) {
 					Renderer.renderer.SetPosition(oh, Position);
 				}
             }
@@ -311,7 +311,7 @@ namespace OpenBve
                 Position.X += y * rx;
                 Position.Y += y * ry;
                 Position.Z += y * rz;
-				foreach (ObjectHandle oh in Object.States[s].Object.handle.obj) {
+				foreach (ObjectHandle oh in Object.States[s].Object.render_handles.objects) {
 					Renderer.renderer.SetPosition(oh, Position);
 				}
 			}
@@ -331,7 +331,7 @@ namespace OpenBve
                 Position.X += z * rx;
                 Position.Y += z * ry;
                 Position.Z += z * rz;
-				foreach (ObjectHandle oh in Object.States[s].Object.handle.obj) {
+				foreach (ObjectHandle oh in Object.States[s].Object.render_handles.objects) {
 					Renderer.renderer.SetPosition(oh, Position);
 				}
 			}
@@ -403,7 +403,7 @@ namespace OpenBve
             {
                 cosZ = 0.0; sinZ = 0.0;
 			}
-			foreach (ObjectHandle oh in Object.States[s].Object.handle.obj) {
+			foreach (ObjectHandle oh in Object.States[s].Object.render_handles.objects) {
 				Renderer.renderer.SetRotation(oh, Renderer.renderer.GetRotation(oh) + total_rotation);
 			}
 
@@ -1220,15 +1220,15 @@ namespace OpenBve
 
 				if (material.DaytimeTextureIndex == -1) {
 					var color = new OpenBveApi.Pixel(material.Color.R, material.Color.G, material.Color.B, material.Color.A);
-					obj.handle.texture.Add(Renderer.renderer.AddTextureFromColor(color));
+					obj.render_handles.textures.Add(Renderer.renderer.AddTextureFromColor(color));
 				}
 				else {
 					TextureManager.Texture tex = TextureManager.Textures[material.DaytimeTextureIndex];
-					obj.handle.texture.Add(tex.TextureHandle);
+					obj.render_handles.textures.Add(tex.TextureHandle);
 				}
 
-				obj.handle.mesh.Add(Renderer.renderer.AddMesh(subvert_list[i].ToArray(), subindex_list[i].ToArray()));
-				obj.handle.obj.Add(Renderer.renderer.AddObject(obj.handle.mesh[i], obj.handle.texture[i]));
+				obj.render_handles.meshes.Add(Renderer.renderer.AddMesh(subvert_list[i].ToArray(), subindex_list[i].ToArray()));
+				obj.render_handles.objects.Add(Renderer.renderer.AddObject(obj.render_handles.meshes[i], obj.render_handles.textures[i]));
 			}
 		}
 
@@ -1749,7 +1749,7 @@ namespace OpenBve
         internal static void ApplyStaticObjectData(ref StaticObject Object, StaticObject Prototype, Vector3 Position, World.Transformation BaseTransformation, World.Transformation AuxTransformation, bool AccurateObjectDisposal, double AccurateObjectDisposalZOffset, double StartingDistance, double EndingDistance, double BlockLength, double TrackPosition, double Brightness, bool DuplicateMaterials)
         {
             Object = new StaticObject();
-			Object.handle = Prototype.handle;
+			Object.render_handles = Prototype.render_handles;
             Object.StartingDistance = float.MaxValue;
             Object.EndingDistance = float.MinValue;
             // bool brightnesschange = Brightness != 1.0;
@@ -1774,7 +1774,7 @@ namespace OpenBve
                 World.Rotate(ref Object.Mesh.Vertices[j].Coordinates.X, ref Object.Mesh.Vertices[j].Coordinates.Y, ref Object.Mesh.Vertices[j].Coordinates.Z, AuxTransformation);
                 World.Rotate(ref Object.Mesh.Vertices[j].Coordinates.X, ref Object.Mesh.Vertices[j].Coordinates.Y, ref Object.Mesh.Vertices[j].Coordinates.Z, BaseTransformation);
 
-				foreach (ObjectHandle oh in Object.handle.obj) {
+				foreach (ObjectHandle oh in Object.render_handles.objects) {
 					Renderer.renderer.SetPosition(oh, Position);
 				}
                 Object.Mesh.Vertices[j].Coordinates.X += Position.X;
@@ -1879,6 +1879,7 @@ namespace OpenBve
             Result.StartingDistance = Prototype.StartingDistance;
             Result.EndingDistance = Prototype.EndingDistance;
             Result.Dynamic = Prototype.Dynamic;
+			Result.render_handles = Prototype.render_handles;
             // vertices
             Result.Mesh.Vertices = new World.Vertex[Prototype.Mesh.Vertices.Length];
             for (int j = 0; j < Prototype.Mesh.Vertices.Length; j++)

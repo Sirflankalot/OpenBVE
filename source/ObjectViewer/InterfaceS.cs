@@ -63,14 +63,29 @@ namespace OpenBve {
 		internal static void Reset() {
 			Renderer.Reset();
 
-			// Clear LibRender Objects and Meshes
+			// Clear LibRender Static Objects and Meshes
 			foreach (var o in ObjectManager.Objects) {
 				if (o != null) {
-					foreach (var oh in o.handle.obj) {
+					foreach (var oh in o.render_handles.objects) {
 						Renderer.renderer.Delete(oh);
 					}
-					foreach (var mh in o.handle.mesh) {
+					foreach (var mh in o.render_handles.meshes) {
 						Renderer.renderer.Delete(mh);
+					}
+				}
+			}
+
+			// Clear LibRender Animated Objects and Meshes
+			foreach (var awo in ObjectManager.AnimatedWorldObjects) {
+				if (awo != null && awo.Object != null && awo.Object.States != null) {
+					foreach (var state in awo.Object.States) {
+						var obj = state.Object;
+						foreach (var oh in obj.render_handles.objects) {
+							Renderer.renderer.Delete(oh);
+						}
+						foreach (var mh in obj.render_handles.meshes) {
+							Renderer.renderer.Delete(mh);
+						}
 					}
 				}
 			}
